@@ -1,0 +1,1596 @@
+Principles of Machine Learning
+Prof. Christian Bauckhage
+1 / 78
+lecture 08
+a glance at hybrid machine learning
+modern machine learning models allow for promising applications in the natural
+sciences and other research fields
+in this lecture, we look at a didactic yet difficult physics problem to demonstrate
+what this may mean
+importantly, we (try to) argue that hybrid machine learning models which involve
+knowledge-based modeling and data driven-driven learning are called for
+in passing, we shall “learn” how to solve differential equations and how to work
+with jax to code, train, and run neural networks
+2 / 78
+outline
+setting the stage
+modeling with differential equations
+solving (simple) differential equations
+problems of inverse kinematics
+a brief look at hybrid learning
+summary
+3 / 78
+setting the stage
+4 / 78
+nothing in the universe we know of is ever in true stasis !
+on the contrary, everything is permanently moving, rising,
+falling, growing, decaying, freezing, thawing, . . .
+in short, everything is in a state of perpetual change and
+therefore subject to some kind of process
+παντα ρει (everything flows)
+–Heraclitus (500 BCE)
+5 / 78
+the natural sciences (physics, chemistry, and biology) study these processes
+the modeling tools employed (especially in physics) are differential equations
+The unreasonable effectiveness of mathematics in the natural sciences [. . . ] is a wonderful
+gift which we neither understand nor deserve.
+–E. Wigner (1960)
+There is only one thing which is more unreasonable than the unreasonable effectiveness
+of mathematics in physics, and this is the unreasonable ineffectiveness of mathematics in
+biology.
+–I. Gelfand according to A. Borovik (2006)
+6 / 78
+differential equations either occur naturally or people make them to occur ;-)
+in general, solving differential equations and putting them to use can be
+excruciatingly difficult which motivated decades of extensive research and
+development on sophisticated numerical techniques
+however, modern machine learning now provides viable alternatives to these
+venerable, well-understood but costly mathematical tools
+Mathematical economics is unreasonably ineffective. Unreasonable, because the mathematical assumptions are economically unwarranted; ineffective because the mathematical
+formalisations imply non-constructive and uncomputable structures.
+–K.V. Velupillai (2005)
+7 / 78
+modeling with differential equations
+8 / 78
+as a “simple” example, we will consider the physical behavior of a ball being shot
+shot put athlete
+shoots a ball as far as possible
+basketball player
+shoots a ball towards a target
+9 / 78
+we choose to model the system in
+R
+2
+at a time
+t
+⩾
+0, the ball therefore has
+positionr(t) =
+x
+(
+t
+)
+y
+(
+t
+)
+
+velcocity v(t) =
+d
+dt
+r
+(
+t) =
+r˙(
+t) =
+x˙(
+t
+)
+y˙(
+t
+)
+
+acceleration a(t) = d
+2
+dt
+2
+r
+(
+t) =
+¨r
+(
+t) =
+
+¨x
+(
+t
+)
+¨y
+(
+t
+)
+
+x
+y
+r
+(
+t
+)v
+(
+t
+)
+a
+(
+t
+)
+10 / 78
+at initial time
+t
+=
+0, we posit these
+initial position r(0) = 00
+
+initial velcocity v(0) = v cos
+θ
+v sin
+θ
+
+note: these are model parameters
+for different settings, they will
+have different values
+x
+y
+r(0)
+v(0)
+θv
+11 / 78
+question
+what do we know about the dynamics / behavior of our ball ?
+⇔ what does classical mechanics tell us about its movement ?
+answer
+quite a lot actually . . .
+12 / 78
+once our ball has been shot, two
+forces will be acting on it, namely
+gravity
+drag (⇔ air resistance)
+⇒ Newton’s second law tells us that
+m a(t) = Fg(t) + Fd(t)
+note: the mass m of the ball is another
+problem parameter
+for a shot put ball, we work with
+m = 7.26 kg
+x
+y
+gravity
+drag
+13 / 78
+⇒ assuming ball motion under Stokes’ drag, we have
+m
+
+¨x(t)
+¨y(t)
+
+= −m g 
+0
+1
+
+− k
+
+x˙(t)
+y˙(t)
+
+note: g and k are even further problem parameters
+near the surface of Earth, we have g ≈ 9.81 m
+s
+2
+k depends on peculiarities of our setting (radius
+of the ball, viscosity of the medium it moves in)
+for a shot put ball in air, we assume k = 0.45 kg
+s
+14 / 78
+just to be clear
+different choices of (variable) problem parameters lead to different ball trajectories
+different trajectories have similar shapes as they adhere to the same physical laws
+⇔ they are but different solutions under different initial- and environmental conditions
+x
+y
+different v
+x
+y
+different θ
+x
+y
+different k
+15 / 78
+just to be clear
+we made two simplifying modeling assumptions
+1) it is enough to model the whole system in 2D
+(in reality it may not be as there may be, say, sideways winds impacting the ball’s trajectory . . . )
+2) Stokes’ drag (∝ v(t)) is reasonably accurate
+(in general, Newton’s drag (∝ a(t)) may be a more appropriate (albeit tedious) modeling choice)
+All models are wrong, but some are useful.
+–G. Box (1976)
+16 / 78
+solving (simple) differential equations
+17 / 78
+we just set up a system of two simultaneous differential equations
+m¨x(t) = −k x˙(t)
+m¨y(t) = −k y˙(t) − m g
+⇔ we have two dependent variables (x, y) whose values are unknown
+functions of a single independent variable (t)
+to solve these equations is to estimate the unknowns x(t) and y(t)
+so, let’s go for it . . .
+18 / 78
+solving for x(t)
+solving
+m¨x(t) = −k x˙(t)
+for x(t) is what people in the business would consider a “triviality”
+the “difficulty” for beginners is that solutions to this problem invoke
+background knowledge from hundreds of years of physics or what
+is lovingly called informed guessing . . .
+19 / 78
+we have
+m¨x(t) = −k x˙(t)
+⇔ ¨x(t) + k
+m
+x˙(t) = 0
+⇔ we are dealing with a homogeneous differential equation (no constant terms) which
+moreover is a second order ordinary differential equation (it involves one unknown
+function x(t) and up to two derivatives of this function)
+long-established collective wisdom informs us that its solutions will be of the form
+x(t) ∝ e
+λt
+20 / 78
+assuming that x(t) = e
+λt
+, we obtain
+¨x(t) + k
+m
+x˙(t) = d
+2
+dt2 e
+λt +
+k
+m
+d
+dt e
+λt
+= λ
+2
+e
+λt +
+k
+m
+λ e
+λt
+and all that is left is to estimate λ s.t.
+λ
+2
+e
+λt +
+k
+m
+λ e
+λt = 0
+21 / 78
+estimating
+λ is easy, because
+λ
+2
+e
+λ
+t
++
+km
+λ
+e
+λ
+t
+=
+0
+⇔
+e
+λ
+t
+h
+λ
+2
++
+km
+λ
+i
+=
+0
+⇔
+λ
+h
+λ
++
+km
+i
+=
+0
+⇔ either
+λ
+=
+0
+or
+λ = −
+km
+22 / 78
+next, recall or convince yourself that, if a differential equation admits several
+solutions xj(t), then any linear combination
+x(t) = X
+j
+cj
+· xj(t)
+with coefficients cj ∈ C will also be a solution
+⇒ the general algebraic solution to our current differential equation is given by
+x(t) = A e0 t + B e− k
+m
+t = A + B e− k
+m
+t
+where A and B still need to be determined s.t. x(t) meets our initial conditions
+23 / 78
+since we need to have
+x(0) = 0
+x˙(0) = v cos θ ≡ vx
+we find the coefficients
+x(0) = 0 = A + B e− k
+m
+0 = A + B ⇒ A = −B
+x˙(0) = vx = −
+k
+m
+B e− k
+m
+0 = −
+k
+m
+B ⇒ B = −
+m vx
+k
+⇒ the specific solution to our current differential equation amounts to
+x(t) = m vx
+k −
+m vx
+k
+e
+− k
+m
+t =
+m vx
+k
+h
+1 − e
+− k
+m
+t
+i
+24 / 78
+solving for y(t)
+solving
+m¨y(t) = −k y˙(t) − m g
+for y(t) is slightly more tedious and will again involve informed guessing . . .
+25 / 78
+we are dealing with an inhomogeneous differential equation
+¨y(t) + k
+m
+y˙(t) = −g
+and guess a complementary- as well as a particular solution
+yC(t) = A + B e− k
+m
+t
+yP(t) = α t
+2 + β t
+here, yC(t) is the general solution to the related homogeneous
+equation and yP(t) is a working solution to our inhomogeneous
+equation
+why? because of hundreds of years of collective wisdom !
+26 / 78
+to determine α and β, we observe that we must have
+¨yP(t) + k
+m
+y˙P(t) = −g
+⇔ 2 α +
+k
+m
+2 α t +
+k
+m
+β = −g
+from which we can immediately conclude the values
+α = 0
+β = −
+m g
+k
+⇒ so far, we have
+y(t) = yC(t) + yP(t) = A + B e− k
+m
+t −
+m g
+k
+t
+27 / 78
+to determine A and B, we need our (other) initial conditions
+y(0) = 0
+y˙(0) = v sin θ ≡ vy
+because, using these, we find
+y˙(0) = vy = −
+k
+m
+B e− k
+m
+0 −
+m g
+k ⇒ B = −
+m
+k
+
+vy +
+m g
+k
+
+y(0) = 0 = A + B e− k
+m
+0 = A + B ⇒ A = −B
+⇒ the specific solution to our current differential equation is
+y(t) = m
+k
+h
+vy +
+m g
+k
+i h1 − e
+− k
+m
+t
+i
+−
+m g
+k
+t
+28 / 78
+intermediate summary
+dealing with the differential equation or dynamical system
+
+¨x(t)
+¨y(t)
+
+= −
+k
+m
+
+x˙(t)
+y˙(t)
+
+−
+
+0
+g
+
+with (parameterized) initial values or boundary conditions
+
+x(0)
+y(0)
+
+=
+
+0
+0
+
+
+x˙(0)
+y˙(0)
+
+=
+
+v cos θ
+v sin θ
+
+≡
+
+vx
+vy
+
+we find the solution to this initial value problem amounts to
+
+x(t)
+y(t)
+
+=
+m
+k
+h
+1 − e
+− k
+m
+t
+i
+
+vx
+vy +
+m g
+k
+
+− t
+
+0
+m g
+k
+
+29 / 78
+numpy
+coding this solution is easy
+import numpy as np
+MASS = 7.26 # weight of a shot put ball
+DRAG = 0.45 * 4 # massive drag just for fun
+def x_of_t(t, v, tht, m=MASS, k=DRAG):
+"""tht: angle given in degrees"""
+tht = np.deg2rad(tht)
+v_x = v * np.cos(tht)
+return m/k * v_x * (1 - np.exp(-k/m * t))
+def y_of_t(t, v, tht, m=MASS, k=DRAG):
+"""tht: angle given in degrees"""
+g = 9.81
+tht = np.deg2rad(tht)
+v_y = v * np.sin(tht)
+return m/k * (v_y + m/k * g) * (1 - np.exp(-k/m * t)) - m/k * g * t
+however . . .
+30 / 78
+note
+when we plot trajectories, we plot y
+as a function of x
+⇒ we still have some more work to do
+0 2 4 6 8 10 12 14 16 18 20 22 24
+x
+0
+2
+4
+6
+8
+y
+31 / 78
+to eliminate t, we consider
+x =
+m vx
+k
+h
+1 − e
+− k
+m
+t
+i
+(1)
+y =
+m
+k
+h
+vy +
+m g
+k
+i h1 − e
+− k
+m
+t
+i
+−
+m g
+k
+t (2)
+using (1), we observe that
+k x
+m vx
+= 1 − e
+− k
+m
+t ⇔ e
+− k
+m
+t = 1 −
+k x
+m vx ⇔ t = −
+m
+k
+ln h
+1 −
+k x
+m vx
+i
+(3)
+plugging (3) into (2) gives
+y =
+m
+k
+h
+vy +
+m g
+k
+i
+k x
+m vx
+−
+m g
+k
+h
+−
+m
+k
+ln h
+1 −
+k x
+m vx
+ii =
+vy+
+m g
+k
+vx
+x +
+m
+2 g
+k
+2
+ln h
+1 −
+k x
+m vx
+i
+32 / 78
+⇒ the function y(x) for the trajectory of our ball turns out to be
+y(x) = vy+
+m g
+k
+vx
+x +
+m
+2 g
+k
+2
+ln h
+1 −
+k
+m vx
+x
+i
+for later, we already note that its first derivative dy
+dx = y
+′
+(x) is
+y
+′
+(x) = vy+
+m g
+k
+vx
+−
+m
+2 g
+k
+2
+k
+m vx
+1−
+k
+m vx
+x
+we could simplify this, but we won’t . . .
+33 / 78
+numpy
+coding these functions is easy
+def y_of_x(x, v, tht, m=MASS, k=DRAG):
+tht = np.deg2rad(tht)
+v_x = v * np.cos(tht)
+v_y = v * np.sin(tht)
+g = 9.81
+A = (k * v_y + m * g) / (k * v_x)
+B = m**2 / k**2 * g
+C = k / (m * v_x)
+return A * x + B * np.log(1 - C*x)
+def y_of_x_prm(x, v, tht, m=MASS, k=DRAG):
+tht = np.deg2rad(tht)
+v_x = v * np.cos(tht)
+v_y = v * np.sin(tht)
+g = 9.81
+A = (k * v_y + m * g) / (k * v_x)
+B = m**2 / k**2 * g
+C = k / (m * v_x)
+return A - B * C / (1 - C*x)
+however . . .
+34 / 78
+problems of inverse kinematics
+35 / 78
+note
+in practice, we are usually interested
+in a function D : R
+2 → R+ with
+D
+
+v, θ
+
+= d
+which returns d > 0 for which y(d) = 0
+⇔ in practice, we want to know how far a
+ball will fly given its initial v and θ
+⇔ we want to know the non-trivial root of
+y(x) = vy+
+m g
+k
+vx
+x +
+m
+2 g
+k
+2
+ln h
+1 −
+k
+m vx
+x
+i
+x
+y
+d
+36 / 78
+note
+alas, now we have hit a road block !
+whereas we (trivially) have y(0) = 0,
+there is no algebraic- or closed form
+expression for
+D
+
+v, θ
+
+= argmin
+x>0
+
+
+ y
+
+x
+
+ v, θ
+
+
+
+
+yes, the right hand side looks strange but it formalizes what
+we are talking about, because
+min
+x
+
+
+ y
+
+x
+
+ v,θ
+
+
+
+ = 0
+x
+y
+d
+even worse . . .
+37 / 78
+note
+what many practitioners really need
+is a function
+P
+:
+R
+→
+R
+2 with
+P
+
+d
+
+=
+
+vθ
+
+to determine which parameters
+[
+v, θ
+]
+⊺
+will yield a given distance
+d
+yet, our figure shows such a function
+cannot exist . . .
+for one input
+d, there are at least two
+outputs
+[
+v
+1, θ
+1
+]
+⊺ and
+[
+v
+2, θ
+2
+]
+⊺ which a
+“function”
+P
+(
+d
+) could return
+x
+y
+d
+38 / 78
+take home message
+to compute
+D
+
+v, θ
+
+= argmin
+x>0
+
+
+ y
+
+x
+
+ v, θ
+
+
+
+
+and to estimate
+ˆv, θˆ = argmin
+v,θ
+
+
+
+D
+
+v, θ
+
+− d
+
+
+
+we must employ numerical techniques or, nowadays, machine learning models
+next, we briefly look at the former . . .
+39 / 78
+estimating D
+
+v, θ
+
+to estimate a nontrivial root x ̸= 0 of y(x), we may resort to Newton’s method and run
+guess a solution x0
+for k = 0, 1, 2, . . .
+xk+1 = xk −
+y(xk)
+y
+′(xk)
+scipy has us covered
+40 / 78
+scipy
+long story short, we may use
+import scipy.optimize as sopt
+def distance(v, tht, m, k, x0):
+sltn = sopt.root_scalar(f=y_of_x, fprime=y_of_x_prm, method=’newton’, x0=x0, args=(v, tht, m, k))
+return sltn.root
+which we may invoke like this
+print(distance(v=15.0, tht=60.0, m=MASS, k=DRAG, x0=20.0))
+to then obtain results such as
+17.880019852509413
+this seems to work well, but . . .
+41 / 78
+note
+in what follows, we actually do not use the above function distance, because
+1) in general, results of Newton’s method critically depend on the initial guess x0
+2) in our specific setting, this is “dangerous” since our numerator y(x) involves a
+logarithm and our denominator y
+′
+(x) involves a difference
+the former can numerically implode towards −∞ and the latter can, at times,
+get uncomfortably close to 0
+but there are alternative implementations of distance which do not work with y(x)
+and y
+′
+(x) but with other functions ;-)
+can you see or think of which other functions these may be and how to use them ?
+42 / 78
+given distance (similar to the above), we can run the following to
+sample or approximate the analytically impossible function D
+
+v, θ
+
+VMIN, VMAX = 5, 85
+TMIN, TMAX = 5, 85
+ds = np.zeros((100, 100)
+vs = np.linspace(VMIN, VMAX, 100)
+thts = np.linspace(TMIN, TMAX, 100)
+for i, tht in enumerate(thts):
+for j, v in enumerate(vs):
+ds[i,j] = distance(v, tht, m=MASS, k=DRAG, x0=20.0))
+since scipy.optimize functions are not vectorized, this is one of the rare
+occasions in data science with Python where for loops are permitted ;-)
+we could do better (implement a vectorized Newton’s method), but we won’t . . .
+43 / 78
+pretty plotting the content of array ds provides
+10 20 30 40 50 60 70 80
+v
+10
+20
+30
+40
+50
+60
+70
+80
+θ
+0
+50
+100
+150
+200
+250
+Dsmpl
+v,θ
+
+44 / 78
+given Dsmpl
+v, θ
+
+and some target distance d one would think that we could perform
+gradient descent on
+
+Dsmpl
+v, θ
+
+− d
+
+
+to determine some corresponding ˆv and θˆ . . .
+10 20 30 40 50 60 70 80
+v
+10
+20
+30
+40
+50
+60
+70
+80
+θ
+0
+50
+100
+150
+200
+250
+Dsmpl
+v,θ
+
+10 20 30 40 50 60 70 80
+v
+10
+20
+30
+40
+50
+60
+70
+80
+θ
+0
+50
+100
+150
+200
+250
+
+Dsmpl
+v,θ
+
+− d
+
+
+, d = 50
+10 20 30 40 50 60 70 80
+v
+10
+20
+30
+40
+50
+60
+70
+80
+θ
+0
+50
+100
+150
+200
+250
+
+Dsmpl
+v,θ
+
+− d
+
+
+, d = 150
+45 / 78
+just to be clear
+the above figures seem to show continuous functions but this is a plotting artifact
+we still do not have access to the function D
+
+v, θ
+
+since we only sampled it on a
+regular 100 × 100 grid imposed on a small
+section of its domain
+⇒ we cannot immediately perform gradient
+descent on a discretized function
+⇔ we would need to employ, say, (intricate)
+interpolation schemes to do this
+in low dimensions, this is possible, but in
+higher dimensions there is a fundamental
+problem with grid-based methods . . .
+10 20 30 40 50 60 70 80
+v
+10
+20
+30
+40
+50
+60
+70
+80
+θ
+46 / 78
+a manifestation of the curse of dimensionality
+in a 2D cube, 102 evenly spaced points give a dense sample
+in a 3D cube, it requires 103 points to obtain such a sample
+.
+.
+.
+in m dimensions, it requires 10m points to get such a sample
+· · ·
+47 / 78
+this exponential growth of grid sizes hampered numerical methods in the natural
+sciences for decades (and fostered much research on smart grid point selection)
+again, for our low-dimensional example problem, all is well but ponder this:
+we only consider v and θ to be variables and think of m and k as constants
+in our two-variable setting, we work with
+100 × 100 = 10, 000 grid points
+if m and k were variables, too, we should thus consider
+100 × 100 × 100 × 100 = 100, 000, 000 grid points
+if we would introduce further variables (such as the height h from with our
+ball is shot), then grid sizes would continue to grow by factors of 100 . . .
+48 / 78
+note
+these numbers underline that even trivial simulations (of physical systems with only
+few variables) can completely overburden off-the-shelf computers
+they also explain why complex simulations (such as weather- or climate forecasting
+which is just differential equation solving) used to require supercomputers
+they finally explain why more and more researchers in the MINT fields are so exited
+about the prospects of modern machine learning
+this brings us to . . .
+49 / 78
+a brief look at hybrid learning
+50 / 78
+note
+let us randomly sample n = 1000 points from the uniform distribution U over
+5, 852
+v1, v2, . . . , vn ∼ U[5,85]
+θ1, θ2, . . . , θn ∼ U[5,85]
+and recall these statistics of U[5,85]
+µ = E
+h
+U[5,85]
+i
+=
+5 + 85
+2
+σ
+2 = V
+h
+U[5,85]
+i
+=
+(85 − 5)
+2
+12
+10 20 30 40 50 60 70 80
+v
+10
+20
+30
+40
+50
+60
+70
+80
+θ
+51 / 78
+given the
+vj
+, θj
+
+, we can use distance to estimate the corresponding dj
+if we then gather the former in an n × 2 matrix and the latter in an n vector
+X
+⊺ =
+
+
+
+
+
+v1 θ1
+v2 θ2
+.
+.
+.
+.
+.
+.
+vn θn
+
+
+
+
+
+and y =
+
+
+
+
+
+d1
+d2
+.
+.
+.
+dn
+
+
+
+
+
+we have created data to train a machine learning model of function D
+
+v, θ
+
+52 / 78
+a neural network model
+next, we shall use jax to implement, train, and
+run a fully connected MLP model Dnet
+v, θ
+
+for reasons that will become apparent soon, we
+refer to this neural network as a decoder
+decoder
+v θ
+· · ·
+· · ·
+· · ·
+d
+53 / 78
+modeling assumptions
+we will work with 4 hidden layers of 250, 500, 500,
+and 250 neurons
+all hidden neurons will have tanh activations, the
+output neuron will have a linear activation
+for training, we consider the least squares loss
+L =
+1
+n
+X
+j
+
+Dnet
+vj
+, θj
+
+− dj
+2
+we apply na¨ıve gradient descent with a constant
+step size η = 10−4 and run 50000 epochs with the
+complete training batch
+why all these particular choices ??? because . . .
+decoder
+v θ
+· · ·
+· · ·
+· · ·
+d
+54 / 78
+disclaimer
+in the following, we will code everything from scratch ; this will be tedious but
+hopefully educative (?!?)
+we could work with jax.example libraries.stax which would be more
+convenient but somewhat less flexible and, importantly, still “experimental”
+in the following, there will be a few for loops which we would typically avoid
+indeed, we could vectorize them using jax.vmap but our goal is readability
+(at least to the extent possible)
+55 / 78
+jax
+throughout, we need
+import jax
+import jax.numpy as jnp
+given (lists of) appropriately sized weight matrices Wl and bias vectors bl as well as
+corresponding activation functions fl
+, running an MLP model is easy
+def run_decoder(vecX, Ws, Bs, Fs):
+vecA = vecX
+for (matW, vecB, aFct) in zip(Ws, Bs, Fs):
+vecA = aFct(vecA @ matW + vecB)
+return vecA
+training is a different story . . .
+56 / 78
+we assume and pre-process
+matXtrn = ... # (n,2) array of inputs
+vecYtrn = ... # (n, ) array of outputs
+vecYtrn = vecYtrn.reshape(-1,1) # (n,1) array of outputs
+to specify layer sizes and -functions, we use
+l_sizes = [2, 250, 500, 500, 250, 1]
+l_fncts = [jax.nn.tanh] * (len(l_sizes)-2) + [lambda x : x]
+but this is just the beginning . . .
+57 / 78
+to initialize weight matrices and bias vectors, we use
+def init_net_params(l_sizes):
+Bs = []
+Ws = []
+key = jax.random.PRNGKey(42)
+for (fan_in, fan_out) in zip(l_sizes[:-1], l_sizes[1:]):
+key, w_key = jax.random.split(key)
+max_weight = jnp.sqrt(6 / (fan_in + fan_out))
+Bs.append(jnp.zeros(fan_out))
+Ws.append(jax.random.uniform(w_key, (fan_in, fan_out), minval=-max_weight, maxval=+max_weight))
+return Ws, Bs
+note: we apply the Glorot / Bengio initialization for the weight values of tanh neurons
+and now . . .
+58 / 78
+for training, we need a loss function
+def lsq_loss(predictions, targets):
+return jnp.mean((predictions - targets)**2)
+we won’t comment on this but note our use of jax.jit and jax.value and grad
+def train_decoder(matX, vecY, l_sizes, l_fncts, eta, epochs):
+w_vals, b_vals = init_net_params(l_sizes)
+loss_and_gradients = jax.jit( jax.value_and_grad(
+lambda Ws, Bs : lsq_loss(run_decoder(matX, Ws, Bs, l_fncts), vecY), argnums=(0,1) ))
+for epoch in range(epochs):
+loss, (w_grads, b_grads) = loss_and_gradients(w_vals, b_vals)
+w_vals = jax.tree.map( lambda W, gW : W - eta * gW, w_vals, w_grads )
+b_vals = jax.tree.map( lambda b, gb : b - eta * gb, b_vals, b_grads )
+if epoch % 100 == 0: print (f’epoch: {epoch}, loss: {loss}’)
+return w_vals, b_vals
+finally . . .
+59 / 78
+training
+with all this, we “simply” run
+matXtrn = standardize(matXtrn)
+dWs,dBs = train_decoder(matXtrn, vecYtrn, l_sizes, l_fncts, eta=0.0001, epochs=50_000)
+note that this involves the following (scenario specific !) standardization procedure
+def standardize(matX):
+mu_v, sig_v = (VMAX + VMIN) / 2, (VMAX - VMIN) / np.sqrt(12)
+mu_t, sig_t = (TMAX + TMIN) / 2, (TMAX - TMIN) / np.sqrt(12)
+matX[:,0] = (matX[:,0] - mu_v) / sig_v
+matX[:,1] = (matX[:,1] - mu_t) / sig_t
+return matX
+but why ?
+60 / 78
+(practically important) principles of machine learning
+for most machine learning models / algorithms, it is an incredibly good idea
+to normalize the (input-) data to a numerically stable range prior to training
+if a normalization procedure is applied prior to training, then the exact same
+normalization procedure must also be applied prior to testing / application
+61 / 78
+standardization
+there are many different normalization techniques, a very important one is
+to standardize data to zero mean and unit variance
+⇔ if x ∈ R is sampled from a distribution with mean µ and variance σ
+2
+, then
+˜x =
+x − µ
+σ
+will follow a distribution with zero mean (µ˜ = 0) and unit variance (σ˜
+2 = 1)
+yes, standardization requires the standard deviation σ =
+√
+σ2
+rather than the variance σ2
+62 / 78
+testing
+having trained our decoder, we may test it like this
+vs, thts = np.meshgrid(np.linspace(VMIN, VMAX, 100),
+np.linspace(TMIN, TMAX, 100))
+matXtst = np.vstack((vs.flatten(), thts.flatten())).T
+matXtst = standardize(matXtst)
+vecYtst = run_decoder(matXtst, dWs, dBs, l_fncts)
+ds = vecYtst.reshape(100, 100)
+if we then pretty plot the content of array ds, we get . . .
+63 / 78
+result
+10 20 30 40 50 60 70 80
+v
+10
+20
+30
+40
+50
+60
+70
+80
+θ
+0
+50
+100
+150
+200
+250
+sampled function Dsmpl
+v,θ
+
+10 20 30 40 50 60 70 80
+v
+10
+20
+30
+40
+50
+60
+70
+80
+θ
+0
+50
+100
+150
+200
+250
+neural network model Dnet
+v,θ
+
+64 / 78
+note
+while Dsmpl
+v, θ
+
+is but a discrete sampled function, our model Dnet
+v, θ
+
+is indeed a continuous function Dnet : R
+2 → R which (well) approximates
+the analytically impossible function D
+
+v, θ
+
+⇒ given some d, we can now invoke jax.grad in order to solve the inverse
+kinematics problem
+ˆv, θˆ = argmin
+v,θ
+
+
+
+Dnet
+v, θ
+
+− d
+
+
+
+via gradient descent
+but we can also try something more ambitious . . .
+65 / 78
+an extended neural model
+consider the encode-decoder model on the right
+the encoder Pnet models
+P : R
+2 → R
+the decoder Dnet models
+D : R → R
+2
+⇒ the overall network is supposed to compute the
+identity function idnet : R → R such that
+idnet
+d
+
+= Dnet
+Pnet
+d
+
+
+= d
+decoderencoder
+d
+· · ·
+· · ·
+· · ·
+v θ
+· · ·
+· · ·
+· · ·
+d
+66 / 78
+as we have already trained the decoder, we
+can learn encoder weights and biases from
+gradient descent on
+L =
+1
+n
+X
+j
+
+Dnet
+Pnet
+dj
+
+
+− dj
+2
+up until some years ago, nobody would have
+dared considering this idea, but . . .
+in the day and age of autodiff libraries this is
+more or less a breeze !!!
+decoderencoder
+d
+· · ·
+· · ·
+· · ·
+v θ
+· · ·
+· · ·
+· · ·
+d
+67 / 78
+modeling assumptions
+for the results reported next, we considered an encoder with 4 hidden layers of 250,
+500, 500, and 250 neurons
+every hidden neuron had ReLU activations, the output neuron had a linear activation
+we again trained with with na¨ıve gradient descent using a step size of η = 10−6 and
+ran 200000 epochs over the whole training batch
+why ??? because . . .
+once we have trained idnet(d), we can access / extract its sub-net Pnet(d) which
+provides us with an a model of the mathematically impossible “function” P(d)
+let’s test it . . .
+68 / 78
+testing
+noting our use of destandardize, we may use something like this
+d_goal = 150
+params = run_encoder(np.array([[d_goal]], eWs, eBs, e_l_fncts)
+params = destandardize(np.array(params.reshape(1,2)))
+print(’v_0 =’, params[0,0])
+print(’tht_0 =’, params[0,1])
+which results in
+v_0 = 75.27678
+tht_0 = 11.88011
+⇒ our model Pnet(d) of the impossible “function” P(d) has learned to predict high initial
+velocities and small initial angles, but they work . . .
+69 / 78
+trajectory determined by
+v0 = 75.28 m
+s
+θ0 = 11.88◦
+0 25 50 75 100 125 150 175
+x
+0
+2
+4
+6
+8
+10
+y
+70 / 78
+questions
+but why so convoluted ?
+why train idnet on data 
+
+dj
+n
+j=1
+instead of training Pnet on data 
+
+dj
+, [vj
+, θj
+]
+⊺
+n
+j=1
+???
+71 / 78
+answers
+because we would have to very carefully think about an appropriate loss function !!!!!
+⇔ velocities v and angles θ are physically different entities, Euclidean distances such as
+
+
+
+
+
+vnet
+θnet
+−
+
+v
+θ
+
+
+
+
+2
+are not physically adequate and may lead to implausible or useless results
+but, to emphasize, having pre-trained Dnet(v, θ) using a physically adequate loss, we
+can train idnet(d) = Dnet
+Pnet(d)
+
+using a physically reasonable / meaningful loss so
+as to implicitly obtain an appropriate Pnet(d)
+72 / 78
+take home message
+by pre-training a decoder
+Dnet
+v, θ
+
+= d
+under physically plausible assumptions, we
+can train an encoder-decoder network under
+physically plausible assumptions to obtain a
+decoder
+Pnet
+d
+
+=
+
+v
+θ
+
+which is inductively biased towards predicting
+physically plausible solutions to a very difficult
+inverse kinematics problem
+decoderencoder
+d
+· · ·
+· · ·
+· · ·
+v θ
+· · ·
+· · ·
+· · ·
+d
+73 / 78
+hybrid machine learning
+hybrid machine learning models and algorithms learn structured representations of
+and from empirical data
+either, they incorporates structure into data representations by leveraging inductive
+biases which come from mathematics, the natural sciences, the social sciences, or
+economics
+or, they use informed structural knowledge to better solve problems in these fields
+74 / 78
+take home message
+do not underestimate the benefits / importance of informed machine learning
+(many if not most) developers of machine learning models often do not understand
+that users of machine learning models need to make sense of their predictions
+⇔ in the real world (natural sciences), model predictions must be reliable / explainable
+however, at present, it unfortunately seems that even very powerful LLMs only learn
+correlations rather than causations (just ask Prof. Bajorath [1] ;-)
+this is, of course, an unfortunate and arguably potentially dangerous state of affairs !
+75 / 78
+summary
+76 / 78
+we now know about
+pen-and-paper differential equation solving
+the difficulty of inverse kinematics problems and the fact that their
+solutions usually require numerical methods or machine learning
+the idea and benefits of the paradigm of hybrid machine learning
+how to use jax for coding, training, and running neural networks
+77 / 78
+references
+[1] J.P. Roth and J. Bajorath. Unraveling Learning Characteristics of Transformer Models
+for Molecular Design. Patterns, 6, 2025.
+78 / 78

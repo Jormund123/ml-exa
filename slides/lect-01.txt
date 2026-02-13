@@ -1,0 +1,657 @@
+Principles of Machine Learning
+Prof. Christian Bauckhage
+1 / 69
+lecture 01
+a first glimpse at machine learning . . .
+artificial intelligence (AI) is a technical discipline that aims at building
+cognitive machines
+⇔ AI is concerned with computer algorithms and systems that can see,
+hear, read, write, make plans, guide robots, . . .
+machine learning (ML) is an important branch of artificial intelligence
+this lecture provides a first rough overview of the what, why, and how
+of machine learning
+in passing, we already encounter some of the terminology commonly
+used in the field
+2 / 69
+lecture 01
+and the machine learning pipeline
+we also have a first look at the different stages involved in training
+a computational intelligence system to perform cognitive tasks
+in short, we look at what people call the machine learning pipeline
+and emphasize some of its general aspects we must be aware of
+3 / 69
+outline
+machine learning
+what, why, and how ?
+the machine learning pipeline
+data pre-processing
+model selection
+model fitting
+model evaluation
+summary
+4 / 69
+what is machine learning ?
+5 / 69
+machine learning is the science of
+fitting mathematical models to data
+⇕
+machine learning is to run computer algorithms
+on exemplary data to adjust the parameters of
+other computer algorithms (⇔ models) so that
+these become able to perform cognitive tasks
+6 / 69
+the above definition deliberately demystifies the notion of ML
+indeed, dramatic progress over the past decade has caused
+considerable public interest in ML but accounts in the media
+are usually horribly ignorant and hand-wavy
+however, to make sense of our definition, we need to answer
+two obvious follow up questions, namely
+1) what are data ?
+2) what are mathematical models ?
+7 / 69
+definitions of the concept of data can be surprisingly multi-faceted
+and may range from more philosophical to more technical aspects
+for instance, we may say that . . .
+8 / 69
+philosophically, data are known facts that
+can be recorded, stored, and retrieved
+and have an implicit “meaning”
+technically, data are collections of (numerical)
+values that result from measurements, surveys,
+or similar procedures and can be processed by
+computers
+9 / 69
+we also distinguish
+structured data
+⇔ data which easily fit into spreadsheets or relational data bases
+⇔ data which naturally allow for organizing, searching, or hashing
+⇔ data which can be represented in form of elementary data types
+unstructured data
+⇔ data such as texts, speech recordings, images, videos, . . .
+⇔ data whose automatic analysis poses challenges
+meta-data
+⇔ data which carry additional information about other data
+tags or labels, time when- and location where a picture was taken, captions, text annotations, . . .
+10 / 69
+in this course, our focus will be on ML algorithms and their underlying
+mathematical principles rather than on ML system engineering
+⇔ we will study algorithms that process numerical values or data points
+in order to automatically determine their “meaning”
+(in doing so, we will assume a rather mathematical view on “meaning”)
+speaking about mathematics . . .
+11 / 69
+mathematical models are formal descriptions
+of certain aspects of the observable world
+⇕
+mathematical models provide logical or structural
+characterizations of principles, states, or dynamics
+of the observable world and thus allow for making
+(informed) predictions or decisions
+12 / 69
+note
+mathematical models are typically but coarse abstractions
+of very complex phenomena whose minute details may be
+too complicated for a formal description
+All models are wrong, but some are useful.
+–George Box
+13 / 69
+question
+OK, but isn’t machine learning all about neural networks and such ???
+14 / 69
+question
+OK, but isn’t machine learning all about neural networks and such ???
+answer
+well, neural networks are nothing but very general mathematical models
+14 / 69
+one more thing . . .
+15 / 69
+there are three major ML paradigms
+supervised learning
+unsupervised learning
+reinforcement learning
+this course will focus on the first two
+for the third, we have another course
+machine
+learning
+supervised
+learning
+unsupervised
+learning
+reinforcement
+learning
+classification
+regression
+clustering
+dimensionalty
+reduction
+16 / 69
+why do we use machine learning ?
+17 / 69
+model fitting allows us to make sense of data or to generalize
+from known observations to new ones
+⇔ we typically use machine learning to solve problems such as
+regression
+classification / pattern recognition
+density estimation / data clustering
+.
+.
+.
+simplification / surrogate modeling
+(multi-modal) content generation
+18 / 69
+(didactic) examples
+19 / 69
+regression
+x
+y
+given data
+D =
+
+
+xj
+, yj
+n
+j=1
+where xj
+, yj ∈ R, we may have reason
+to believe that the yj depend on the xj
+20 / 69
+x
+y
+we may model this dependency
+using a function
+f : R → R
+which (approximately) maps the independent variables or
+predictors xj
+to the dependent variables or outcomes yj
+yj ≈ f
+
+xj
+
+21 / 69
+x
+y
+the problem is that there are
+infinitely many functions f
+⇒ we “somehow” need to narrow down our choices of f
+⇔ we “somehow” have to hypothesize a suitable model
+22 / 69
+x
+y
+here, we hypothesize that
+the family of functions
+f
+
+x | a, b
+
+= x
+a
+· sin
+b · x
+
+with parameters a, b ∈ R may provide an appropriate model of the data in D
+⇒ our model fitting task is to determine optimal parameters a and b of f
+
+x | a, b
+
+⇔ we need to determine which choice of a and b best matches f
+
+x | a, b
+
+to D
+23 / 69
+x
+y
+the next problem is that there are
+infinitely many choices for a and b
+⇔ our hypothesis class is infinitely large
+⇔ we cannot test every conceivable choice of
+parameters to determine the optimal ones
+⇒ we require smarter model fitting algorithms
+24 / 69
+x
+y
+indeed, using (simple) statistical
+optimization techniques, we find
+that f
+
+x | a, b
+
+with
+a = 1.10
+b = 1.99
+characterizes our data very well
+25 / 69
+principle of machine learning
+we may regress anything onto everything
+however, when dealing with data such as
+D =
+
+
+"when I came home, my", "dog"
+,
+
+"I came home, my dog", "was"
+,
+
+"came home, my dog was", "already"
+,
+
+"home, my dog was already", "waiting"
+, . . .
+we will obviously have to work with very, very sophisticated models . . .
+26 / 69
+classification / pattern recognition
+x1
+given annotated data
+x2
+D =
+
+
+xj
+, yj
+n
+j=1
+where the data points xj ∈ R
+2 come from
+two classes Ω1 or Ω2 and the annotations
+yj =
+
++1 if xj ∈ Ω1
+−1 if xj ∈ Ω2
+are label values that indicate class membership, . . .
+27 / 69
+x1
+we may want to train a classifier
+x2
+f : R
+2 →
+
+−1, +1
+	
+which (approximately) maps the
+given data points to their labels
+yj ≈ f
+
+xj
+
+28 / 69
+x1
+again, the common approach is to
+x2
+1) hypothesize a suitable model
+2) use statistical optimization to
+adjust the model parameters
+such that the model fits the
+given data
+29 / 69
+density estimation
+x
+given data
+D =
+
+xj
+	n
+j=1
+where xj ∈ R, we might wonder
+how these data are distributed
+⇔ we are interested in a probability density function
+f : R →
+
+0, 1
+
+that characterizes the distribution of the given data
+30 / 69
+x
+again, we commonly
+1) make (reasonable) modeling
+assumptions
+2) apply statistical optimization
+to estimate parameters such
+that our model best matches
+the data
+31 / 69
+principle of machine learning
+it may sound crazy, but nowadays (since ∼2015) density estimation is by far
+the most important machine learning task
+this is because all modern generative AI is at its heart based on (variants of)
+fitted density models
+32 / 69
+clustering
+x1
+given data
+x2
+D =
+
+xj
+	n
+j=1
+where xj ∈ R
+2
+, we might wonder if
+these data contain any structures,
+subgroups, or clusters
+for instance, if we have reason to suppose
+there are k clusters, we look for a function
+f : R
+2 →
+
+1, 2, . . . , k
+	
+which assigns data points to cluster labels
+33 / 69
+x1
+again, the common approach is to
+x2
+1) hypothesize a suitable model
+2) use statistical optimization to
+adjust the model parameters
+such that the model fits the
+data
+34 / 69
+note
+regression and classification are common examples of supervised learning problems
+x1
+x2
+⇔ given data consists of pairs (xj
+, yj) of observations xj
+and corresponding targets yj
+such pairs explicitly encode (certain) structures within
+the universe of all possible observations
+35 / 69
+regression and classification are supervised learning problems
+x1
+x2
+⇒ the task is to learn an abstract representation
+of these structures
+⇔ the task is to learn to replicate and generalize
+known structures
+36 / 69
+note
+density estimation and clustering are unsupervised learning problems
+x1
+x2
+⇔ given data consists of observations xj only
+information as to possible structures among
+these observations is implicit a best
+37 / 69
+density estimation and clustering are unsupervised learning problems
+x1
+x2
+⇒ the task is to identify (any) possible structures
+⇔ the task is to make implicit information explicit
+38 / 69
+question
+OK, but now for real: why do we fit models ?
+39 / 69
+question
+OK, but now for real: why do we fit models ?
+answer
+good models will allow us to automatically
+compress information, generalize given examples, reason about cause
+and effect, make predictions, decisions and plans, generate content . . .
+⇔ good models will allow us to implement cognitive capabilities on computers
+39 / 69
+examples
+40 / 69
+compression / generalization
+data set (⇔ many numbers)
+xj
+: 0.00 0.26 0.51 0.77 1.03 1.28 1.54 1.79 · · ·
+yj
+: −1.47 0.52 1.00 0.49 0.96 0.14 −0.25 −2.06 · · ·
+x
+y
+fitted model (⇔ few parameters)
+y = x
+1.1
+· sin
+1.99 · x
+
+x
+y
+41 / 69
+predictions / forecasts
+data
+x
+y
+prediction
+x
+y
+42 / 69
+classification / decision making
+a trained classifier . . .
+x1
+x2
+can classify novel observations
+x1
+x2
+43 / 69
+how do we do machine learning ?
+44 / 69
+given everything we said so far, there remain three fundamental questions
+1) how do we chose models ?
+2) how do we fit them to data ?
+3) what do we need to be aware of when we do this ?
+alas, they are way too far reaching to be answered in an introductory lecture
+they are what this course is all about and we shall study them exhaustively
+for now, we note . . .
+45 / 69
+principles of machine learning
+mathematically, machine learning involves
+geometry and linear algebra
+probability theory and statistics
+calculus and optimization techniques
+.
+.
+.
+computer scientifically, machine learning involves
+systems for storing, curating, accessing, and processing data
+efficient and robust implementations of model fitting algorithms
+speaking of systems . . .
+46 / 69
+the machine learning pipeline
+47 / 69
+a machine learning pipeline (von Rueden et al., IEEE Trans. KDE, 2021)
+training data
+hypothesis set
+learning algorithm
+final hypothesis
+ML pipeline
+data
+(x1, y1), . . . ,(xn, yn)
+problem
+f : X → Y
+solution
+y = f(x | θ)
+define
+execute
+determine
+48 / 69
+another machine learning pipeline
+data collection data preprocessing
+model selection
+model fitting
+model evaluation
+application data model application
+application problem
+ML pipeline
+49 / 69
+question
+wait a minute, why are there two different pipelines ?
+50 / 69
+question
+wait a minute, why are there two different pipelines ?
+answer
+there might be even more such pipelines, because . . .
+50 / 69
+note
+to a certain extent, machine learning is an art rather than a science
+or, stated less defiantly, machine learning is still a young discipline
+⇒ ways of talking about aspects of machine learning are not as fixed
+as the nomenclature or terminology of more established sciences
+⇔ authors (of textbooks, papers, . . . ), experts, and practitioners still
+use different terminology to refer to basically the same ideas . . .
+this is unfortunate, but we must live with it
+51 / 69
+for example
+some talk about the hypothesis set, others use the term model family
+some talk about the final hypothesis, others use the term fitted model
+52 / 69
+principle of machine learning
+training a computational intelligence system to automatically
+perform (difficult) cognitive tasks is a process
+this process commonly involves several consecutive stages
+problem specification
+data collection
+data pre-progressing
+model selection
+model fitting
+model evaluation
+model application
+data collection data preprocessing
+model selection
+model fitting
+model evaluation
+application data model application
+application problem
+ML pipeline
+53 / 69
+problem specification
+first of all, we need to clarify what application problem
+we want to solve by means of machine learning
+do we intend to recognize cats and dogs in images ?
+do we want to predict the likely yield of a crop based
+on nutrient measurements and weather data ?
+.
+.
+.
+54 / 69
+problem specification / data collection
+first of all, we need to clarify what application problem
+we want to solve by means of machine learning
+do we intend to recognize cats and dogs in images ?
+do we want to predict the likely yield of a crop based
+on nutrient measurements and weather data ?
+.
+.
+.
+once the goal is clear, we require corresponding data
+which we record ourselves, obtain from collaborators, find on the Web, . . .
+54 / 69
+note
+sometimes, these two initial stages are reversed
+⇔ we might have data and need machine learning to make sense of it
+say, we are given a humongous set of high dimensional data points
+which overwhelms our human senses and cognitive capabilities . . .
+we may then want to use machine learning for knowledge discovery
+⇔ we may want to automatically determine if the data contains patterns,
+correlations, or cause and effect relations which we should know about
+55 / 69
+data pre-processing
+turning raw data into training data may require pre-processing such as
+data cleansing
+⇔ removal of outliers, incomplete- or faulty data points, etc.
+data labeling
+⇔ (manual) categorization or annotation of given observations
+feature extraction
+⇔ transformation of observations into more abstract representations
+normalization
+⇔ transformation of representations into “manageable” numerical ranges
+56 / 69
+data labeling can be easy but is typically cumbersome
+for instance, for some scenarios, it may suffice to store pictures of cats
+and dogs in folders called “Cats” and “Dogs” but other scenarios might
+require us to carefully indicate which pixels in an image belong to a cat
+or to a dog . . .
+nowadays, we can of course get assistance from foundation models but
+must trust that they work reliably . . .
+annotated data is incredibly valuable
+data which have been (reliably) sorted or categorized or augmented with
+additional information (meta data) by human experts or AIs can make or
+break success of machine learning algorithms
+57 / 69
+feature extraction either requires background knowledge . . .
+for instance, observations of body heights and weights of people can be
+turned into body mass indices which are known predictors for diseases
+. . . or can be accomplished automatically
+given enough data, deep neural networks can learn useful representations
+58 / 69
+model selection
+given a sample of problem specific data, we need to decide for
+a “suitable” model class
+⇔ we need to specify a family of mathematical functions which we
+expect to be able to solve the problem at hand
+common models will be studied later on
+59 / 69
+model fitting / training
+having specified a model class, we need to determine or learn
+“appropriate” model parameters
+⇔ we need to run optimization algorithms to fit the (mathematical)
+model to the given data
+model training will be studied later on
+60 / 69
+model evaluation / testing
+having fitted a model to the data, we should evaluate if it can generalize
+⇔ we should test whether the model only explains the training data or also
+works well on previously unseen test data
+61 / 69
+principles of machine learning
+training data must be representative
+⇔ they should reflect all relevant aspects of what is to be learned
+(to see what happens if they aren’t, consider the 2015 Google photos incident)
+test data must be independent from the training data
+⇔ when working rigorously, we really must insist on Dtrn ∩ Dtst = ∅
+in practice, these two principles are ridiculously important, because . . .
+62 / 69
+principles of machine learning
+good performance of a model on its training data means nothing
+what really counts are generalization / extrapolation capabilities of a trained model
+⇔ what really counts is how well a trained model performs on independent test data
+we must avoid the beginner’s mistake of improper model testing
+⇔ any statement we make about the performance of a machine learning system must
+be derived from test data which is independent of training data
+63 / 69
+note
+however, things have begun to change . . .
+modern foundation models and genAI make the above look old school
+nowadays, cutting edge models are trained with trillions of data points
+for these, traditional concerns regarding over-fitting don’t hold anymore
+alas, as of today, only a few players across the world are technically able
+(⇔ have the compute infrastructure) to work in these settings
+⇒ unless you are with OpenAI, DeepMind, . . . the above is still important
+64 / 69
+model refinement
+if a trained model or system does not perform well (enough),
+we may need to
+consider additional / better training data
+reconsider our model class / hypothesis set
+.
+.
+.
+⇔ we may need to iterate through (parts of) the pipeline again
+w.r.t. foundation models, this is also called model fine-tuning
+65 / 69
+model application
+if a trained model or system performs and generalizes well,
+we can apply it in practice
+⇔ we can feed new data from our application domain into the
+system and work with the predictions it generates
+66 / 69
+summary
+67 / 69
+we now know that
+machine learning is the science of fitting models to data
+machine learning terminology is often still rather fuzzy
+machine learning is not an end in itself but a tool(box)
+for problem solving in data analysis and synthesis
+a machine learning pipeline involves different stages such as
+data pre-processing, model selection, model fitting, model evaluation
+68 / 69
+a picture says a 1000 words . . .
+machine learning
+pattern recognition
+data mining
+data science
+mathematics
+computer science 69 / 69

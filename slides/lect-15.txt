@@ -1,0 +1,2011 @@
+Principles of Machine Learning
+Prof. Christian Bauckhage
+1 / 89
+lecture 15
+ITVQ, reproducing kernel Hilbert spaces, and mean discrepancy based VQ
+this final lecture is extremely dense as it first extends and then ties together a
+lot of the material we studied earlier (it really is the grand finale of this course)
+we first look at density models or data density estimation with Parzen windows
+we then move on to vector quantization based on information theoretic criteria
+next, we glimpse at the theory of reproducing kernel Hilbert spaces (RKHSs)
+we then finally look at RBF density modeling and vector quantization from the
+point of view of RKHSs and the mean discrepancy between two distributions
+2 / 89
+outline
+recap and a simple new idea
+information theoretic vector quantization
+reproducing kernel Hilbert spaces
+(maximum) mean discrepancy
+MD for vector quantization
+summary
+3 / 89
+recap and a simple new idea
+4 / 89
+a common problem
+given data
+D =
+
+x1, x2, . . . , xn
+	
+where the
+xi ∈ R
+m
+represent certain observations as to the world, we might want to
+estimate a probability density function p
+
+x
+
+that models how the
+observations are distributed
+5 / 89
+last time, we used the EM algorithm to fit GMMs
+p
+
+x
+
+=
+X
+k
+i=1
+wi N
+
+x
+
+ µi
+, Σi
+
+but there also exist much simpler baseline ideas . . .
+6 / 89
+idea (akin to ideas known from lecture 02)
+model the pdf as an RBF mixture
+p
+
+x
+
+=
+Xn
+j=1
+ϕ
+
+x, xj
+
+wj
+and just set the mixture weights to
+wj =
+1
+n
+7 / 89
+note
+for this simple idea to produce a legitimate pdf, the RBF kernel must obey
+ϕ
+
+x, xj
+
+⩾ 0
+Z
+ϕ
+
+x, xj
+
+dx = 1
+because then R
+p
+
+x
+
+dx =
+R
+1
+n
+Pn
+j=1 ϕ
+
+x, xj
+
+= 1
+⇒ a popular choice is the properly normalized isotropic Gaussian distribution
+ϕσ
+
+x, xj
+
+=
+1
+
+2 π σ2
+m/2
+exp 
+−
+∥x − xj∥
+2
+2 σ2
+
+note the extended notation ϕσ
+
+x, xj
+
+8 / 89
+examples (1D)
+using the following Gaussian basis distributions
+σ = 1/4 σ = 1/2
+σ = 1 σ = 2
+9 / 89
+yields the following density estimates
+σ = 1/4 σ = 1/2
+σ = 1 σ = 2
+10 / 89
+examples (2D)
+σ = 1/4 σ = 1/2
+σ = 1 σ = 2
+11 / 89
+Parzen window method
+this approach to density modeling is called the
+Parzen window method
+(some people call it the Parzen-Rosenblatt method)
+note: for BIG DATA (n ≫ 1), it is inefficient
+⇔ requires working with n densities
+this unfortunate issue leads us to . . .
+12 / 89
+information theoretic vector quantization
+13 / 89
+vector quantization
+vector quantization is to represent a data set
+X =
+
+x1, . . . , xn
+	
+⊂ R
+m
+in terms of a codebook of k ≪ n prototypes
+W =
+
+w1, . . . , wk
+	
+⊂ R
+m
+14 / 89
+information theoretic vector quantization (ITVQ)
+ITVQ is vector quantization based on information theory
+⇔ ITVQ considers entropy and divergences of distributions
+the particular approach we study next is due to Principe
+and colleagues
+Jose C. Principe
+15 / 89
+idea
+given data X and an initial codebook W
+1) estimate their respective distributions, i.e. assume that
+X ∼ p
+W ∼ q
+2) iteratively adjust / optimize the codebook such that the
+Cauchy-Schwartz divergence
+DCS
+p ∥ q
+
+= 2 H
+
+p, q
+
+− H
+
+q
+
+− H
+
+p
+
+between the two distributions p and q becomes small
+16 / 89
+example
+random initial codebook W ⊂ X optimized codebook Wˆ
+17 / 89
+divergence
+a divergence D is a function that measures how much two
+probability distributions p and q differ
+for any p and q defined over the same domain, we require
+D
+
+p ∥ q
+
+⩾ 0
+D
+
+p ∥ q
+
+= 0 ⇔ p = q
+divergences are a dime a dozen (e.g. Kullback-Leibler divergence, Jensen-Shannon
+divergence, Jeffreys divergence, . . . )
+divergences aren’t distances (are neither symmetric nor obey triangle inequalities)
+18 / 89
+again, ITVQ considers the Cauchy-Schwartz divergence
+DCS
+p ∥ q
+
+= 2 H
+
+p, q
+
+− H
+
+q
+
+− H
+
+p
+
+which is defined in terms of several entropy measures H
+note: as H
+
+p
+
+is independent of q,
+we henceforth ignore it
+in the context of information theory, entropy measures the
+amount of information required to specify the (micro) state
+of a system
+(let’s leave it at this ;-)
+19 / 89
+entropy measures are a dime a dozen, too
+the Cauchy-Schwartz divergence involves
+Renyi’s cross entropy between p and q
+H
+
+p, q
+
+= − ln Z
+p
+
+x
+
+q
+
+x
+
+dx
+Renyi’s quadratic entropy of q
+H
+
+q
+
+= − ln Z
+q
+2
+
+x
+
+dx
+20 / 89
+disclaimer
+for brevity, we may henceforth write
+V
+
+p, q
+
+≡
+Z
+p
+
+x
+
+q
+
+x
+
+dx
+V
+
+q
+
+≡
+Z
+q
+2
+
+x
+
+dx
+in particular, we henceforth let
+c ≡
+n V(p, q)
+k V(q)
+21 / 89
+back to ITVQ
+Principe et al. propose to model p and q in terms of Parzen estimates
+p
+
+x
+
+=
+1
+n
+Xn
+j=1
+ϕξ
+
+x, xj
+
+q
+
+x
+
+=
+1
+k
+X
+k
+i=1
+ϕω
+
+x, wi
+
+where ϕξ and ϕω are Gaussian density kernels of scales ξ
+2 and ω2
+22 / 89
+using these and the Gaussian product theorem, we find
+Z
+p
+
+x
+
+q
+
+x
+
+dx =
+1
+n k
+Xn
+j=1
+X
+k
+i=1
+ϕτ
+
+xj
+, wi
+
+Z
+q
+2
+
+x
+
+dx =
+1
+k
+2
+X
+k
+l=1
+X
+k
+i=1
+ϕρ
+
+wl
+, wi
+
+where
+τ
+2 = ξ
+2 + ω2
+ρ
+2 = 2 ω2
+23 / 89
+henceforth, we use the same bandwidth σ for both kernels
+using the above results, the Cauchy-Schwartz divergence
+DCS
+p ∥ q
+
+= −2 ln Z
+p
+
+x
+
+q
+
+x
+
+dx + ln Z
+q
+2
+
+x
+
+dx
+becomes
+DCS
+p ∥ q
+
+= −2 ln"
+1
+n k
+Xn
+j=1
+X
+k
+i=1
+ϕσ
+
+xj
+, wi
+
+#
++ ln"
+1
+k
+2
+X
+k
+l=1
+X
+k
+i=1
+ϕσ
+
+wl
+, wi
+
+#
+24 / 89
+⇒ differentiating DCS w.r.t. wu, equating to 0, and rearranging the result
+yields the following fixed-point iteration for optimizing the codebook
+w
+new
+u =
+Pn
+j=1
+xj ϕσ
+
+xj
+, wu
+
+Pn
+j=1 ϕσ
+
+xj
+, wu
+
+− c ·
+Pk
+i=1 wi ϕσ
+
+wi
+, wu
+
+Pn
+j=1 ϕσ
+
+xj
+, wu
+
++ c ·
+Pk
+i=1 ϕσ
+
+wi
+, wu
+
+Pn
+j=1 ϕσ
+
+xj
+, wu
+ wu
+25 / 89
+the previous slide showed how to update a single codebook vector
+however, we can also update all codebook vectors simultaneously . . .
+we introduce matrices and vectors
+X =
+
+x1 x2 · · · xn
+
+∈ R
+m×n
+W =
+
+w1 w2 · · · wk
+
+∈ R
+m×k
+ϕx
+
+wu
+
+=
+
+ϕσ
+
+x1, wu
+
+· · · ϕσ
+
+xn, wu
+⊺
+∈ R
+n
+ϕw
+
+wu
+
+=
+
+ϕσ
+
+w1, wu
+
+· · · ϕσ
+
+wk, wu
+⊺
+∈ R
+k
+and let 1n ∈ R
+n and 1k ∈ R
+k denote vectors of all ones
+26 / 89
+this way, we can also write the update for vector wu as
+w
+new
+u =
+X ϕx(wu)
+1
+⊺
+n ϕx(wu)
+− c ·
+W ϕw(wu)
+1
+⊺
+n ϕx(wu)
++ c ·
+1
+⊺
+k ϕw(wu)
+1
+⊺
+n ϕx(wu)
+wu
+27 / 89
+if we further introduce an n × k matrix
+Φxw =
+h
+ϕx(w1)· · · ϕx(wk)
+i
+together with three k × k matrices
+Φww =
+h
+ϕw(w1)· · · ϕw(wk)
+i
+Dxw = diag
+1
+⊺
+nΦxw
+Dww = diag
+1
+⊺
+k Φww
+then . . .
+28 / 89
+we can update all codebook vectors at once using
+Wnew =
+h
+X Φxw − c · W Φww + c · W Dwwi
+D
+−1
+xw
+=
+h
+X Φxw + c · W
+
+Dww − Φww
+i
+D
+−1
+xw
+we now also have c =
+n 1
+⊺
+n Φxw 1n
+k 1
+⊺
+k Φww 1k
+29 / 89
+ITVQ algorithm
+initialize
+W =
+
+w1 w2 · · · wk
+
+for t = 1, . . . , tmax
+compute
+Φxw, Φww, Dxw, Dww, c
+update
+Wnew =
+h
+X Φxw + c · W
+
+Dww − Φww
+i
+D
+−1
+xw
+30 / 89
+example
+−4 −2 0 2 4 6 8
+−2
+−1
+0
+1
+2
+3
+4
+k = 5, σ = 0.5
+−4 −2 0 2 4 6 8
+−2
+−1
+0
+1
+2
+3
+4
+k = 5, σ = 1.0
+−4 −2 0 2 4 6 8
+−2
+−1
+0
+1
+2
+3
+4
+k = 20, σ = 0.5
+−4 −2 0 2 4 6 8
+−2
+−1
+0
+1
+2
+3
+4
+k = 20, σ = 1.0
+31 / 89
+reproducing kernel Hilbert spaces
+32 / 89
+observe
+above, we have been working with kernel functions k
+
+x, xj
+
+to model densities
+previously, we learned about the kernel trick which swaps inner products x
+⊺xj
+for kernel evaluations k
+
+xi
+, xj
+
+to apply linear algorithms to non-linear settings
+question
+is there a connection ?
+an / 89
+observe
+above, we have been working with kernel functions k
+
+x, xj
+
+to model densities
+previously, we learned about the kernel trick which swaps inner products x
+⊺xj
+for kernel evaluations k
+
+xi
+, xj
+
+to apply linear algorithms to non-linear settings
+question
+is there a connection ?
+answer
+this will require some work but let’s see . . .
+33 / 89
+disclaimer
+in what follows, we mainly focus on functions f : R
+m → R
+but most of what we discuss generalizes to other settings
+to begin with, we warm up to the idea of Hilbert spaces of functions . . .
+34 / 89
+square integrable function
+a function f : R
+m → R is square integrable or in class L
+2
+, if
+Z
+Rm
+
+
+f(x)
+
+
+2
+dx < ∞
+to reduce clutter, we henceforth
+drop the integration boundaries
+35 / 89
+examples (for m = 1)
+x
+f(x)
+square integrable
+x
+f(x)
+not square integrable
+x
+f(x)
+square integrable
+x
+f(x)
+not square integrable
+36 / 89
+L
+2
+, +, ·
+
+is an instance of a vector space over R
+two further enrich this vector space, we may define
+the following inner product of f , g ∈ L
+2
+⟨f , g⟩ =
+Z
+f(x) g(x) dx
+this inner product naturally leads to a norm of f ∈ L
+2
+∥ f ∥ =
+p
+⟨f , f⟩
+37 / 89
+since f , g ∈ L
+2 are square integrable, we know
+that their inner product exists, because by the
+Cauchy-Schwartz inequality
+
+
+
+
+Z
+f(x) g(x) dx
+
+
+
+
+2
+⩽
+Z
+
+
+f(x)
+
+
+2
+dx ·
+Z
+
+ g(x)
+
+
+2
+dx
+we have
+
+⟨f , g⟩
+
+ < ∞
+38 / 89
+note
+⇒
+
+L
+2
+, +, ·,⟨,⟩
+
+is a complete inner product space over R
+⇔
+
+L
+2
+, +, ·,⟨,⟩
+
+is an instance of a Hilbert space H over R
+39 / 89
+Hilbert spaces are a dime a dozen . . .
+they are complete inner product spaces of possibly infinite dimensionality
+a vector space V is complete, if every Cauchy sequence in V converges in V
+for example, the fields R and Q are both vector spaces over themselves; yet,
+while R is complete, Q is not because, say, the Cauchy sequence
+2, 2.7, 2.71, 2.718, 2.7182, . . .
+of elements of Q converges to e which is not an element of Q
+indeed, completeness might be best understood by means of counter examples . . .
+40 / 89
+(counter) example
+consider the set of continuously differentiable functions over R for
+which | f (x)| ⩽ 1 for all x ∈ R
+together with an “appropriately defined” inner product, functions in
+this set form an inner product space I
+the family of functions f (x) = tanh(βx), β > 0 lives in this space
+given a growing sequence βn = n of parameters, the sequence
+fn(x) = tanh(βnx)
+is a Cauchy sequence of functions in I that converges to sign(x)
+but sign(x) is not continuously differentiable ⇒ I is not complete
+⇒ I is not a Hilbert space
+41 / 89
+Hilbert space
+inner product
+completeness
+Banach space
+norm
+completeness
+inner product space
+inner product
+normed space
+norm
+(triangle inequality)
+metric space
+distance
+topological space
+points
+neighbourhoods
+vector space
+axioms w.r.t. +, ·
+manifold
+is a
+is a
+is a
+is a
+is a is a
+is a
+is a
+is a
+42 / 89
+note
+to be on the safe side when working with Hilbert spaces, we still need
+more structure, namely the idea of a reproducing kernel Hilbert space
+(RKHS)
+now, down the rabbit hole . . .
+43 / 89
+disclaimer
+we distinguish between a function for which we
+write f and its value at x for which we write f(x)
+in other words
+f ∈ H is a vector
+f(x) ∈ R is an entry of f
+for clarity (trust us ;-), we henceforth write
+f(·) ∈ H
+f(x) ∈ R
+44 / 89
+evaluation functional
+let H be a Hilbert space of functions f : R
+m → R
+the linear operator
+δx : H → R
+such that
+δx
+
+f(·)
+
+= f(x)
+is called the (Dirac) evaluation functional at x
+45 / 89
+reproducing kernel Hilbert space
+a Hilbert space H of functions f : R
+m → R is said to be a reproducing
+kernel Hilbert space (RKHS) if, for all x ∈ R, the evaluation functional
+δx is continuous at any f(·) ∈ H
+46 / 89
+observe
+now we know what an RKHS is, but . . .
+questions
+what does this definition even mean ?
+and what about kernel functions ?
+47 / 89
+observe
+now we know what an RKHS is, but . . .
+questions
+what does this definition even mean ?
+and what about kernel functions ?
+answer
+apparently, we need to dig even deeper . . .
+47 / 89
+linear operator
+let H1, H2 be Hilbert spaces (of functions) over R
+a function O : H1 → H2 is a linear operator, if, for
+any f(·), g(·) ∈ H1 and α ∈ R
+O
+
+α f(·)
+
+= α O
+
+f(·)
+
+O
+
+f(·) + g(·)
+
+= O
+
+f(·)
+
++ O
+
+g(·)
+
+if H2 = R, then O is called a linear functional on H1
+48 / 89
+examples
+a matrix M ∈ R
+m×n
+is a linear operator that maps from the Hilbert space R
+n
+to the
+Hilbert space R
+m s.t. for Euclidean vectors f, g and a scalar α
+M
+
+α f
+
+= α M f
+M
+
+f + g
+
+= M f + M g
+the differentiation operator d
+dx maps from the Hilbert space of functions
+R → R
+
+to
+the Hilbert space of functions
+R → R
+
+s.t. for functions f(·), g(·) and a scalar α
+d
+dx
+
+α f(·)
+
+= α
+d
+dx
+f(·)
+d
+dx
+
+f(·) + g(·)
+
+=
+d
+dx
+f(·) + d
+dx
+g(·)
+49 / 89
+disclaimer
+in what follows, we write
+⟨·, ·⟩
+to denote an appropriate inner product for a generic Hilbert space H
+⇔ ⟨·, ·⟩ might be an inner product other than the one considered above
+50 / 89
+note
+an inner product ⟨·, ·⟩ maps from H × H to R
+if we fix some h(·) ∈ H, then
+
+
+·, h(·)
+
+is a linear functional which maps from H to R
+indeed, for any f(·), g(·) ∈ H and α ∈ R, we have
+
+
+α f(·), h(·)
+
+= α
+
+
+f(·), h(·)
+
+
+
+f(·) + g(·), h(·)
+
+=
+
+
+f(·), h(·)
+
++
+
+
+g(·), h(·)
+
+51 / 89
+Riesz representation theorem
+in a Hilbert space H, all continuous linear functionals
+are of the form ⟨·, h(·)⟩ for some h(·) ∈ H
+⇒ since δx is a continuous linear function, we must have
+δx =
+
+
+·, h(·)
+
+for some appropriate h(·)
+52 / 89
+kernel function
+let S be any non-empty set, then a function
+k : S × S → R
+is a kernel function, if there exists a Hilbert
+space H and a mapping
+φ : S → H
+such that for any si
+,sj ∈ S
+k
+
+si
+,sj
+
+=
+
+
+φ
+
+si
+
+, φ
+
+sj
+
+53 / 89
+kernel function (in plainer English)
+let k be a function of any two things x and y of the same nature
+x and y may be numbers, real valued vectors, strings, bananas, . . .
+if we can transform x and y into (some kind of) vectors x = φ(x) and y = φ(y) that live in
+(some kind of) a Hilbert space H, then there will be (some kind of) an inner product ⟨ x, y ⟩
+between x and y
+if the value of the inner product ⟨ x, y ⟩ equals the value of the function evaluation k(x, y) for
+any choice of x and y, then k is a kernel function
+⇔ a kernel is a function whose value corresponds to some inner product in some Hilbert space
+54 / 89
+example
+instantiating
+S = R
+m
+si = xi
+sj = xj
+“one can show” that the Gaussian
+ϕ
+
+xi
+, xj
+
+= e
+−β ∥xi−xj∥
+2
+is a kernel ⇔ ∃ H, φ : e
+−β ∥xi−xj∥
+2
+=
+
+
+φ
+
+xi
+
+, φ
+
+xj
+
+55 / 89
+note
+in machine learning, the map or transformation φ : S → H
+is commonly referred to as the feature map and the space
+H as the feature space
+56 / 89
+for a given kernel k, there may be several different feature maps φi
+for example, let S = R and k(x, y) = xy
+defining two feature maps φ1 and φ1 as
+φ1(x) = x and φ2(x) = "
+√x
+2
+√x
+2
+#
+we have H1 = R and H2 = R
+2 as well as
+k
+
+x, y
+
+=
+
+
+φ1(x), φ1(y)
+
+H1
+= xy
+k
+
+x, y
+
+=
+
+
+φ2(x), φ2(y)
+
+H2
+=
+xy
+2
++
+xy
+2
+= xy
+57 / 89
+reproducing kernel
+let H be a Hilbert space of functions f : S → R
+a kernel k : S × S → R is a reproducing kernel of H, if for all s ∈ S and all f(·) ∈ H
+k
+
+·,s
+
+∈ H
+and
+
+
+f
+
+·
+
+, k
+
+·,s
+ = f
+
+s
+
+the latter is known as the reproducing property and k
+
+·,s
+
+is sometimes said to
+be the representer of evaluation at s
+58 / 89
+claims (without proof)
+a reproducing kernel is symmetric and positive definite
+H is a RKHS, if and only if it has a reproducing kernel
+if H has a reproducing kernel, that reproducing kernel is unique
+⇒ given a reproducing kernel, we can create / design an RKHS H
+59 / 89
+example
+the Gaussian
+ϕ
+
+x, y
+
+= e
+−β ∥x−y∥
+2
+is symmetric and positive definite . . .
+so let’s look at how to construct a corresponding RKHS
+60 / 89
+let n ∈ N and consider the Hilbert space H of functions of the form
+f
+
+·
+
+=
+Xn
+i=1
+αi ϕ
+
+·, ai
+
+the value of f ∈ H at x is
+f
+
+x
+
+=
+Xn
+i=1
+αi ϕ
+
+x, ai
+
+61 / 89
+note that ϕ
+
+·, aj
+
+is itself a function in this space H because we can write it as
+ϕ
+
+·, aj
+
+=
+Xn
+i=1
+γi ϕ
+
+·, ai
+
+where
+γi =
+
+1 if i = j
+0 otherwise
+⇒ the value of ϕ
+
+·, aj
+
+∈ H at x is ϕ
+
+x, aj
+
+62 / 89
+given two elements
+f
+
+·
+
+=
+Xn
+i=1
+αi ϕ
+
+·, ai
+
+g
+
+·
+
+=
+Xn
+j=1
+βj ϕ
+
+·, bj
+
+of H, we now define their inner product
+
+
+f(·), g(·)
+
+=
+Xn
+i=1
+Xn
+j=1
+αi βj ϕ
+
+ai
+, bj
+
+63 / 89
+we then curiously observe that
+
+
+f(·), g(·)
+
+=
+Xn
+i=1
+αi
+Xn
+j=1
+βj ϕ
+
+ai
+, bj
+
+=
+Xn
+i=1
+αi g
+
+ai
+
+or, since the kernel is symmetric
+
+
+f(·), g(·)
+
+=
+Xn
+j=1
+βj
+Xn
+i=1
+αi ϕ
+
+bj
+, ai
+
+=
+Xn
+j=1
+βj
+f
+
+bj
+
+64 / 89
+more importantly, we observe the reproducing property
+
+
+f(·), ϕ(·, x)
+
+=
+Xn
+j=1
+αj
+Xn
+i=1
+γi ϕ
+
+aj
+, x
+
+=
+Xn
+j=1
+αj
+Xn
+i=1
+γi ϕ
+
+x, aj
+
+=
+Xn
+j=1
+αj ϕ
+
+x, aj
+
+= f
+
+x
+
+65 / 89
+a representer theorem (without proof)
+while we are at it, we also mention the following representer theorem
+let S be some set, H be an RKHS of functions over S, and 
+xj
+, yj
+	n
+i=1
+be a subset of
+S, R
+
+, then the solution to
+ˆf(·) = argmin
+f (·)∈H
+∥ f(·)∥ +
+Xn
+j=1
+
+f
+
+xj
+
+− yj
+2
+can be written as a finite linear combination
+ˆf(·) = Xn
+j=1
+wj k
+
+·, xj
+
+where k : S × S → R is a psd kernel and wj ∈ R
+66 / 89
+⇔ although the problem
+ˆf(·) = argmin
+f (·)∈H
+∥ f(·)∥ +
+Xn
+j=1
+
+f
+
+xj
+
+− yj
+2
+optimize over a (likely) infinite dimensional space H of functions,
+its solutions resides in the n-dimensional space spanned by the
+functions k
+
+·, xj
+
+this explains why kernel LSQ regression works so well
+but what we are really interested in is the following . . .
+67 / 89
+68 / 89
+take home message (1)
+our Gaussian RBF density models
+p
+
+x
+
+=
+1
+n
+Xn
+j=1
+ϕσ
+
+x, xj
+
+are but special cases of the functions
+f
+
+x
+
+=
+Xn
+i=1
+αi ϕ
+
+x, ai
+
+69 / 89
+take home message (2)
+⇒ our Gaussian RBF density models live in some RKHS H
+we therefore know 2 things . . .
+70 / 89
+take home message (3)
+1) as they live in an RKHS, they are fairly well behaved
+2) as they live in an RKHS, there must be a feature map
+φ : R
+m → H
+such that
+p
+
+x
+
+=
+1
+n
+Xn
+j=1
+ϕσ
+
+x, xj
+
+=
+1
+n
+Xn
+j=1
+
+
+φ
+
+x
+
+, φ
+
+xj
+ =
+*
+φ
+
+x
+
+,
+1
+n
+Xn
+j=1
+φ
+
+xj
+
++
+71 / 89
+take home message (4)
+⇒ an RBF density model is an inner product
+p
+
+x
+
+=
+
+
+φ(x), φ¯
+
+where
+φ¯ =
+1
+n
+Xn
+j=1
+φ
+
+xj
+
+is the feature space sample mean of the xj
+72 / 89
+(maximum) mean discrepancy
+73 / 89
+note
+we just uncovered a very deep result
+/ 89
+note
+we just uncovered a very deep result, namely that
+given a sample X =
+
+x1, x2, . . . , xn
+	
+of data points,
+their Parzen density estimate
+p
+
+x
+
+=
+1
+n
+Xn
+j=1
+ϕσ
+
+x, xj
+
+can also be expressed as
+p
+
+x
+
+=
+
+
+φ(x), φ¯ X
+
+74 / 89
+note
+⇒ the density estimate p(x) is determined by the vector
+φ¯ X =
+1
+n
+Xn
+j=1
+φ
+
+xj
+
+75 / 89
+mean discrepancy
+⇔ dealing with two samples X and Y, we can compare
+their distributions using the mean discrepancy
+MD2
+
+X, Y
+
+=
+
+φ¯ X − φ¯ Y
+
+
+2
+but . . .
+76 / 89
+question
+we (usually) neither know the feature map φ : R
+m → H nor the Hilbert space H,
+we only know that there have to exist such a map and such a space . . .
+but this is to say that we (usually) cannot actually compute the two Hilbert space
+vectors φ¯ X and φ¯ Y . . .
+so how can we then possibly compute MD2 ?
+77 / 89
+question
+we (usually) neither know the feature map φ : R
+m → H nor the Hilbert space H,
+we only know that there have to exist such a map and such a space . . .
+but this is to say that we (usually) cannot actually compute the two Hilbert space
+vectors φ¯ X and φ¯ Y . . .
+so how can we then possibly compute MD2 ?
+answer
+easy . . .
+77 / 89
+we have φ¯ X
+−
+φ¯
+Y
+
+2
+=
+
+1n
+Xni=1
+φ
+
+x
+i
+
+−
+1m
+Xmj=1
+φ
+
+yj
+
+
+2
+=
+1n2
+Xni=1
+Xn k=1
+
+
+φ
+
+x
+i
+, φ
+
+x
+k
+
+−
+2
+nm
+Xni=1
+Xmj=1
+
+
+φ
+x
+i
+, φ
+
+yj
+
++
+1m
+2
+Xmj=1
+Xml=1
+
+
+φ
+
+yj
+, φ
+
+y
+l
+
+78 / 89
+and therefore
+
+φ¯ X − φ¯ Y
+
+
+2
+=
+1
+n
+2
+Xn
+i=1
+Xn
+k=1
+ϕ
+
+xi
+, xk
+
+−
+2
+nm
+Xn
+i=1
+Xm
+j=1
+ϕ
+
+xi
+, yj
+
++
+1
+m2
+Xm
+j=1
+Xm
+l=1
+ϕ
+
+yj
+, yl
+
+79 / 89
+take home message
+⇒ the feature space distance or mean discrepancy
+MD2
+
+X, Y
+
+=
+
+φ¯ X − φ¯ Y
+
+
+2
+can be computed in terms of kernel evaluations
+another point scored
+by the kernel trick ;-)
+80 / 89
+question
+but does this have an application ?
+answer
+of course it has . . .
+81 / 89
+MD for vector quantization
+82 / 89
+idea
+say, we are given a data set
+X =
+
+x1, . . . , xn
+	
+⊂ R
+m
+which we want to represent in terms of a codebook
+W =
+
+w1, . . . , wk
+	
+⊂ R
+m
+we can formalize the vector quantization problem as
+Wˆ = argmin
+W,|W|=k
+MD2
+
+X, W
+
+= argmin
+W,|W|=k
+
+φ¯ X − φ¯ W
+
+
+2
+83 / 89
+to minimize MD2
+
+X, W
+
+w.r.t. W, we may proceed like this:
+to update our current guess for each wu ∈ W, we consider
+∂
+∂wu
+MD2
+
+X, W
+
+= 0
+and solve the resulting expression for wu
+84 / 89
+we have
+MD2 =
+1
+n
+2
+Xn
+j=1
+Xn
+l=1
+ϕ
+
+xj
+, xl
+
++
+1
+k
+2
+X
+k
+i=1
+X
+k
+l=1
+ϕ
+
+wi
+, wl
+
+−
+2
+nk
+Xn
+j=1
+X
+k
+i=1
+ϕ
+
+xj
+, wi
+
+and thus
+∂
+∂wu
+MD2 =
+2
+k
+2
+X
+k
+i=1
+ϕ
+
+wi
+, wu
+
+·
+
+−β
+
+·
+
+wi − wu
+
+−
+2
+n k
+Xn
+j=1
+ϕ
+
+xj
+, wu
+
+·
+
+−β
+
+·
+
+xj − wu
+
+=
+2 β
+k
+2
+X
+k
+i=1
+ϕ
+
+wi
+, wu
+
+wu −
+2 β
+k
+2
+X
+k
+i=1
+ϕ
+
+wi
+, wu
+
+wi
++
+2 β
+n k
+Xn
+j=1
+ϕ
+
+xj
+, wu
+
+xj −
+2 β
+n k
+Xn
+j=1
+ϕ
+
+xj
+, wu
+
+wu
+85 / 89
+equating to 0 and solving for wu yields the following
+fixed-point iteration for updating the codebook
+w
+new
+u =
+Pn
+j=1
+xj ϕ
+
+xj
+, wu
+
+Pn
+j=1 ϕ
+
+xj
+, wu
+
+−
+n
+k
+Pk
+i=1 wi ϕ
+
+wi
+, wu
+
+Pn
+j=1 ϕ
+
+xj
+, wu
+
++
+n
+k
+Pk
+i=1 ϕ
+
+wi
+, wu
+
+Pn
+j=1 ϕ
+
+xj
+, wu
+ wu
+note: this is ITVQ with c = n
+k
+86 / 89
+⇒ using our definitions from way above, we can update the whole codebook at once
+Wnew =
+h
+X Φxw −
+n
+k
+· W Φww +
+n
+k
+· W Dwwi
+D
+−1
+xw
+=
+h
+X Φxw +
+n
+k
+· W
+
+Dww − Φww
+i
+D
+−1
+xw
+87 / 89
+summary
+88 / 89
+we now know about
+vector quantization
+information theoretic vector quantization
+a bit of the theory behind reproducing kernel Hilbert spaces
+mean discrepancies and mean discrepancy minimization for VQ
+outlook: the latter can be of interest in quantum computing
+89 / 89

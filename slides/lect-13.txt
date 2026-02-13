@@ -1,0 +1,2031 @@
+course evaluation
+https://fha8.de/oN1Yx
+1 / 84
+Principles of Machine Learning
+Prof. Christian Bauckhage
+2 / 84
+lecture 13
+(kernel) principal component analysis
+principal component analysis (PCA) is one of the most important data science tools
+known to humankind
+in this lecture, we review the principles behind PCA and its kernelized version kPCA
+to prepare ourselves for this study, we recall (?) several fundamental concepts from
+linear algebra (machine learners can never know enough about linear algebra ;-)
+to make all this worthwhile, we will finally look at several lesser known or overlooked
+applications of kPCA
+in short, this lecture thus scratches the surface of the world of matrix decomposition
+or matrix factorization techniques which used to be important in ML, then moved out
+of the limelight, but know are coming back with a vengeance . . .
+3 / 84
+outline
+setting the stage
+principal component analysis (PCA)
+deeper insights into PCA
+principal axis via maximization of projection spread
+principal axis via minimization of projection distance
+kernel principal component analysis
+summary
+4 / 84
+setting the stage
+5 / 84
+two fundamental use cases for PCA
+de-correlation
+while we only briefly mentioned it in lecture 08, it is usually a very, very good idea
+to normalize data prior to training and applying ML models (especially for neural
+networks!) . . .
+there are numerous normalization techniques (ranging from simple to elaborate)
+and a more elaborate ones is to de-correlate data vectors
+dimensionality reduction
+throughout this course, we emphasized the benefits of (implicit) high-dimensional
+(feature) representations of data; however, in lectures 06 and 08, we also briefly
+mentioned the curse of dimensionality which (among others) impedes systematic
+explorations of high-dimensional data- or parameter spaces . . .
+often, it can therefore be a very good idea to reduce the dimensionality of data- or
+parameter vectors
+6 / 84
+use case 1
+in their original Cartesian coordinate system, given data may be correlated
+however, we may (try to) find a Cartesian system where this is not the case
+and express the data in the respective coordinates
+e1
+e2
+on average, higher e1 coordinates
+come with higher e2 coordinates
+e1
+e2
+u1
+u2
+a “data-intrinsic” coordinate system
+e1
+e2
+u1
+u2
+higher u1 coordinates do not
+come with higher u2 coordinates
+7 / 84
+use case 2
+we may linearly project data from a higher dimensional (Euclidean) space into a
+lower dimensional (Euclidean) sub-space
+for most sub-spaces, the projected data will severely overlap but we may (try to)
+find a sub-space where the overlap is minimal
+na¨ıve orthogonal projection another na¨ıve orthogonal projection projection into a principal subspace
+8 / 84
+question
+how do we find uncorrelated coordinates or principal subspaces ?
+answer
+we will see that soon . . .
+but let’s first recall (?!?) several fundamental linear algebra facts
+9 / 84
+spectral decomposition
+every square and symmetric matrix A ∈ R
+m×m (with A = A
+⊺
+) can be decomposed as
+A = UΛU
+⊺
+where
+U ∈ R
+m×m
+is an orthogonal matrix of eigenvectors
+Λ ∈ R
+m×m
+is a diagonal matrix of eigenvalues
+A
+=
+U Λ U⊺
+10 / 84
+orthogonal matrix
+a square matrix U ∈ R
+m×m with
+U =
+
+
+| | |
+u1 u2 · · · um
+| | |
+
+
+is an orthogonal matrix, if its columns are pairwise orthonormal s.t. u
+⊺
+i uj = δij
+⇒ if U ∈ R
+m×m is an orthogonal matrix, its inverse is its transpose because
+U
+⊺U = I ⇔ U U⊺U = U I ⇔ UU⊺ = I ⇒ U
+⊺ = U
+−1
+11 / 84
+note
+when acting as operators, orthogonal matrices preserve norms because, if
+y = U x
+then
+
+ y
+
+
+2
+= y
+⊺
+y = x
+⊺U
+⊺U x = x
+⊺
+x =
+
+x
+
+
+2
+⇔ when acting as operators, orthogonal matrices realize rotations or reflections
+⇔ they realize unitary transformations or (even fancier) act as isometries of R
+m
+12 / 84
+eigenvectors / eigenvalues
+for A = UΛU
+⊺ with orthogonal U and diagonal Λ, we have
+A = UΛU
+⊺
+⇔ AU = UΛ
+⇔ A ui = λi ui
+⇒ the columns ui of U are eigenvectors of A and the diagonal
+entries λi of Λ are the corresponding eigenvalues of A
+⇔ if matrix A acts on vector ui
+, it merely scales it by scalar λi
+13 / 84
+spectrum
+the matrix factorization A = UΛU
+⊺
+is called a spectral decomposition since the set
+σ
+
+A
+
+=
+
+λ1, λ2, . . . , λm
+	
+is called the spectrum of matrix A
+eigenvalue(s) λi with ∀ j : λi ⩾ λj are the largest or leading or top eigenvalues of A
+eigenvalue(s) λi with ∀ j : λi ⩽ λj are the smallest or trailing or bottom eigenvalues
+yes, there can be several top- or bottom eigenvalues
+14 / 84
+disclaimer
+in this lecture, we will always assume
+λ1 ⩾ λ2 ⩾ · · · ⩾ λm
+⇔ in this lecture, we will always assume that
+λ1, u1 are the top eigenvalue / eigenvector
+λm, um are the bottom eigenvalue / eigenvector
+15 / 84
+useful facts (1)
+if X ∈ R
+m×n
+, then
+XX⊺
+is symmetric, because
+
+XX⊺
+⊺
+=
+
+X
+⊺
+⊺
+
+X
+⊺
+= XX⊺
+X
+⊺X is symmetric, because
+
+X
+⊺X
+⊺
+=
+
+X
+⊺
+
+X
+⊺
+⊺
+= X
+⊺X
+16 / 84
+useful facts (2)
+if X ∈ R
+m×n
+, then
+all eigenvalues of XX⊺ are non-negative, because
+XX⊺u = λ u ⇔ u
+⊺XX⊺u =
+
+X
+⊺u
+
+
+2
+| {z }
+⩾0
+= λ u
+⊺u
+|{z}
+⩾0
+⇒ λ ⩾ 0
+all eigenvalues of X
+⊺X are non-negative, because
+X
+⊺Xu = λ u ⇔ u
+⊺X
+⊺Xu =
+
+Xu
+
+
+2
+| {z }
+⩾0
+= λ u
+⊺u
+|{z}
+⩾0
+⇒ λ ⩾ 0
+⇔ XX⊺ and X
+⊺X are positive semi-definite
+17 / 84
+useful facts (3)
+if u is an eigenvector of X X⊺
+, then
+v = X
+⊺u is an eigenvector of X
+⊺X,
+because
+XX⊺u = λ u
+⇔ X
+⊺XX⊺u = λ X
+⊺u
+⇔ X
+⊺X v = λ v
+if v is an eigenvector of X
+⊺X, then
+u = X v is an eigenvector of X X⊺
+,
+because
+X
+⊺X v = λ v
+⇔ XX⊺X v = λ Xv
+⇔ XX⊺u = λ u
+18 / 84
+useful facts (4)
+the eigenvectors of A and A
+−1 are the same, because
+A u = λ u ⇔ u = λ A
+−1u ⇔
+1
+λ
+u = A
+−1u
+the eigenvectors of A and
+A ± µ I
+
+are the same, because
+A u = λ u ⇔
+
+A ± µ I
+
+u =
+
+λ ± µ
+
+u
+the eigenvectors of A and
+A ± µ I
+−1
+are the same, because
+A u = λ u ⇔
+
+A ± µ I
+
+u =
+
+λ ± µ
+
+u ⇔
+1
+λ ± µ
+u =
+
+A ± µ I
+−1
+u
+19 / 84
+practical computation
+spectral decompositions can be numerically computed in O
+
+m
+3
+
+using
+Gram-Schmidt orthonormalizations
+Householder reflections
+QR decompositions
+Givens rotations
+power iterations
+.
+.
+.
+luckily, eigenvalues / eigenvectors are so central in all the hard sciences
+that their computation is covered by the LAPACK library and thus readily
+available in numpy / scipy
+20 / 84
+note
+numpy.linalg.eig(A) works in general and returns
+λ =
+
+λ1 λ2 · · · λm
+⊺
+U =
+
+
+| | |
+u1 u2 · · · um
+| | |
+
+
+numpy.linalg.eigh(A) works for Hermitian matrices and returns
+λ =
+
+λm · · · λ2 λ1
+⊺
+U =
+
+
+| | |
+um · · · u2 u1
+| | |
+
+
+21 / 84
+note
+symmetric matrices (over R) are special cases of Hermitian matrices (over C)
+when computing the spectral decomposition of a symmetric matrix, you
+should always work with numpy.linalg.eigh since it is much faster and
+numerically much better behaved than the more general numpy.linalg.eig
+yes, numpy.linalg.eig return eigenvalues / eigenvectors descendingly and
+numpy.linalg.eigh returns eigenvalues / eigenvectors ascendingly . . .
+the corresponding scipy versions allow for more fine-grained control of what
+is computed and returned
+but what does it mean for numpy.linalg.eig to work “in general” ?
+22 / 84
+all the above generalizes considerably, because every non-singular matrix
+B ∈ C
+m×m
+can be factored as
+B = UΛU
+−1
+where Λ is diagonal and Λ, U ∈ C
+m×m
+in general, U ∈ C
+m×m is unitary (⇔ “orthogonal over C”), for example
+
+0 −1
++1 0 
+| {z }
+B
+=
+
++i −i
++1 +1
+
+| {z }
+U
+
++i 0
+0 −i
+
+| {z }
+Λ
+1
+2
+
+−i +1
++i +1
+
+| {z }
+U−1
+23 / 84
+if a matrix B factors as B = UΛU
+−1
+, it is diagonalizable, because
+B = UΛU
+−1 ⇔ U
+−1B U = Λ
+“one can show” that almost every matrix B ∈ C
+m×m is diagonalizable
+⇔ the set of all matrices X ∈ C
+m×m which are not diagonalizable has a
+Lebesgue measure of 0
+there are numerous practical applications of spectral decompositions, for example . . .
+24 / 84
+integer powers of B ∈ R
+m×m can be computes as
+B
+k =
+
+UΛU
+−1
+k = UΛU
+−1UΛU
+−1
+. . . UΛU
+−1 = UΛkU
+−1
+Λk =
+
+
+
+
+λ
+k
+1
+0 · · ·
+0 λ
+k
+2
+· · ·
+.
+.
+.
+.
+.
+.
+.
+.
+.
+
+
+
+
+the matrix exponential of B ∈ R
+m×m can be computed as
+e
+B =
+X∞
+k=0
+1
+k!
+B
+k =
+X∞
+k=0
+1
+k!
+
+U Λ U
+−1
+k = U
+ X∞
+k=0
+1
+k!
+Λk
+!
+U
+−1 = Ue
+ΛU
+−1
+e
+Λ =
+
+
+
+
+e
+λ1 0 · · ·
+0 e
+λ2 · · ·
+.
+.
+.
+.
+.
+.
+.
+.
+.
+
+
+
+
+25 / 84
+for the trace of B ∈ R
+m×m, we have
+tr
+B
+
+= tr
+UΛU
+−1
+
+= tr
+ΛU
+−1U
+
+= tr
+Λ
+
+=
+Xm
+i=1
+λi
+for the determinant of an invertible B ∈ R
+m×m, we have
+det
+B
+
+= det
+UΛU
+−1
+
+= det
+U
+
+det
+Λ
+
+det
+U
+−1
+
+= det
+U
+
+det
+Λ
+
+det
+U
+−1 = det
+Λ
+
+=
+Ym
+i=1
+λi
+26 / 84
+two more things . . .
+throughout this lecture, we will be concerned with samples of n
+data vectors xj ∈ R
+m gathered in a data matrix
+X =
+
+
+| | |
+x1 x2 · · · xn
+| | |
+
+ ∈ R
+m×n
+we say that the data in X is centered at zero or of zero mean, if
+µ =
+1
+n
+Xn
+j=1
+xj = 0
+27 / 84
+if the data in X are not are not centered, we can always normalize them to zero mean
+xj ← xj − µ
+to see that this really centers the data, we observe
+Xn
+j=1
+
+xj − µ
+
+=
+Xn
+j=1
+xj −
+Xn
+j=1
+µ = n · µ − n · µ = 0
+working with numpy, you should exploit its broadcasting capabilities and compute
+vecM = np.mean(matX, axis=1).reshape(-1,1)
+matX = matX - vecM
+28 / 84
+however, for mathematical discussions, there is a better way of thinking of centering
+from exercise 4, we know that the mean µ of the columns of X can be computed as
+µ =
+1
+n
+X1
+the centering operation
+X = X − µ1
+⊺
+can thus be expressed as
+X = X −
+1
+n
+X11⊺ = X
+
+I −
+1
+n
+11⊺
+
+29 / 84
+centering matrix
+the n × n matrix
+J = I −
+1
+n
+11⊺
+is a centering matrix since the product X J centers the columns of X at 0
+⇔ right multiplication by J normalizes the columns of X to zero mean
+30 / 84
+claims (mostly w/o proof)
+(1) J is square, i.e. J ∈ R
+n×n
+(2) J is symmetric, i.e. J = J
+⊺
+(3) J is idempotent, i.e. J
+k = J for all 2 ⩽ k ∈ N
+(4) J is positive semidefinite, i.e. y
+⊺J y ⩾ 0 for all y ∈ R
+n
+(5) J is singular, i.e. not invertible, i.e. J
+−1 does not exists
+(6) all eigenvalues of J are non-negative
+(7) all eigenvalues of J are either 0 or 1
+(8) J is an orthogonal projection matrix
+(9) the trace of J amounts to tr
+J
+
+= n ·
+
+1 −
+1
+n
+
+= n − 1
+31 / 84
+let’s briefly verify idempotency claimed in (3)
+for the “base case” where k = 2, we observe
+J
+2 = JJ =
+
+I − 1
+n
+11⊺
+ I − 1
+n
+11⊺
+
+= II − 1
+n
+I 11⊺ − 1
+n
+11⊺
+I + 1
+n
+2 11⊺
+11⊺
+= I − 1
+n
+11⊺ − 1
+n
+11⊺ + 1
+n
+2 1 1⊺
+1
+|{z}
+=n
+1
+⊺
+= I − 2
+n
+11⊺ + 1
+n
+11⊺
+= I − 1
+n
+11⊺
+= J
+the claim for k > 2 then follows from induction
+exercise: (try to) prove all other claims
+32 / 84
+covariance matrix (1)
+given a “sample” X ∈ R
+m×n
+, the (biased) sample covariance matrix C ∈ R
+m×m is
+C =
+1
+n
+X
+j
+
+xj − µ
+ xj − µ
+⊺
+=
+1
+n
+
+XJ XJ⊺
+=
+1
+n
+X JJ⊺X
+⊺
+=
+1
+n
+X J2X
+⊺
+=
+1
+n
+X J X⊺
+working with numpy, you should (of course) compute it using C = np.cov(X)
+33 / 84
+covariance matrix (2)
+note that we alternatively have
+C =
+1
+n
+XX⊺ −
+1
+n
+2
+
+X1
+X1
+⊺
+(convince yourself that this is true !!!!!)
+=
+1
+n
+XX⊺ −
+1
+n
+2 X11⊺X
+⊺
+=
+1
+n
+X
+
+X
+⊺ −
+1
+n
+11⊺X
+⊺
+
+=
+1
+n
+X
+
+I −
+1
+n
+11⊺
+
+X
+⊺
+=
+1
+n
+X J X⊺
+34 / 84
+covariance matrix (3)
+note that we finally also have
+X = X J
+C =
+1
+n
+X X
+⊺
+35 / 84
+principal component analysis (PCA)
+36 / 84
+procedure for de-correlation
+1) given X, center it
+X = X J
+2) compute the covariance matrix
+C =
+1
+n
+X X
+⊺
+3) determine matrix U by solving
+C = U Λ U
+⊺
+4) compute the transformation (⇔ a rotation)
+Y = U
+⊺X
+e1
+e2
+u1
+u2
+e1
+e2
+u1
+u2
+37 / 84
+note
+the columns of Y are of zero mean because
+1
+n
+Y 1 =
+1
+n U
+⊺X 1 = U
+⊺
+0 = 0
+the covariance matrix of Y is diagonal because
+1
+n
+Y Y
+⊺
+=
+1
+n U
+⊺X X
+⊺
+U = U
+⊺C U = Λ
+⇒ the transformed data in Y are indeed de-correlated
+38 / 84
+procedure for dimensionality reduction
+1) to 3) same as above
+4) given the m × m matrix
+U =
+
+u1 · · · uk · · · um
+
+truncate it to an m × k matrix
+Uk =
+
+u1 · · · uk
+
+and compute the transformation (⇔ a projection)
+Yk = U
+⊺
+k X
+e1
+e2
+u1
+u2
+e1
+e2
+u1
+u2
+39 / 84
+note
+since UU
+⊺
+=
+I, we have
+xj
+= UU
+⊺
+xj
+=
+Xmi=1
+u
+i
+
+u
+⊺i
+xj
+
+≈
+Xk i=1
+u
+i
+
+u
+⊺i
+xj
+
+⇔ since UU
+⊺
+=
+I, we have
+X
+= UU
+⊺
+X
+=
+U
+Y
+≈
+U
+k
+U
+⊺k
+X
+=
+U
+k
+Y
+k
+X
+=
+U U
+⊺
+X
+≈
+Uk
+U
+⊺k
+X
+=
+Uk
+Yk
+40 / 84
+note
+above, we had Y ∈ R
+m×n but now we have Yk ∈ R
+k×n where most usually k ≪ m
+⇔ computing
+U
+⊺
+k
+x = y
+linearly maps or projects m-dimensional data points to k-dimensional data points
+this projection or dimensionality reduction (irrevocably) destroys information !!!!!
+⇔ computing ˜x = Uk y reconstructs / approximates the original x only up to an error
+but how bad is this error ?
+41 / 84
+Eckart-Young theorem
+the average truncation error is
+ϵ =
+1
+n
+X
+j
+
+xj − ˜xj
+
+
+2
+=
+1
+n
+X
+j
+
+
+
+
+
+Xm
+i=1
+ui
+
+u
+⊺
+i
+xj
+
+−
+X
+k
+i=1
+ui
+
+u
+⊺
+i
+xj
+
+
+
+
+
+
+2
+=
+1
+n
+X
+j
+
+
+
+
+
+Xm
+i=k+1
+ui
+
+u
+⊺
+i
+xj
+
+
+
+
+
+
+2
+=
+1
+n
+X
+j
+" Xm
+i=k+1
+ui
+
+u
+⊺
+i
+xj
+
+# " Xm
+l=k+1
+ul
+
+u
+⊺
+l
+xj
+
+#
+=
+1
+n
+X
+j
+Xm
+i=k+1
+Xm
+l=k+1
+u
+⊺
+i ul
+
+u
+⊺
+i
+xj
+u
+⊺
+l
+xj
+
+=
+1
+n
+X
+j
+Xm
+i=k+1
+
+u
+⊺
+i
+xj
+2
+=
+1
+n
+Xm
+i=k+1
+X
+i
+u
+⊺
+i
+xj
+x
+⊺
+j ui =
+Xm
+i=k+1
+u
+⊺
+i C ui =
+Xm
+i=k+1
+u
+⊺
+i
+λi ui
+=
+Xm
+i=k+1
+λi
+42 / 84
+note
+⇒ when we truncate U =
+
+u1 · · · uk · · · um
+
+to Uk =
+
+u1 · · · uk
+
+and approximate the vector
+x = UU⊺
+x
+in terms of
+˜x = UkU
+⊺
+k
+x
+we expect an error of about the sum of the eigenvalues of the truncated eigenvectors
+in practice, it is thus common to choose k s.t. we capture, say, 90% of the spectrum
+Pk
+i=1
+P
+λi
+m
+i=1
+λi
+⩾ 0.9
+43 / 84
+visualizing principal components
+consider (zero mean) data X ∈ R
+m×n and
+the matrix U = [u1 · · · um] ∈ R
+m×m resulting
+from the spectral decomposition of 1
+1
+XX⊺
+we can define functions fi
+: R
+m → R where
+fi
+
+x
+
+= u
+⊺
+i
+x
+for any such functions, we will then have
+∢
+
+ui
+, x
+
+<
+π
+2 ⇒ fi
+
+x
+
+> 0
+∢
+
+ui
+, x
+
+=
+π
+2 ⇒ fi
+
+x
+
+= 0
+∢
+
+ui
+, x
+
+>
+π
+2 ⇒ fi
+
+x
+
+< 0
+44 / 84
+visualization of functions fi
+
+x
+
+, i ∈
+
+1, 2
+	
+for the above 2D data sample
+u1
+−2
+−1
+0
++1
++2
+f1(x) = x
+⊺u1
+u2
+−2
+−1
+0
++1
++2
+f2(x) = x
+⊺u2
+45 / 84
+deeper insights into PCA
+46 / 84
+principal axis via
+maximization of projection spread
+47 / 84
+consider (zero mean) data
+
+xj
+	
+nj=
+1
+and a
+unit vector
+u (all in
+R
+m
+)
+the inner product xj = u⊺xj
+maps the data from
+R
+m to a 1D subspace
+R
+u
+=
+
+
+x
+·
+u  x
+∈
+R
+
+since the data is zero mean, the variance
+of the projected data simply is σ2 = 1n Xj x2j = 1n Xj u⊺
+xj
+
+2
+48 / 84
+idea
+determine a unit vector u1 ∈ R
+m s.t. the variance of the projected data is maximal
+e1
+e2
+uˆ
+optimal choice u1
+e1
+e2
+u
+suboptimal choice u
+49 / 84
+⇔ solve
+u1 = argmax
+u
+1
+n
+X
+j
+
+u
+⊺
+xj
+2
+s.t. ∥u∥ = 1
+⇔
+u1 = argmax
+u
+u
+⊺C u
+s.t. u
+⊺u − 1 = 0
+⇔ 84
+⇔ solve
+u1 = argmax
+u
+1
+n
+X
+j
+
+u
+⊺
+xj
+2
+s.t. ∥u∥ = 1
+⇔
+u1 = argmax
+u
+u
+⊺C u
+s.t. u
+⊺u − 1 = 0
+⇔ given the Lagrangian L
+
+u, λ
+
+= u
+⊺C u − λ
+
+u
+⊺u − 1
+
+, solve the problem
+u1, λ1 = argmax
+u,λ
+u
+⊺C u − λ
+
+u
+⊺u − 1
+
+50 / 84
+note
+the KKT conditions tell us that, at the solution
+u1 and λ1, we must have
+∂L
+∂u1
+= 2C u1 − 2 λ1 u1 = 0
+which then leads to the eerily familiar problem
+C u1 = λ1 u1
+51 / 84
+principal axis via
+minimization of projection distance
+52 / 84
+consider (zero mean) data 
+xj
+	n
+j=1
+and a
+unit vector u (all in R
+m)
+the projection
+xj = u
+⊺
+xj
+allows for approximating the given data as
+xj ≈ u ·
+
+u
+⊺
+xj
+
+the squared Euclidean distance between
+a data point and its approximation is
+
+ xj − u
+
+u
+⊺
+xj
+
+
+2
+53 / 84
+idea
+determine a unit vector u1 ∈ R
+m s.t. the average distance between the data and their
+approximation is minimal
+e1
+e2
+uˆ
+optimal choice u1
+e1
+e2
+u
+suboptimal choice u
+54 / 84
+⇔ solve
+u1 = argmin
+u
+1
+n
+X
+j
+
+xj − u
+
+u
+⊺
+xj
+
+
+2
+s.t. ∥u∥ = 1
+with distances
+
+xj − u
+
+u
+⊺
+xj
+
+
+2
+= x
+⊺
+j
+xj − 2 x
+⊺
+j u
+
+u
+⊺
+xj
+
++ u
+⊺u
+
+u
+⊺
+xj
+u
+⊺
+xj
+
+where we demand that u
+⊺u = 1 and x
+⊺
+j
+xj
+is a constant w.r.t. decision variable
+55 / 84
+⇔ solveu
+1
+= argmin u
+−
+u
+⊺C u
+s
+.
+t
+.
+u
+⊺
+u
+=
+1
+⇔ solveu
+1
+= argmax u
+u
+⊺C u
+s
+.
+t
+.
+u
+⊺
+u
+=
+1
+⇔ solve the familiar problem
+C u
+1
+=
+λ
+1
+u
+1
+56 / 84
+take home message
+maximizing projection spread ⇔ minimizing projection distance
+e1
+e2
+uˆ
+optimal choice u1
+e1
+e2
+u
+suboptimal choice u
+e1
+e2
+uˆ e1
+e2
+u
+57 / 84
+remarks
+there are even deeper insights into PCA (for instance from the perspective
+of physics), but we shall leave it at this . . .
+as it really is ridiculously important, PCA was independently (re)invented by
+many different people
+the earliest modern statistical account is due to Pearson in 1901 [1] and its
+by now most common name first appears in work by Hotelling [2]
+yet there are other names as well, for instance in signal processing, people
+typically talk about the Karhunen-Loeve transformation due to Karhunen [ ` 3]
+58 / 84
+kernel principal component analysis
+59 / 84
+given a data matrix
+X =
+
+x1 · · · xn
+
+of n data vectors xj ∈ R
+m, we may consider a (non-linear) feature map
+φ : R
+m → H
+and (at least conceptually) map these data into a feature space using
+φj = φ
+
+xj
+
+“conceptually” because H might be infinitely dimensional
+60 / 84
+we may then (at least conceptually) gather the transformed data in a matrix
+Φ =
+
+φ1 · · · φn
+
+∈ R
+dim[H]×n
+for the time being, we will assume the transformed data were centered, i.e.
+1
+n Φ 1 = 0
+note: we only make this assumption to keep the following equations legible; in practice, this
+assumption will rarely hold; but this is not an issue to worry about . . . just a few slides
+down, we show how to easily solve the feature space centering problem
+61 / 84
+now we can (at least conceptually) compute the “feature space”
+sample covariance matrix
+C =
+1
+n ΦΦ⊺
+and ask for its eigenvalues λi and feature space eigenvectors ui
+C ui = λi ui
+to see if these can tell us “something” about the data we are given . . .
+62 / 84
+note
+we emphasize once again, that it may be practically impossible to compute
+a supposed feature map φ(x)
+consequently, it may be practically impossible to actually compute Φ and C
+as introduced above
+however, from the point of view of “pen-and-paper math”, we can work with
+these objects
+they are theoretical constructs that will guide our discussion; once we have
+reached our goal, all occurrences of feature space vectors will be in form of
+inner product which can be swapped for Mercer kernel evaluations
+⇒ in the end, the Hilbert space math we discuss next is practically computable
+63 / 84
+we have
+1
+n ΦΦ⊺ui = λi ui
+⇔ ΦΦ⊺ui = ηi ui (ηi = n λi)
+⇔ Φ vi = ηi ui (vi = Φ⊺ui)
+⇒ each eigenvector ui of 1
+n ΦΦ⊺
+is a linear combination of the columns φj of Φ
+looking at Φ vi = ηi ui we also emphatically emphasize that ui ∈ H and vi ∈ R
+n
+64 / 84
+moving on, we further have
+Φ vi = ηi ui
+⇔ Φ⊺Φ vi = ηi Φ⊺ui
+⇔ Φ⊺Φ vi = ηi vi
+where Φ⊺Φ is a Gram matrix which is of course interesting . . .
+65 / 84
+the elements of matrix Φ⊺Φ are given by
+
+Φ⊺Φ
+
+jk = φ
+⊺
+j φk = k
+
+xj
+, xk
+
+=
+
+K
+
+jk
+⇒ we can consider the eigenvector / eigenvalue problem
+K vi = ηi vi
+where the entries of matrix K are values of a kernel function K (which may
+be chosen to our liking) evaluated on pairs of given data points xj
+, xk ∈ R
+m
+⇔ we can practically compute the coefficient vectors vi ∈ R
+n which determine
+the feature space eigenvectors ui ∈ H
+66 / 84
+note
+when we use numerical software (e.g. numpy) to solve
+K vi = ηi vi
+the resulting vi will be normalized to unit length ∥vi∥ = 1
+but what we really want are feature space eigenvectors ui of length ∥ui∥ = 1
+⇒ we need to re-scale the vi obtained from our numerical computing software
+let’s be clear about this . . .
+67 / 84
+feature space PCA is to solve
+ΦΦ⊺ui = ηi ui
+⇔ u
+⊺
+i ΦΦ⊺ui = ηi u
+⊺
+i ui
+⇔ v
+⊺
+i
+vi = ηi u
+⊺
+i ui
+(above, we defined vi = Φ⊺ui)
+⇔ v
+⊺
+i
+vi = ηi (theory dictates that u
+⊺
+i ui = 1)
+however, our software yields
+v
+⊺
+i
+vi = 1
+and this needs reconciliation . . .
+68 / 84
+to reconcile theory with practice, most literature, forum posts, and (therefore) AIs
+suggest to re-scale
+vi ← vi
+·
+√
+ηi
+to get from v
+⊺
+i
+vi = 1 to the required v
+⊺
+i
+vi = ηi
+however, we can and should be cleverer since the above misses a crucial point
+what we are really interested in are the vectors ui and several slides ago, we saw
+Φ vi = ηi ui ⇔ ui =
+Φ vi
+ηi
+hence, if we plug the above re-scaled numerical vi
+into this expression, we obtain
+⇔ ui =
+Φ vi
+·
+√
+ηi
+ηi
+=
+Φ vi
+√
+ηi
+69 / 84
+re-scaling
+to reconcile theory with practice, we consider the computed vi and ηi and re-scale
+vi ←
+vi
+√
+ηi
+in practice, there may be 0-valued trailing eigenvalues (for good reasons beyond or scope)
+this will have to be considered before dividing by square roots of zero, for instance
+matK = ...
+matK = centerKernelMatrix(matK)
+etas, matV = la.eigh(matK)
+mask = etas > 0
+etas = etas[mask]
+matV = matV[:,mask]
+matV = matV / np.sqrt(etas)
+70 / 84
+centering the kernel matrix
+the above code invokes centerKernelMatrix to center kernel matrices K ∈ R
+n×n
+recall that we assumed that matrix Φ was centered only to keep our equations clean
+while this will rarely be the case, a matrix which is guaranteed to be centered is Φ J
+using this centered matrix Φ J, we can rewrite our eigenvalue/eigenvector problem as
+J
+⊺ Φ⊺Φ J vi = ηi vi
+⇔ J K J vi = ηi vi
+71 / 84
+now, observe that
+J K J =
+
+I −
+1
+n
+11⊺
+
+K
+
+I −
+1
+n
+11⊺
+
+=
+
+K −
+1
+n
+11⊺K
+ I −
+1
+n
+11⊺
+
+= K −
+1
+n
+11⊺K −
+1
+n
+K11⊺ +
+1
+n
+2 11⊺K 11⊺
+here is our function centerKernelMatrix to compute this very numpythonically
+def centerKernelMatrix(matK):
+_, n = matK.shape
+rsum = np.sum(matK,axis=1).reshape(1,n)
+csum = rsum.reshape(n,1)
+tsum = np.sum(rsum)
+return matK - rsum/n - csum/n + tsum/n**2
+72 / 84
+feature space projections
+given everything we saw so far, we can project feature space vectors φx = φ(x) ∈ H
+onto feature space eigenvectors ui ∈ H by computing
+fi
+
+x
+
+= φ
+⊺
+x ui = φ
+⊺
+xΦ vi = k
+⊺
+x
+vi
+which (as by now common) involves the kernel vector
+kx = k
+
+x
+
+=
+
+
+
+
+
+k
+
+x, x1
+
+k
+
+x, x2
+
+.
+.
+.
+k
+
+x, xn
+
+
+
+
+
+
+∈ R
+n
+73 / 84
+kPCA procedure
+1) given X =
+
+x1 · · · xn
+
+∈ R
+m×n
+, compute a kernel matrix K ∈ R
+n×n
+
+K
+
+jl = k
+
+xj
+, xl
+
+2) center the kernel matrix, compute and normalize its eigenvectors
+K = J K J
+K vi = ηi vi
+vi ← √vi
+ηi
+3) compute (and henceforth work with) the feature space projections
+fi
+
+x
+
+= φ
+⊺
+x ui = φ
+⊺
+xΦ vi = k
+⊺
+x
+vi =
+X
+j
+k
+
+x, xj
+ vi
+
+j
+our following examples involve Gaussian kernels . . .
+74 / 84
+visualizing kernel principal components
+0
+f1(x)
+0
+f2(x)
+0
+f3(x)
+0
+f4(x)
+0
+f5(x)
+0
+f6(x)
+75 / 84
+note
+the above examples suggest that kernel PCA (implicitly) allows for data clustering
+note: there are very deep and fundamental principles behind this observation . . .
+unfortunately, we can’t dig into these principles in a mere 2+2 lecture :-(
+76 / 84
+question
+what does it mean to “work with feature space projections” ?
+answer
+it can, for instance, mean to compute functions like this one
+F
+
+x
+
+=
+X
+k
+i=1
+
+
+ fi
+
+x
+
+
+
+
+which can be of interest in outlier detection . . .
+77 / 84
+example
+data in R
+2
+the data, an outlier, and function F(x)
+78 / 84
+note
+kernel functions can be defined for non-numeric data such as, for example
+# a vocabulary of strings
+VOC = [’bouvier patty’, ’bouvier selma’, ’brockman kent’, ’burns charles montgomery’, ’carlson carl’,
+’chalmers gary’, ’flanders ned’, ’flanders rod’, ’flanders todd’, ’frink prof. john’, ’gumbel
+barney’, ’hibbert dr. julius’, ’krabappel edna’, ’leonard lenny’, ’lovejoy helen’, ’lovejoy
+timothy’, ’mann otto’, ’moleman hans’, ’muntz nelson’, ’nahasapeemapetilon apu’, ’prince martin’,
+’riviera dr. nick’, ’simpson bart’, ’simpson homer’, ’simpson lisa’, ’simpson maggie’, ’simpson
+marge’, ’skinner agnes’, ’skinner seymour’, ’smithers waylon’, ’syslack moe’, ’van houten luann’,
+’van houten milhouse’, ’wiggum clancy’, ’wiggum ralph’]
+# out of vocabulary strings
+OOV = [’flanders maude’, ’simpson abe’, ’van houten kirk’]
+we won’t discuss details here, but refer to one of our coding nuggets on researchgate
+79 / 84
+⇒ if we are given n strings s1,s2, . . . ,sn, we can compute an n × n string
+kernel matrix and subject it to kPCA
+once the (re-scaled) vectors vi are available, we can compute “string
+feature space projections”
+fi
+
+s
+
+=
+Xn
+j=1
+k
+
+s,sj
+ vi
+
+j
+with those, we may, for instance, compute l ⩽ n dim. representations
+f
+
+s
+
+=
+
+
+
+
+
+f1
+
+s
+
+f2
+
+s
+
+.
+.
+.
+fl
+
+s
+
+
+
+
+
+
+to embed strings in R
+l
+(⇔ get word embeddings without neural nets ;-)
+80 / 84
+example
+bouvier patty bouvier selma
+brockman kent
+burns charles montgomery carlson carl
+chalmers gary
+flanders ned flanders rod flanders todd
+frink prof. john gumbel barney
+hibbert dr. julius leonard lenny krabappel edna lovejoy helen lovejoy timothy mann otto
+moleman hans
+nahasapeemapetilon apu muntz nelson
+prince martin qumby joe
+riviera dr. nick
+simpson bart
+simpson homer
+simpson lisa simpson maggie simpson marge
+skinner agnes skinner seymour
+smithers waylon
+syslack moe
+van houten luann
+van houten milhouse
+wiggum clancy
+wiggum ralph
+n VOC strings embedded in R
+2
+bouvier patty bouvier selma
+brockman kent
+burns charles montgomery carlson carl
+chalmers gary
+flanders ned flanders rod flanders todd
+frink prof. john gumbel barney
+hibbert dr. julius leonard lenny krabappel edna lovejoy helen lovejoy timothy mann otto
+moleman hans
+nahasapeemapetilon apu muntz nelson
+prince martin qumby joe
+riviera dr. nick
+simpson bart
+simpson homer
+simpson lisa simpson maggie simpson marge
+skinner agnes skinner seymour
+smithers waylon
+syslack moe
+van houten luann
+van houten milhouse
+wiggum clancy
+wiggum ralph
+flanders maude
+simpson abe
+van houten kirk
+n VOC and 3 OOV strings embedded in R
+2
+81 / 84
+summary
+82 / 84
+we now know about
+PCA and kPCA and some of their use cases
+note: in today’s lecture we dipped our toes into the sea of matrix factorization methods
+yes, there exist many other factorizations of matrices which are of interest in ML
+many of these can be extended towards (higher order) tensor decompositions or
+tensor factorizations . . . in physics, these are known as tensor networks
+tensor networks have nothing to do with neural networks but are still emerging as
+a hot topic in ML because they allow for dimensionality reduction or compression
+of neural net parameters
+⇔ lot’s of MSc / PhD thesis potential
+83 / 84
+references
+[1] K. Pearson. On Lines and Planes of Closest Fit to Systems of Points in Space.
+Philosophical Magazine, 2(11), 1901.
+[2] H. Hotelling. Analysis of a Complex of Statistical Variables into Principal Components.
+J. of Educational Psychology, 24(7), 1933.
+[3] K. Karhunen. Uber lineare Methoden in der Wahrscheinlichkeitsrechnung. ¨
+Ann. Acad. Scientiarum Fennicæ: Mathematika – Physica, 37, 1947.
+84 / 84

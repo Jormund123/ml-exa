@@ -1,0 +1,1856 @@
+Principles of Machine Learning
+Prof. Christian Bauckhage
+1 / 79
+lecture 02
+least squares regression
+in this lecture, we begin to unpack the statement
+“machine learning is the science of fitting mathematical models to data”
+we will address a practical scenario motivated as follows
+a fundamental model fitting task is regression analysis
+a fundamental model fitting technique is the method of least squares
+⇔ we will study how least squares optimization allows us to solve regression problems
+in passing, we will encounter most of the fundamental principles of machine learning
+2 / 79
+(historical) remarks
+the method of least squares is the “grandfather” of all model fitting techniques
+it was independently developed by Gauss, Legendre (1805), and Adrain (1808)
+although Legendre published first, Gauss is credited with inventing the method
+(at the age of 18 !!!) in 1795
+while Gauss did not publish his approach until 1809, he obviously applied it as
+early as in 1801 to predict the path of the newly discovered dwarf planet Ceres
+Ceres had been discovered by Piazzi in 1801 who tracked its path for forty days
+before it disappeared behind the sun; using least squares to fit an ellipse to this
+data, Gauss successfully predicted where Ceres would reemerge
+(all other astronomers / mathematicians who tried came up with wrong predictions)
+3 / 79
+(didactic) remarks
+least squares regression is usually the first topic covered in machine learning courses
+in modern parlance, it can be seen as a non-iterative learning task where parameters
+of a model can be determined through a single direct calculation rather than through
+a series of (many) iterative adjustments based on training data
+while least squares regression thus poses such a simple learning problem that most
+people nowadays would hardly see it as a machine learning task, it provides us with
+an opportunity to seamlessly introduce many of the concepts and terminology which
+are fundamental to machine learning at large . . .
+4 / 79
+(technical) remarks
+very loosely speaking, we may categorize a regression task
+w.r.t. the nature of the given data (univariate or multivariate)
+and the nature of the model to be fitted (linear or non-linear)
+in this lecture, we consider all settings in the table on the right model
+non
+linear linear
+data
+uni
+× ×
+variate
+multi
+× ×
+variate
+5 / 79
+outline
+least squares for regression
+univariate linear regression
+univariate non-linear regression
+multivariate linear regression
+multivariate non-linear regression
+remarks regarding numerics / notation / terminology
+summary
+6 / 79
+least squares for regression
+7 / 79
+setting the stage
+the figure on the right plots the results of
+a survey which asked students for their
+body heights and weights
+our goal is to summarize or to distill this
+data into a form that allows for inference
+⇔ our goal is to find a mathematical model
+that allows us to predict people’s weights
+from their heights
+⇔ in fancy terms, our goal is to be able to
+regress weights onto heights
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+8 / 79
+note
+given a task like this, we must consider (at least) three aspects
+modeling
+what kind of model (⇔ mathematical function) f should we use as a predictor ?
+which inputs, outputs, and parameters would a suitable predictor have to have ?
+representation
+how should we represent inputs, outputs, and parameters of the chosen model f ?
+how could we make any kind of computation with f as easy or efficient as possible ?
+parametrization
+how could we determine or estimate optimal parameters of the chosen model f ?
+what kind of learning algorithm should we use to adjust f to the given training data ?
+these aspects are closely intertwined and usually need to be considered jointly
+9 / 79
+univariate linear regression
+10 / 79
+linear regression
+looking at our data we can make out a
+(weak) linear correlation, namely
+on average, smaller people seem
+to weigh less than taller people
+⇔ the data seem to exhibit a linear trend
+⇒ it seems reasonable to attempt to fit a
+linear model to the data
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+11 / 79
+⇒ denoting our data as D = 
+xj, yjnj=
+1
+where
+xj, yj
+∈
+R represent the height and
+weight of person
+j, we want to determine
+a univariate linear function y = f x  w0, w1 = w0
++
+w
+1
+·
+x
+which plausibly predicts the
+yj
+from the
+xj
+note: our model parameters
+w
+0, w
+1
+∈
+R denote the
+intercept and slope of a line in
+R
+2
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+12 / 79
+⇒ stated more formally, our problem is
+given a sample of n data points
+D =
+
+
+xj
+, yj
+n
+j=1
+⊂ R
+2
+and assuming a parameterized linear model f : R → R where
+f
+
+x
+
+ w0, w1
+
+= w0 + w1 · x
+estimate those model parameters which optimize the objective
+∀ j : yj ≈ f
+
+xj
+
+ w0, w1
+
+13 / 79
+abstract parameter notation
+to reduce clutter, we (may) henceforth work with a more abstract notation
+and introduce the set
+θ ≡
+
+w0, w1
+	
+to write our model as
+f
+
+x
+
+ θ
+
+≡ fθ
+
+x
+
+this notation applies in general, i.e. for any kinds of parameters of any
+kind of model we will ever consider in this course and is commonly used
+in the machine learning literature
+14 / 79
+while our model fitting objective makes intuitive sense, it does not yet provide
+us with an algorithm we could use to achieve it
+to formulate an equivalent but more manageable objective, we therefore note
+∀ j : yj ≈ fθ
+
+xj
+
+⇔ ∀ j : fθ
+
+xj
+
+− yj ≈ 0 ⇔ ∀ j : ϵj ≈ 0
+each difference
+ϵj = fθ
+
+xj
+
+− yj
+between model prediction fθ
+
+xj
+
+and target yj
+is called an error or a residual
+15 / 79
+considering the errors or residuals ϵj
+, we further note the following equivalences
+∀ j : ϵj ≈ 0 ⇔ ∀ j : ϵ
+2
+j ≈ 0 ⇔
+Xn
+j=1
+ϵ
+2
+j ≈ 0 ⇔
+1
+n
+Xn
+j=1
+ϵ
+2
+j ≈ 0
+in plain English
+if all errors are close to zero, their squares will be close to zero, too
+if all squared errors are close to zero, their average will be close to zero, too
+⇒ we have a statistical formulation for the objective of our model fitting problem
+16 / 79
+note
+a function f parameterized by θ is a good regression model for the data in D, if it
+minimizes the residual sum of squares (RSS) aka the mean squared error (MSE)
+E
+
+θ
+
+
+f , D
+
+=
+1
+n
+Xn
+j=1
+
+fθ
+
+xj
+
+− yj
+2
+17 / 79
+⇒ having fixed the model class of f (it should belong to the two-parameter family
+of univariate linear functions) and sharpened the objective (minimize an MSE)
+for our problem, our specific task is now
+estimate optimal model parameters
+wˆ0, ˆw1 ∈ R
+i.e. parameters for which the error
+E
+
+wˆ0, ˆw1
+
+
+f , D
+
+is as small as possible
+18 / 79
+note
+⇒ we are dealing with the following minimization problem
+wˆ 0, ˆw1 = argmin
+w0,w1
+1
+n
+Xn
+j=1
+
+w0 + w1 xj
+
+− yj
+2
+given this problem, we next observe . . .
+19 / 79
+1) our objective function E : R × R → R with
+E
+
+w0, w1
+
+
+f , D
+
+= E
+
+w0, w1
+
+=
+1
+n
+Xn
+j=1
+
+f
+
+xj
+
+ w0, w1
+
+− yj
+2
+is a function of
+w0, w1
+
+where the data 
+xj
+, yj
+	
+are treated as fixed constants
+2) our objective function is continuous over R × R and a sum of positive squares
+⇒ our objective function is a continuous convex function
+⇒ our objective function has a unique minimizer
+wˆ0, ˆw1
+
+20 / 79
+3) the scaling factor 1/n impacts the value of E at
+wˆ0, ˆw1
+
+but not the minimizer
+wˆ0, ˆw1
+
+⇒ we have
+wˆ0, ˆw1 = argmin
+w0,w1
+1
+n
+Xn
+j=1
+
+w0 + w1 xj
+
+− yj
+2
+⇔ wˆ0, ˆw1 = argmin
+w0,w1
+Xn
+j=1
+
+w0 + w1 xj
+
+− yj
+2
+21 / 79
+⇒ instead of minimizing the mean squared error
+E
+
+w0, w1
+
+=
+1
+n
+Xn
+j=1
+
+w0 + w1 xj
+
+− yj
+2
+we may also minimize the least squares error
+L
+
+w0, w1
+
+=
+Xn
+j=1
+
+w0 + w1 xj
+
+− yj
+2
+22 / 79
+loss function
+we will henceforth say that
+L
+
+w0, w1
+
+=
+Xn
+j=1
+
+w0 + w1 xj
+
+− yj
+2
+is a loss function for our model fitting problem
+23 / 79
+note
+loss functions are central to machine learning
+there usually are many possible choices, but they
+all are of the following general form
+L
+
+θ
+
+
+fθ, D
+
+the smaller the loss, the better the model fθ(x) fits the data D
+24 / 79
+4) the terms
+w
+0
++
+w
+1
+·
+xj
+=
+w
+0
+·
+1
++
+w
+1
+·
+xj
+are actually inner products in disguise
+to see this, we introduce the
+R
+2 vectors
+w
+=
+
+w
+0
+w
+1
+
+and
+φj
+=
+
+1xj
+
+which immediately allow us to (re)write w0 · 1 + w1 · xj = w⊺φj = φ⊺j w
+⇒ our loss function becomes Lw = Xnj=1φ⊺j w − yj
+
+2
+25 / 79
+5) if we also introduce the two R
+n vectors
+v =
+
+
+
+
+
+φ
+⊺
+1w
+φ
+⊺
+2w
+.
+.
+.
+φ⊺
+nw
+
+
+
+
+
+and y =
+
+
+
+
+
+y1
+y2
+.
+.
+.
+yn
+
+
+
+
+
+we recognize our loss as a squared Euclidean distance
+L(w) = Xn
+j=1
+
+φ
+⊺
+j w − yj
+2
+=
+Xn
+j=1
+
+vj − yj
+2
+=
+
+v − y
+
+
+2
+26 / 79
+if we finally introduce the R
+2×n matrix
+Φ =
+
+
+| | |
+φ1 φ2 · · · φn
+| | |
+
+
+we can re-write the above vector v as
+v = Φ⊺w
+⇒ our loss function becomes
+L
+
+w
+
+=
+
+Φ⊺w − y
+
+
+2
+27 / 79
+note
+⇒ we are dealing with the following (ordinary) least squares problem
+wˆ = argmin
+w
+
+Φ⊺w − y
+
+
+2
+28 / 79
+feature maps
+to arrive at this result, we had to transform our given independent
+variables or input data xj by means of a feature map
+φ : R → R
+2
+where
+φ
+
+x
+
+=
+
+1
+x
+
+we say that this feature map transforms or lifts data from R to R
+2
+29 / 79
+feature vectors and feature matrices
+we henceforth say that a vector
+φ
+
+xj
+
+≡ φj
+is a feature vector
+we henceforth say that a matrix
+Φ =
+
+
+| | |
+φ1 φ2 · · · φn
+| | |
+
+
+is a feature matrix
+30 / 79
+question
+OK, but how do we solve
+wˆ = argmin
+w
+L(w)
+= argmin
+w
+
+Φ⊺w − y
+
+
+2
+31 / 79
+question
+OK, but how do we solve
+wˆ = argmin
+w
+L(w)
+= argmin
+w
+
+Φ⊺w − y
+
+
+2
+answer
+the simplest recipe for estimating the minimizer of this convex loss function
+involves some multivariate calculus and is to “derive and equate to zero” . . .
+31 / 79
+we have
+L =
+
+Φ⊺w − y
+
+
+2
+=
+
+Φ⊺w − y
+⊺
+
+Φ⊺w − y
+
+= w
+⊺ΦΦ⊺w − 2w
+⊺Φ y + y
+⊺
+y
+and therefore
+∇L =
+d
+dw
+h
+w
+⊺ΦΦ⊺w − 2w
+⊺Φ y + y
+⊺
+y
+i
+= 2 ΦΦ⊺w − 2 Φ y
+32 / 79
+since L is convex in w, its unique minimum is characterized by ∇L = 0
+using this, we equate the above derivative to 0 and consequently find
+2 ΦΦ⊺w − 2 Φy
+!
+= 0
+⇔ ΦΦ⊺w = Φ y
+⇔ w =
+
+ΦΦ⊺
+−1Φ y
+33 / 79
+note
+⇒ the solution to our linear least squares problem is given by
+wˆ =
+
+ΦΦ⊺
+−1Φ y
+34 / 79
+for our linear regression problem, the
+least squares solution wˆ is optimal in
+the following sense
+
+Φ⊺wˆ − y
+
+
+2
+⩽
+
+Φ⊺w − y
+
+
+2
+⇔ among all linear models f
+
+x
+
+ w0, w1
+
+,
+the fitted model f
+
+x
+
+ wˆ0, ˆw1
+
+has the
+smallest sum of squared residuals “|” 150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+35 / 79
+we can use the fitted model to make
+predictions
+for instance, to predict the weight of
+a person who is x = 200 cm tall, we
+compute
+y = f
+
+200
+
+ wˆ0, ˆw1
+
+= φ(200)
+⊺wˆ
+≈ 94.5 kg
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+36 / 79
+principles of machine learning
+in passing, we just encountered most of the principles of machine learning with numerical data
+we were given data D ⊂ R
+m × R
+t which we wanted to model such that we could perform
+inference tasks, i.e. predict y ∈ R
+t
+from x ∈ R
+m (in our example, we had m = 1 and t = 1)
+we decided for an appropriate model class 
+f : R
+m → R
+t
+	
+of functions with p parameters
+and devised a loss function L : R
+p → R that provided us with a criterion for assessing the
+quality of a model in 
+f
+	
+w.r.t. our data D (in our example, we had p = 2)
+our loss function did involve a feature map φ : R
+m → R
+M (in our example, we had M = 2)
+using this loss function, we estimated optimal model parameters wˆ ∈ R
+p
+to find fˆ ∈
+
+f
+	
+our loss function was based on statistics; our optimization algorithm involved linear algebra
+and calculus (it led to a closed form solution which is quite exceptional in machine learning)
+in machine learning parlance, all this translates to: we trained a model on training data and
+then applied it to application data to make a prediction
+37 / 79
+univariate non-linear regression
+38 / 79
+polynomial regression
+the method of least squares seamlessly
+extends to univariate regression with
+polynomial models, i.e. with non-linear
+functions of the form
+f
+
+x
+
+ w0, w1, . . . , wd
+
+=
+X
+d
+i=0
+wi
+· x
+i
+the figure shows a polynomial of degree
+d = 5 fitted to our exemplary data
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+39 / 79
+we may formalize the problem of fitting f
+
+x
+
+ w0, . . . , wd
+
+to the data as
+wˆ0, . . . , ˆwd = argmin
+w0,...,wd
+L
+
+w0, . . . , wd
+
+= argmin
+w0,...,wd
+Xn
+j=1
+ X
+d
+i=0
+wi x
+i
+j − yj
+!2
+al / 79
+we may formalize the problem of fitting f
+
+x
+
+ w0, . . . , wd
+
+to the data as
+wˆ0, . . . , ˆwd = argmin
+w0,...,wd
+L
+
+w0, . . . , wd
+
+= argmin
+w0,...,wd
+Xn
+j=1
+ X
+d
+i=0
+wi x
+i
+j − yj
+!2
+algebraically, this optimization problem for polynomial regression is identical
+to the optimization problem for linear regression
+⇔ just as for linear least squares, the optimization objective for polynomial least
+squares is to minimize a squared Euclidean distance
+let’s verify this claim . . .
+40 / 79
+the main difference to the simpler linear case is to consider a
+slightly more elaborate feature map
+φ
+:
+R
+→
+R
+d
++
+1 with
+φ
+
+x
+
+=
+
+1xx2...xd
+
+=
+x
+0
+x
+1
+x
+2...xd
+
+as well as a corresponding
+d
++
+1 dimensional parameter vector
+w
+=
+
+w
+0
+w
+1
+w
+2
+...w
+d
+
+41 / 79
+applying φ to the given xj
+, yields a (d + 1) × n feature matrix
+Φ =
+
+
+| | |
+φ1 φ2 · · · φn
+| | |
+
+
+what remains the same is the R
+n
+target vector with the given yj
+y =
+
+
+
+
+
+y1
+y2
+.
+.
+.
+yn
+
+
+
+
+
+42 / 79
+given these definitions, the polynomial least squares problem becomes
+wˆ = argmin
+w
+L
+
+w
+
+= argmin
+w
+
+Φ⊺w − y
+
+
+2
+⇔ structurally, this is indistinguishable from the linear least squares problem
+⇔ while sizes and entries of the feature matrix Φ and parameter vector w in
+linear- and polynomial least squares differ, the algebraic structure of both
+problems is the same
+⇒ the structure of the solution to linear- and polynomial least squares must
+be the same, too
+43 / 79
+note
+⇒ the parameters of the best fitting polynomial can be computed as
+wˆ =
+
+ΦΦ⊺
+−1Φ y
+44 / 79
+Vandermonde matrix
+for given numbers v1, v2, . . . , vn, the n × (d + 1) matrix
+V =
+
+
+
+
+
+
+1 v1 v
+2
+1
+· · · v
+d
+1
+1 v2 v
+2
+2
+· · · v
+d
+2
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+1 vn v
+2
+n
+· · · v
+d
+n
+
+
+
+
+
+
+whose entries can be computed as
+Vrc = v
+c−1
+r
+is said to be a Vandermonde matrix
+⇒ the transpose Φ⊺ of the feature matrix Φ in polynomial
+least squares regression is a Vandermonde matrix
+A.T. Vandermonde
+(∗1735, †1796)
+45 / 79
+RBF regression
+note that we may think of polynomial regression as fitting a model of the form
+f
+
+x
+
+ w
+
+=
+X
+d
+i=0
+wi
+· fi
+
+x
+
+where the fi
+: R → R are univariate momomials with
+fi
+
+x
+
+= x
+i
+⇔ polynomial regression fits a linear combination of (polynomial) basis functions
+46 / 79
+we are (obviously) not restricted to (common) polynomial basis functions
+in what follows, we will have a first brief look at fitting a model of the form
+f
+
+x
+
+ w
+
+=
+Xn
+j=1
+wj
+· ϕj
+
+x
+
+⇔ the model we consider involves as many basis functions ϕj as we have data
+moreover, our model class for all the ϕj
+is the class of radial basis functions
+47 / 79
+radial basis function
+a function ϕc : R
+m → [0, ∞) is called a radial basis function (RBF)
+if its output ϕc(x) depends on some distance d(x, c) to a center c
+ϕc
+
+x
+
+= ϕ
+
+x, c
+
+= ϕ
+
+d
+
+x, c
+
+
+48 / 79
+letting β > 0 be a scale parameter, common RBFs include
+ϕ
+
+x, c
+
+= e
+− 1
+β ∥x−c∥
+ϕ
+
+x, c
+
+= e
+− 1
+β ∥x−c∥
+2
+ϕ
+
+x, c
+
+= 1 −
+∥x−c∥
+2
+∥x−c∥2+β
+.
+.
+.
+but whom are we kidding? the most common RBF by far is
+ϕ
+
+x, c
+
+= e
+− 1
+β ∥x−c∥
+2
+49 / 79
+in regression, it is common to work with RBFs centered at sample points
+ϕj
+
+x
+
+= ϕ
+
+x, xj
+
+⇔ in RBF regression, it is common to consider an overall model of the form
+f
+
+x
+
+ w
+
+=
+Xn
+j=1
+ϕ
+
+x, xj
+
+· wj
+50 / 79
+question
+how to determine suitable weights wj
+in RBF regression ?
+answer
+let’s see . . .
+51 / 79
+for
+xi
+, yi
+
+∈ D, it is reasonable to require
+yi = f
+
+xi
+
+ w
+
+=
+Xn
+j=1
+ϕ
+
+xi
+, xj
+
+wj
+if 9
+for
+xi
+, yi
+
+∈ D, it is reasonable to require
+yi = f
+
+xi
+
+ w
+
+=
+Xn
+j=1
+ϕ
+
+xi
+, xj
+
+wj
+if we define a matrix Φ ∈ R
+n×n such that
+
+Φ
+
+ij = Φij = ϕ
+
+xi
+, xj
+
+the n equations above can be written as
+yi =
+Xn
+j=1
+Φij wj ⇔ y = Φ w
+52 / 79
+⇒ optimal weights could be computed as
+wˆ = Φ−1
+y
+ / 79
+⇒ optimal weights could be computed as
+wˆ = Φ−1
+y
+yet, there are situations where it is better to compute wˆ as
+wˆ = argmin
+w
+
+Φ⊺w − y
+
+
+2
+⇔ wˆ =
+
+ΦΦ⊺
+−1Φ y
+where we tacitly exploited that Φ is symmetric, i.e. Φ = Φ⊺
+53 / 79
+note
+our current matrix Φ is a feature matrix
+Φ =
+
+
+| | |
+φ1 φ2 · · · φn
+| | |
+
+ where φj =
+
+
+
+ϕ
+
+x1, xj
+
+.
+.
+.
+ϕ
+
+xn, xj
+
+
+
+
+in contrast to the feature matrices we saw earlier, it is guaranteed to be square
+moreover, since function ϕ(·, ·) is an RBF, it is also guaranteed to be symmetric
+54 / 79
+example
+the figure on the right shows a model
+f
+
+x
+
+ wˆ
+
+=
+Xn
+j=1
+ϕ
+
+x, xj
+
+· wˆj
+composed of Gaussian RBF kernels
+ϕ
+
+x, xj
+
+= e
+− 1
+β ∥x−xj∥
+2
+( to be honest: to obtain this result, we used a
+modified version of what we saw above; why
+and how we did this will be studied later )
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+55 / 79
+principle of machine learning
+in passing, we came across another principle of machine learning with numerical data,
+namely that working with different model classes 
+f
+	
+typically leads to different results
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+linear model
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+polynomial model
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+RBF model
+56 / 79
+principle of machine learning
+different models typically make different predictions
+some predictions can be more plausible than others
+f x ˆ ˆy = fˆ(x)
+linear 200 94.5
+poly 200 61.3
+RBF 200 62.7
+All models are wrong, but some are useful.
+–George Box
+57 / 79
+note
+the method of least squares is model-agnostic
+⇔ it fits (almost) any model to a given set of data but
+does not “verify” if said model is appropriate
+⇒ appropriate models and fitting methods have to
+be determined by human experts (or AI agents)
+−10 −5 0 5 10
+0
+5
+10
+15
+parabolically arranged data
+−10 −5 0 5 10
+0
+5
+10
+15
+linear model
+58 / 79
+multivariate linear regression
+59 / 79
+multivariate linear regression
+least squares regression also works with
+higher dimensional data
+D =
+
+
+xj
+, yj
+n
+j=1
+where xj ∈ R
+m and yj ∈ R
+we may, say, fit multivariate linear models
+f
+
+x
+
+ w
+
+= w0 +
+Xm
+i=1
+wi
+· xi
+60 / 79
+example
+the figure on the right shows a fitted
+bi-variate linear model, i.e. a plane
+f
+
+x
+
+ wˆ
+
+= wˆ0 + wˆ1 x1 + wˆ2 x2
+61 / 79
+we considered w =  w
+0
+w
+1 · · ·
+w
+m
+
+⊺
+∈
+R
+m
++
+1
+φ
+x
+
+=
+
+1
+x
+1 · · ·
+x
+m
+
+⊺
+∈
+R
+m
++
+1
+Φ
+=
+
+φ
+1
+φ
+2 · · ·
+φ
+n
+
+∈
+R
+(
+m
++
+1
+)
+×
+n
+y
+=
+
+y
+1
+y
+2 · · ·
+y
+n
+
+⊺
+∈
+R
+n
+and then solved wˆ = argmin w
+
+Φ
+⊺
+w
+−
+y
+
+2
+to once again get wˆ =
+ΦΦ
+⊺
+
+−
+1
+Φ
+y
+62 / 79
+multivariate non-linear regression
+63 / 79
+multivariate non-linear regression
+multivariate least squares regression is of
+course not restricted to linear models
+for instance, the figure on the right shows
+a fitted bi-variate polynomial model
+f
+
+x
+
+ wˆ
+
+=
+X
+2
+i=0
+X
+2
+k=0
+wˆik x
+i
+1
+x
+k
+2
+how do you think did we determine wˆ ???
+64 / 79
+we worked with a feature map φ : R2 → R9
+whereφ
+
+x
+
+=
+x
+01
+x
+02
+x
+01
+x
+12
+x
+01
+x
+22
+x
+11
+x
+02
+x
+11
+x
+12
+x
+11
+x
+12
+x
+21
+x
+02
+x
+21
+x
+12
+x
+21
+x
+22
+
+65 / 79
+remarks regarding
+numerics / notation / terminology
+66 / 79
+words of warning
+our “pen and paper” solution for ordinary least squares assumes that the matrix ΦΦ⊺ is invertible
+luckily, for our running examples in this lecture, this (somewhat na¨ıve) assumption does indeed hold
+yet, in general, this may not be the case, i.e. ΦΦ⊺ could be rank deficient / singular / not invertible
+in practice, “this does not really matter” because the simple solution wˆ =
+ΦΦ⊺
+−1Φy is mainly
+of “theoretical interest” (it is easy to come by and helps us to warm up to parameter optimization)
+indeed, libraries for numerical linear algebra (at least those based on LAPACK) usually compute so
+called minimum-norm least squares solutions using the QR factorization or the SVD of a given input
+matrix (see the exercises)
+67 / 79
+notation
+throughout this course, we often
+work with sets of data vectors
+X =
+
+x1, x2, . . . , xn
+	
+where
+xj ∈ R
+m
+which we turn into feature vectors
+φj ∈ R
+M
+throughout this course, we always
+adhere to the following convention
+n ≡ number of data vectors
+m ≡ dimension of data vectors
+M ≡ dimension of feature vectors
+68 / 79
+data-, feature-, and design matrices
+m × n data matrix
+X =
+
+
+| | |
+x1 x2 · · · xn
+| | |
+
+
+M × n feature matrix
+Φ =
+
+
+| | |
+φ1 φ2 · · · φn
+| | |
+
+
+n × m design matrix
+X
+⊺ =
+
+
+
+
+
+— x
+⊺
+1 —
+— x
+⊺
+2 —
+.
+.
+.
+— x
+⊺
+n —
+
+
+
+
+
+n × M feature design matrix
+Φ⊺ =
+
+
+
+
+
+— φ
+⊺
+1 —
+— φ
+⊺
+2 —
+.
+.
+.
+— φ⊺
+n —
+
+
+
+
+
+≡ Ψ
+69 / 79
+notation
+much of the literature writes LSQ
+problems as follows
+M x = v
+in this lecture, we considered
+(and will continue to do so)
+Φ⊺w = y
+⇔ Ψ w = y
+9
+notation
+much of the literature writes LSQ
+problems as follows
+M x = v
+in this lecture, we considered
+(and will continue to do so)
+Φ⊺w = y
+⇔ Ψ w = y
+in the literature, the LSQ solution is
+x =
+
+M⊺M
+−1M⊺
+v
+however, our LSQ solution was
+w =
+
+ΦΦ⊺
+−1Φ y
+⇔ w =
+
+Ψ
+⊺Ψ
+−1
+Ψ
+⊺
+y
+70 / 79
+notation
+written in terms of design matrices
+w =
+
+Ψ
+⊺Ψ
+−1
+Ψ
+⊺
+y
+does look like the literature solution
+written in terms of feature matrices
+w =
+
+ΦΦ⊺
+−1Φ y
+doesn’t look like the literature solution
+yet, both solutions are mathematically identical, because, if Ψ = Φ⊺
+then Ψ⊺ = Φ
+our reason for preferring [ΦΦ⊺
+]
+−1Φ y over [ Ψ⊺Ψ ]
+−1 Ψ⊺
+y will become clear once
+we will have seen more interactions between linear algebra and statistics
+(notation is a matter of taste, but bad taste can occlude useful deeper insights ;-))
+71 / 79
+one more thing . . .
+72 / 79
+note
+we will frequently work with m ⩾ 1 dimensional data and thus with feature maps
+φ : R
+m → R
+M
+in order to reduce visual clutter, we will henceforth use the following convention
+for known data points xj ∈ D and unknown data points x ∈/ D, we will abbreviate
+φ
+
+xj
+
+≡ φj
+φ
+
+x
+
+≡ φx
+73 / 79
+summary
+74 / 79
+we now know that
+least squares regression can be understood as a supervised
+machine learning task in which we minimize a quadratic loss
+to fit a mathematical model of the general form
+y = f
+
+x
+
+ w
+
+=
+M
+X−1
+i=0
+wi
+· fi(x) = w
+⊺φx = φ
+⊺
+xw
+to given training data, namely to pairs of inputs and outputs
+D =
+
+
+xj
+, yj
+n
+j=1
+to fit a model is to estimate (optimal) model parameters
+75 / 79
+(ordinary) least squares parameter estimation consist in solving
+wˆ = argmin
+w∈RM
+
+Φ⊺w − y
+
+
+2
+the best solution to this (unconstrained) minimization problem is
+wˆ =
+
+ΦΦ⊺
+−1Φ y
+the target vector y ∈ R
+n simply gathers all the given training outputs yj
+columns φj of Φ ∈ R
+M×n
+result from applying a model specific feature
+map φ : R
+m → R
+M to the given training inputs xj
+different kinds of models typically involve different feature maps
+76 / 79
+once a regression model has been fitted or “trained”, it can predict
+y = φ
+⊺
+xwˆ
+different kinds of models usually produce different predictions
+two more things . . .
+77 / 79
+note
+all of this respects our definition
+machine learning is to run computer algorithms on exemplary data to adjust the parameters of
+other computer algorithms (⇔ models) so that they become able to perform cognitive tasks
+⇔ we may think of what saw today as
+// adjust model parameters
+function TRAIN REGRESSION MODEL(Xtrn, ytrn)
+Φ = φ
+
+Xtrn
+return ΦΦ⊺
+−1Φytrn
+// perform a prediction task
+function APPLY REGRESSION MODEL(Xtst, wˆ)
+Φ = φ
+
+Xtst
+return Φ⊺wˆ
+78 / 79
+note
+if we want to be fancy, we can also write our regression models as
+y = h
+
+a
+
+where a = φ⊺
+x wˆ and h = id
+these “fancy” regression models h(a) may be visualized as follows
+linear
+1 x1 x2 · · · xm
+h(a)
+y
+wˆ0 wˆ1 wˆ2
+wˆm
+non-linear
+x1 x2 · · · xm
+1 ϕ1 ϕ2 ϕ3 · · · ϕM
+h(a)
+y
+wˆ0 wˆ1
+wˆ2
+wˆ3
+wˆM
+⇒ in this lecture, we learned how to train very simple neural networks !
+79 / 79

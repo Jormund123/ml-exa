@@ -1,0 +1,2701 @@
+Principles of Machine Learning
+Prof. Christian Bauckhage
+1 / 97
+lecture 05
+probabilistic model fitting (part 1)
+in this lecture, we have a first look at the idea of probabilistic model fitting
+in particular, we will study maximum likelihood estimation as a method for
+finding (hopefully) optimal parameters of a probabilistic model
+along the way, we will come across the fundamental notions of likelihoodand log-likelihood functions
+since maximum likelihood methods have limitations, we will also have a first
+look at maximum a-posteriori estimation as another method for finding good
+model parameters ⇔ we will learn about Bayesian data analysis
+2 / 97
+outline
+setting the stage
+probabilistic model fitting (1)
+i.i.d. samples and probabilities
+maximum likelihood estimation
+limitations of maximum likelihood
+maximum a-posteriori estimation
+summary
+3 / 97
+setting the stage
+4 / 97
+reconsider the data from lecture 02
+D =
+
+
+xj
+, yj
+n
+j=1
+where xj
+, yj ∈ R characterize height
+and weight of a person j
+previously, we assumed there exists
+a function
+y = f(x)
+which “explains” this training data as
+yj = f(xj) + ϵj
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+however . . .
+5 / 97
+such an assumption can be ill advised
+for instance, our height/weight survey data
+contains three different pairs
+xj
+, yj
+
+where
+xj = 186
+⇒ strictly speaking, the mathematical principle
+that relates heights and weights can not be
+a function (⇔ a map that assigns each x to
+exactly one y)
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+6 / 97
+a (much) better idea could be to model the
+data in terms of a joint probability density
+D ∼ p
+
+x, y
+
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+7 / 97
+note
+instead of performing (predictive) inference based on some function
+y = f(x)
+we could then perform inference in terms of a conditional probability
+p
+
+y
+
+ x
+
+=
+p
+
+x, y
+
+p
+
+x
+
+this idea would even allow us to define statistical function models, say
+f
+
+x
+
+= argmax
+y
+p
+
+y | x
+
+or f
+
+x
+
+= E
+
+y | x
+
+=
+Z
+y p
+y | x
+
+dy
+8 / 97
+principles of machine learning
+assume observations
+xj
+, yj
+
+∈ D were drawn from an unknown distribution
+for modeling, decide for a parameterized probabilistic model p
+
+x, y
+
+ θ
+
+and fit it
+⇔ (try to) determine optimal parameters θˆ by
+considering an appropriate objective
+maximize log-likelihood, minimize Kullback-Leibler divergence, cross entropy, . . .
+running an appropriate optimization procedure
+maximum likelihood estimation, Bayesian estimation, expectation maximization, . . .
+9 / 97
+once p
+
+x, y
+
+ θˆ
+
+is available, we can compute (or approximate) the marginal
+p
+
+x
+
+ θˆ
+
+=
+Z
+p
+
+x, y
+
+ θˆ
+
+dy
+⇒ we can perform inference based on the conditional probability of y given x
+p
+
+y
+
+ x, θˆ
+
+=
+p
+
+x, y
+
+ θˆ
+
+p
+
+x
+
+ θˆ
+
+10 / 97
+principles of machine learning
+note our use of the phrases “try to” and “approximate” on the previous slides
+data or models might be so complex that “optimality” can not be guaranteed
+⇔ machine learning is about making the “best possible” use of available data
+⇔ often, we have to live with sub-optimal results or mere approximate inference
+indeed, probabilistic inference can become fiendishly difficult when working
+with certain models
+⇔ we may face a trade-off between a model’s appropriateness and tractability
+in probabilistic modeling, people therefore often consider Gaussian models
+not because they are always appropriate but because they are tractable
+we, too, will largely focus on Gaussian models; for our current data, they even are appropriate
+11 / 97
+for the result on the right, we fitted
+a bi-variate Gaussian model
+p
+
+x, y
+
+ θ
+
+= N
+
+x, y
+
+ θ
+
+with a set of two parameters
+θ =
+
+µ, Σ
+	
+which are commonly called
+µ : mean vector
+Σ : covariance matrix
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+12 / 97
+we determined optimal parameters using maximum likelihood estimation (MLE)
+for Gaussian models, this is easy and yields closed form solutions, in our case:
+µˆ =
+"
+µˆx
+µˆy
+#
+Σˆ =
+"
+σˆ
+2
+x σˆxy
+σˆxy σˆ
+2
+y
+#
+where
+µˆx =
+1
+n
+Xn
+j=1
+xj
+µˆy =
+1
+n
+Xn
+j=1
+yj
+σˆ
+2
+x =
+1
+n − 1
+Xn
+j=1
+
+xj − µˆx
+2
+σˆ
+2
+y =
+1
+n − 1
+Xn
+j=1
+
+yj − µˆy
+2
+σˆxy =
+1
+n − 1
+Xn
+j=1
+
+xj − µˆx
+yj − µˆy
+
+13 / 97
+we may write the sample covariance matrix as
+Σˆ =
+"
+σˆ
+2
+x σˆxy
+σˆxy σˆ
+2
+y
+#
+=
+"
+σˆ
+2
+x ρˆ σˆxσˆy
+ρˆ σˆxσˆy σˆ
+2
+y
+#
+where the arguably redundant looking quantity
+ρˆ =
+σˆxy
+σˆxσˆy
+is called the correlation of x and y
+written in terms of ρˆ, the determinant of Σˆ is
+det
+Σˆ
+
+= σˆ
+2
+xσˆ
+2
+y − σˆ
+2
+xy = σˆ
+2
+xσˆ
+2
+y
+
+1 − ρˆ
+2
+
+14 / 97
+⇒ our fitted bi-variate Gaussian density reads
+N
+
+x, y
+
+ µˆ, Σˆ
+
+=
+1
+2 π
+q
+σˆ
+2
+xσˆ
+2
+y − σˆ
+2
+xy
+· e
+− 1
+2(σˆ
+2
+x σˆ
+2
+y−σˆ
+2
+xy)
+[σˆ
+2
+y
+(x−µˆx)
+2+σˆ
+2
+x
+(y−µˆy)
+2−2 σˆxy(x−µˆx)(y−µˆy)]
+=
+1
+2 π σˆxσˆy
+p
+1 − ρˆ
+2
+· e
+− 1
+2(1−ρˆ
+2)
+
+(x−µˆ x)
+2
+σˆ
+2
+x
++
+(y−µˆ y)
+2
+σˆ
+2
+y
+−2ρ
+(x−µˆ x)
+σˆ x
+(y−µˆ y)
+σˆ y
+
+given this expression, it is “fairly easy” to see that the conditional density for y given any x becomes
+N
+
+y
+
+ x, µˆ, Σˆ
+
+= N
+
+y
+
+ µˆy|x
+, σˆ
+2
+y|x
+
+where
+µˆy|x = µˆy + ρˆ
+σˆy
+σˆx
+
+x − µˆx
+
+σˆ
+2
+y|x = σˆ
+2
+y
+
+1 − ρˆ
+2
+
+15 / 97
+finally, the conditional expectation for y given x amounts to
+E
+
+y
+
+ x
+
+=
+Z
+y N
+
+y
+
+ µˆy|x
+, σˆ
+2
+y|x
+
+dy
+= µˆy + ρˆ
+σˆy
+σˆx
+
+x − µˆx
+
+which could be used to predict a reasonable y given any x
+16 / 97
+probabilistic model fitting (1)
+17 / 97
+note
+when we fit regression models, we assume
+x : independent variable (predictor)
+y : dependent variable (outcome)
+when we fit probabilistic density models, there is no such distinction
+⇔ when we fit probabilistic density models, x and y are on equal footing
+⇔ instead of D =
+
+
+xj
+, yj
+n
+j=1
+we now think of D =
+
+
+xj
+n
+j=1
+where xj =
+
+xj
+, yj
+⊺
+18 / 97
+the maximum likelihood estimators of the parameters of our Gaussian model
+N
+
+x
+
+ µ, Σ
+
+=
+1
+q
+(2 π)
+m det
+Σ
+
+exp
+−
+1
+2
+
+x − µ
+⊺
+Σ
+−1
+
+x − µ
+
+
+namely sample mean vector and sample covariance matrix can thus be written
+µˆ =
+1
+n
+Xn
+j=1
+xj
+Σˆ =
+1
+n − 1
+Xn
+j=1
+
+xj − µˆ
+xj − µˆ
+⊺
+19 / 97
+i.i.d. samples and probabilities
+20 / 97
+“in practice”, samples are random subsets (of potentially different sizes)
+of a population and the goal is to draw conclusions about the population
+by using only the data in a sample
+population different samples
+21 / 97
+“in theory”, a sample D =
+
+xj
+	n
+j=1
+is a set of instances of random variables 
+Xj
+	n
+j=1
+⇔ a sample D is a set valued random variable (different samples may look differently)
+the xj ∈ D are independent, if
+they are not interrelated in such a manner that knowledge about one would yield
+information about another and vice versa
+the xj ∈ D are identically distributed, if
+they have been drawn or sampled from the same probability distribution p
+
+x
+
+ θ
+
+and this probability distribution did not change or fluctuate during draws
+22 / 97
+“theory” and “practice” are but two sides of the same coin !
+to see this, consider our body height and -weight scenario
+we may think of a set of students attending a lecture as a sample of a larger population of people
+there are very complicated natural processes which cause people in a population to have certain
+body heights and weights
+if we had perfect knowledge of these processes (which we don’t), we could devise a perfect albeit
+very complex mathematical description of the distribution of body heights and weights
+without such perfect knowledge, we can at least come up with a simplified plausible model of the
+underlying distribution and may use our sample to estimate plausible model parameters
+moreover
+when we survey a sample of people for their body heights and weights, it makes sense to posit
+that the unknown (latent) process which causes them will not change spontaneously
+⇒ our sample will be identically distributed
+if we gather our sample of people in a truly random manner (e.g. not only ask very tall people),
+there will be no dependencies or bias in the data we gather
+⇒ our sample will be independent
+23 / 97
+i.i.d. samples and joint probabilities
+if the elements xj of a sample D =
+
+x1, . . . , xn
+	
+are
+independent and identically distributed according to
+a probability p
+
+x
+
+ θ
+
+, their joint probability factors as
+p
+
+D
+
+ θ
+
+= p
+
+x1, . . . , xn
+
+ θ
+
+=
+Yn
+j=1
+p
+
+xj
+
+ θ
+
+24 / 97
+principle of machine learning
+lengthy (n ≫ 1) products of probabilities
+p
+
+x1, . . . , xn
+
+ θ
+
+=
+Yn
+j=1
+p
+
+xj
+
+ θ
+
+rapidly drop to essentially zero (⇔ fall below floating point precisions of computers)
+⇒ it is preferable to work with logarithms
+log p
+
+x1, . . . , xn
+
+ θ
+
+=
+Xn
+j=1
+log p
+
+xj
+
+ θ
+
+these are numerically much better behaved and also have various other advantages
+25 / 97
+statistic and estimator
+a statistic is a random variable s which is a function of a sample D
+s = f
+
+D
+
+an estimator θˆ is a statistic that approximates a parameter θ ∈ θ
+of the distribution p
+
+x
+
+ θ
+
+from which a sample D was drawn
+26 / 97
+maximum likelihood estimation
+27 / 97
+idea
+assume that data / observations
+D =
+
+x1, x2, . . . , xn
+	
+are sampled from a probability distribution
+p
+
+x
+
+ θ
+
+where θ is a vector (or set) of unknown parameters
+determine which parameters θˆ best explain the data
+28 / 97
+likelihood and log-likelihood
+the function
+L
+
+θ
+
+≡ L
+
+θ
+
+ D
+
+= p
+
+D
+
+ θ
+
+is called the likelihood function
+the function
+L
+
+θ
+
+= log L
+
+θ
+
+is called the log-likelihood function
+29 / 97
+note
+if the xj ∈ D are i.i.d., then
+L
+
+θ
+
+=
+Yn
+j=1
+p
+
+xj
+
+ θ
+
+L
+
+θ
+
+=
+Xn
+j=1
+log p
+
+xj
+
+ θ
+
+yes, we are (already) running out of symbols . . .
+in this lecture, L denotes a log-likelihood rather
+than a loss
+30 / 97
+note
+the likelihood function is a function of θ rather than a probability density
+probabilities are functions of events / observation given parameters
+example: if a die is rolled 100 times, what is the probability of rolling a 6 ?
+likelihoods are functions of parameters given events / observations
+example: if a die is rolled 100 times and a 6 shows 70 times, what is the
+likelihood of the die being loaded ?
+31 / 97
+maximum likelihood estimator
+since the logarithm is a monotonous function, we also have
+given a sample D, the statistic
+θˆ = argmax
+θ
+p
+
+D
+
+ θ
+
+is a maximum likelihood estimator of θ
+for clarity, we also often write θˆ ≡ θML
+32 / 97
+maximum likelihood estimator
+since the logarithm is a monotonous function, we also have
+given a sample D, the statistic
+θˆ = argmax
+θ
+log p
+
+D
+
+ θ
+
+is a maximum likelihood estimator of θ
+for clarity, we also often write θˆ ≡ θML
+33 / 97
+to determine θML we solve
+∇θL =
+∂L
+∂θ
+!
+= 0
+for example, assuming i.i.d. Gaussian data D =
+
+xj
+	n
+j=1
+where xj ∈ R
+m . . .
+34 / 97
+we have
+L
+
+µ, Σ
+
+=
+Yn
+j=1
+
+(2 π)
+m
+det
+Σ
+
+− 1
+2
+· exp
+−
+1
+2
+
+xj − µ
+⊺
+Σ
+−1
+
+xj − µ
+
+
+=
+
+(2 π)
+m
+det
+Σ
+
+− n
+2
+· exp
+
+−
+1
+2
+Xn
+j=1
+
+xj − µ
+⊺
+Σ
+−1
+
+xj − µ
+
+
+
+and thus
+L
+
+µ, Σ
+
+= −
+n
+2
+
+log(2 π)
+m + log det
+Σ
+
+
+−
+1
+2
+Xn
+j=1
+
+xj − µ
+⊺
+Σ
+−1
+
+xj − µ
+
+35 / 97
+⇒ we have ∂L∂µ
+= −
+12
+∂∂µ
+Xnj=1
+xj
+−
+µ
+
+⊺
+Σ
+−
+1
+xj
+−
+µ
+
+=
+Xnj=1
+Σ
+−
+1
+xj
+−
+µ
+
+=
+Σ
+−
+1
+Xnj=1
+xj
+−
+µ
+
+and equating to zero yields Xnj=1 xj = Xnj=1 µ = n
+µ
+⇔
+µ
+=
+1n
+Xnj=1
+xj
+36 / 97
+note
+⇔ the MLE µML of µ is
+µML =
+1
+n
+Xn
+j=1
+xj
+⇔ the MLE µML of µ coincides with the sample mean ¯x
+given µML, we can compute ΣML . . .
+37 / 97
+we have
+∂L
+∂Σ
+= −
+n
+2
+∂
+∂Σ
+log det
+Σ
+
+−
+1
+2
+∂
+∂Σ
+Xn
+j=1
+
+xj − µ
+⊺
+Σ
+−1
+
+xj − µ
+
+= −
+n
+2
+Σ
+−1 +
+1
+2
+Xn
+j=1
+Σ
+−1
+
+xj − µ
+xj − µ
+⊺
+Σ
+−1
+= −
+1
+2
+
+n Σ
+−1 −
+Xn
+j=1
+Σ
+−1
+
+xj − µ
+xj − µ
+⊺
+Σ
+−1
+
+
+we exploited that Σ is symmetric Σ = Σ⊺
+38 / 97
+equating to zero yields ⇔ n Σ−1 = Σ−1
+
+Xnj=1
+xj
+−
+µ
+xj
+−
+µ
+
+⊺
+
+Σ
+−
+1
+⇔
+n
+I
+=
+Σ
+−
+1
+Xnj=1
+xj
+−
+µ
+xj
+−
+µ
+
+⊺
+⇔
+n
+Σ
+=
+Xnj=1
+xj
+−
+µ
+xj
+−
+µ
+
+⊺
+⇔
+Σ
+=
+1n
+Xnj=1
+xj
+−
+µ
+xj
+−
+µ
+
+⊺
+39 / 97
+note
+⇔ the MLE ΣML of Σ is
+ΣML =
+1
+n
+Xn
+j=1
+
+xj − µMLxj − µML⊺
+the MLE ΣML of Σ is known as the population covariance
+40 / 97
+note
+this looks good, because the (i, j) entry of the
+covariance matrix of an m-dimensional r.v.
+X =
+
+X1, X2, . . . , Xm
+⊺
+is given by
+
+Σ
+
+ij = cov
+Xi
+, Xj
+
+= E
+h
+Xi − µi
+Xj − µj
+
+i
+however . . .
+41 / 97
+question
+above, we said
+Σˆ =
+1
+n − 1
+Xn
+j=1
+
+xj − µˆ
+xj − µˆ
+⊺
+but now we found
+ΣML =
+1
+n
+Xn
+j=1
+
+xj − µMLxj − µML⊺
+why is there a difference ? what is going on here ?
+42 / 97
+limitations of maximum likelihood
+43 / 97
+note
+maximum likelihood estimation always underestimates (co)variances
+⇔ ML estimators of variances σ
+2 or covariance matrices Σ are always biased
+(this is a specific manifestation of an unpleasant general phenomenon known as over-fitting)
+this used to be a big deal but, in the day and age of big data where n ≫ 1,
+the difference between 1/n and 1/n−1 is negligible
+we therefore defer a detailed discussion of this behavior of ML estimators
+to the additional material
+but there is more . . .
+44 / 97
+note
+maximum likelihood estimation determines model parameters that maximize
+the likelihood of the data
+⇔ MLE yields a best estimate θˆ for θ that makes the data as likely as possible
+⇔ rather than providing the most likely value for θ given the data, MLE finds θˆ
+such that the data is most likely under an assumed model . . .
+this seems to be the wrong way around
+45 / 97
+note
+⇒ instead of estimating
+θˆ = argmax
+θ
+p
+
+D
+
+ θ
+
+we should better estimate
+θˆ = argmax
+θ
+p
+
+θ
+
+ D
+
+alas, this requires additional assumptions
+and typically (much !!!) more work . . .
+46 / 97
+maximum a-posteriori estimation
+47 / 97
+maximum a-posteriori estimator
+given a sample D, the statistic
+θˆ = argmax
+θ
+p
+
+θ
+
+ D
+
+is a maximum a-posteriori estimator of θ
+for clarity, we also often write θˆ ≡ θMAP
+48 / 97
+Bayes’ theorem
+p
+
+X
+
+ Y
+
+=
+p
+
+Y
+
+ X
+
+p
+
+X
+
+p
+
+Y
+
+Thomas Bayes
+(∗1701, †1761)
+49 / 97
+Bayesian data analysis
+for data D and a hypothesis H, we have
+p
+
+H
+
+ D
+
+=
+p
+
+D
+
+ H
+
+p
+
+H
+
+p
+
+D
+ ⇔ posterior =
+likelihood × prior
+evidence
+50 / 97
+if the hypothesis H is a parametrized distribution p
+
+x
+
+ θ
+
+, we simply write
+p
+
+θ
+
+ D
+
+=
+p
+
+D
+
+ θ
+
+p
+
+θ
+
+p
+
+D
+
+51 / 97
+note
+Bayesian data analysis allows us to express assumptions or uncertainties about
+the true value of the model parameters θ by placing a prior distribution over their
+possible values
+a hallmark of Bayesian analysis is that it treats everything as a random variable,
+both, observations x as well as the unknown model parameters θ
+however, while θ is not observed directly (hidden), there are observations xj ∈ D
+52 / 97
+from an abstract point of view, Bayesian data analysis tries to answer the question
+what is the probability for observing any x given the examples xj ∈ D ?
+a correspondingly abstract, purely algebraic answer to this question is as follows
+p
+
+x
+
+ D
+
+=
+Z
+p
+
+x, θ
+
+ D
+
+dθ
+=
+Z
+p
+
+x
+
+ θ, D
+
+p
+
+θ
+
+ D
+
+dθ
+=
+Z
+p
+
+x
+
+ θ
+
+p
+
+θ
+
+ D
+
+dθ
+(the last step reasonably assumed that x is conditionally independent of D given θ)
+⇒ given a model p
+
+x
+
+ θ
+
+, the basic problem is to compute the posterior p
+
+θ
+
+ D
+
+53 / 97
+p
+
+x
+
+ D
+
+is the posterior predictive distribution and the “holy grail” of Bayesian data analysis
+alas, for most distributions, the integral R
+p
+
+x, θ
+
+ D
+
+dθ is excruciatingly difficult to solve . . .
+but if we have chosen a model p
+
+x
+
+ θ
+
+and if we are able to find an expression for p
+
+θ
+
+ D
+
+,
+we might be able to use this expression to compute an MAP estimator of θ given D
+θMAP = argmax
+θ
+p
+
+θ
+
+ D
+
+if we can (algebraically / numerically) compute θMAP, we can use it in our model to approximate
+p
+
+x
+
+ D
+
+≈ p
+
+x
+
+ θMAP
+whether or not this approximation is useful again depends on the appropriateness of our model
+54 / 97
+“basic” idea
+we are given an i.i.d. sample D =
+
+xj
+	n
+j=1
+we assume a reasonable parameterized model p
+
+x
+
+= p
+
+x
+
+ θ
+
+we also make assumptions about the model parameters θ which
+we model using a parameterized prior distribution p
+
+θ
+
+= p
+
+θ
+
+ ϑ
+
+the remaining knowledge about the unknown θ is contained in D
+we use our data and our assumptions to determine the posterior
+p
+
+θ
+
+ D
+
+∝ p
+
+D
+
+ θ
+
+p
+
+θ
+
+=
+Y
+j
+p
+
+xj
+
+ θ
+
+p
+
+θ
+
+let’s be very clear about this . . .
+55 / 97
+Bayesian data analysis (1)
+given i.i.d. D =
+
+xj
+	n
+j=1
+, we assume some parameterized model p
+
+x
+
+= p
+
+x
+
+ θ
+
+given the data, our model, and some guess of the model parameters θ, we can
+compute the likelihood
+p
+
+D
+
+ θ
+
+=
+Y
+j
+p
+
+xj
+
+ θ
+
+56 / 97
+Bayesian data analysis (2)
+however, instead of working with a specific guess or point estimate of the unknown
+model parameters θ, we consider a parameterized prior distribution
+p
+
+θ
+
+= p
+
+θ
+
+ ϑ
+
+to model a data-independent belief about “good” parameter values for our model
+57 / 97
+Bayesian data analysis (3)
+working with likelihood and prior, we can (hopefully) compute (but at least estimate)
+a posterior distribution for our model parameters
+p
+
+θ
+
+ D
+
+∝ p
+
+D
+
+ θ
+
+p
+
+θ
+
+58 / 97
+principle of machine learning
+⇒ we can align our data-independent probabilistic belief p
+
+θ
+
+about
+“good” model parameters with what the data tells us p
+
+D
+
+ θ
+
+⇔ we can update our belief in a data driven manner and thus obtain
+a probabilistic idea p
+
+θ
+
+ D
+
+about “better” model parameters
+this explains why, during the last neural network
+winter from 1995 to 2009, Bayesian learning was
+all the rage . . .
+59 / 97
+Bayesian data analysis (4)
+given the posterior p
+
+θ
+
+ D
+
+, we can
+1) estimate optimal MAP estimators
+θMAP = argmax
+θ
+p
+
+θ
+
+ D
+
+and work with the fitted model p
+
+x
+
+ θMAP
+2) (try to) get the posterior predictive distribution
+p
+
+x
+
+ D
+
+=
+Z
+p
+
+x
+
+ θ
+
+p
+
+θ
+
+ D
+
+dθ
+let’s look at an example . . .
+60 / 97
+fitting a uni-variate Gaussian
+we are given a sample D =
+
+xj
+	n
+j=1
+of 1D data and assume that p
+
+x
+
+= N
+
+x
+
+ µ, σ
+2
+
+given our model, we want to get a posterior p
+
+θ
+
+ D
+
+for its parameters θ =
+
+µ, σ
+2
+
+−5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0
+available sample D =
+
+x1, . . . , xn
+	
+⊂ R
+61 / 97
+in the real world, we would not know if our Gaussian model is reasonable or not
+however, our exemplary data were indeed sampled from a Gaussian N(x | 5, 4)
+its graph is shown below an we will use it as “ground truth” in what follows . . .
+−5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0
+true but “unknown” density p(x) ∼ N(x | 5, 4)
+62 / 97
+1st setting: unknown mean, known variance
+for simplicity, we assume σ
+2
+is known, only µ is unknown
+for simplicity, we assume that µ is also normally distributed
+⇔ for simplicity, we assume a Gaussian prior distribution for µ
+p
+
+µ
+
+= N
+
+µ
+
+ µ0, σ
+2
+0
+
+µ0 ⇔ our best initial guess or prior for µ
+σ
+2
+0 ⇔ our uncertainty regarding this prior
+63 / 97
+since we assume Gaussian distributions for likelihood p
+
+D
+
+ µ
+
+and prior p
+
+µ
+
+,
+the posterior p
+
+µ
+
+ D
+
+can be simplified to
+p
+
+µ
+
+ D
+
+=
+p(D | µ) p(µ)
+R
+p(D | µ) p(µ) dµ
+= α ·
+Yn
+j=1
+p
+
+xj
+
+ µ
+
+p
+
+µ
+
+where the normalization constant α depends on data D but not on parameter µ
+for other probability distributions, things are typically not as easy !
+64 / 97
+⇒ since we assume x ∼ N
+
+x
+
+ µ, σ
+2
+
+and µ ∼ N
+
+µ
+
+ µ0, σ
+2
+0
+
+, we have
+p
+
+µ
+
+ D
+
+= α ·
+Yn
+j=1
+1
+√
+2 π σ2
+exp 
+−
+1
+2 σ2
+
+xj − µ
+2
+
+·
+1
+q
+2 π σ2
+0
+exp 
+−
+1
+2 σ
+2
+0
+
+µ − µ0
+2
+
+= β · exp
+
+−
+1
+2
+Xn
+j=1
+
+µ − xj
+2
+σ2
+!
++
+
+µ − µ0
+2
+σ
+2
+0
+!
+ (1)
+65 / 97
+for the exponentiated sum in (1), we have
+Xn
+j=1
+
+µ − xj
+2
+σ2
+!
++
+
+µ − µ0
+2
+σ
+2
+0
+!
+=
+
+n
+σ2
++
+1
+σ
+2
+0
+
+µ
+2 − 2
+
+
+1
+σ2
+Xn
+j=1
+xj +
+µ0
+σ
+2
+0
+
+ µ + γ
+=
+
+n
+σ2
++
+1
+σ
+2
+0
+
+µ
+2 − 2
+
+n µˆn
+σ2
++
+µ0
+σ
+2
+0
+
+µ + γ (2)
+where we note the occurrence of the MLE
+µˆn =
+1
+n
+Xn
+j=1
+xj
+66 / 97
+note
+⇒ we have
+p
+
+µ
+
+ D
+
+= β · exp"
+−
+1
+2
+ 
+n
+σ2
++
+1
+σ
+2
+0
+
+µ
+2 − 2
+
+n µˆn
+σ2
++
+µ0
+σ
+2
+0
+
+µ + γ
+!#
+⇔ our posterior p
+
+µ
+
+ D
+
+is an exponential of a quadratic function in µ
+⇔ our posterior p
+
+µ
+
+ D
+
+is yet another Gaussian
+67 / 97
+conjugate distributions
+because our prior and posterior come from the same family
+of probability distributions, they are conjugate distributions
+recall the relationship between posterior, likelihood, and prior
+p
+
+µ
+
+ D
+
+∝ p
+
+D
+
+ µ
+
+p
+
+µ
+
+if posterior and prior are conjugate distributions, then we say
+p
+
+µ
+
+is a conjugate prior of p
+
+D
+
+ µ
+
+p
+
+µ
+
+ D
+
+is a reproducing distribution
+68 / 97
+next, we complete the square for the RHS of (2)
+
+n
+σ2
++
+1
+σ
+2
+0
+
+µ
+2 − 2
+
+n µˆn
+σ2
++
+µ0
+σ
+2
+0
+
+µ + γ
+⇔ we pretend, it can also be written as follows
+(2) =
+1
+σ2
+n
+
+µ − µn
+2
+=
+µ
+2
+σ2
+n
+− 2
+µn
+σ2
+n
+µ +
+µn
+2
+σ2
+n
+d9 / 97
+next, we complete the square for the RHS of (
+2
+)
+
+nσ2
++
+1σ20
+
+µ
+2
+−
+2
+
+n
+µˆn σ2
++
+µ0 σ20
+
+µ
++
+γ
+⇔ we pretend, it can also be written as follows (2) = 1σ2n µ − µn2 = µ2 σ2n − 2 µn σ2n µ + µn2 σ2n
+direct comparison of the coefficients yields 1σ2n = nσ2 + 1σ20 µn σ2n = n µˆn σ2 + µ0 σ20
+69 / 97
+note
+⇒ we have
+p
+
+µ
+
+ D
+
+= β · exp 
+−
+1
+2 σ2
+n
+
+µ − µn
+
+
+where
+µn =
+n σ
+2
+0
+n σ
+2
+0 + σ2
+µˆn +
+σ
+2
+n σ
+2
+0 + σ2
+µ0 (3)
+σ
+2
+n =
+σ
+2
+0 σ
+2
+n σ
+2
+0 + σ2
+(4)
+70 / 97
+note
+at this point, we are done . . .
+since our parameter posterior is a Gaussian
+p
+
+µ
+
+ D
+
+= N
+
+µ
+
+ µn, σ
+2
+n
+
+and since the mode of a Gaussian coincides with its mean, we have
+µMAP = argmax
+µ
+N
+
+µ
+
+ µn, σ
+2
+n
+
+= µn
+given this MAP estimator of the parameter µ of our model, we obtain
+p
+
+x
+
+= N
+
+x
+
+ µn, σ
+2
+
+71 / 97
+note
+the results in (3), namely
+µn =
+n σ
+2
+0
+n σ
+2
+0 + σ2
+µˆn +
+σ
+2
+n σ
+2
+0 + σ2
+µ0
+can be interpreted as follows
+µn represents our best guess for µ after having seen n data
+it is a trade-off between our initial guess µ0 and the MLE µˆn
+n = 0 ⇔ µn = µ0
+n → ∞ ⇔ µn → µˆn
+72 / 97
+note
+the results in (4), namely
+σ
+2
+n =
+σ
+2
+0 σ
+2
+n σ
+2
+0 + σ2
+can be interpreted as follows
+σ
+2
+n measures our uncertainty about our current best guess µn
+σ
+2
+0 = 0 ⇔ we are so certain about our initial guess µ0 that µn = µ0
+σ
+2
+0 ̸= 0 ⇔ for more and more data n → ∞, we will observe µn → µˆn
+σ
+2
+0 ≫ σ
+2 ⇔ we are so uncertain about our initial guess µ0 that µn = µˆn
+73 / 97
+note
+since σ
+2
+n decreases in n, each additional observation or data point
+decreases our uncertainty as to the true value of µ
+⇒ as n increases, p
+
+µ
+
+ D
+
+becomes more and more sharply peaked
+let’s look at an example . . .
+74 / 97
+illustration
+128 samples drawn from ground-truth N
+
+µ = 5, σ
+2 = 4
+
+−5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0
+75 / 97
+in the following, we work with a parameter prior p
+
+µ
+
+= N
+
+µ
+
+ µ0 = 0, σ
+2
+0 = 6
+
+parameter prior N
+
+µ
+
+ µ0 = 0, σ
+2
+0 = 6
+
+ground-truth N
+
+x
+
+ µ = 5, σ
+2 = 4
+
+−7.5 −5.0 −2.5 0.0 2.5 5.0 7.5 −5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0
+µ0 = 0 is a “bad” initial guess for µ = 5
+76 / 97
+next, we choose n ∈
+
+2, 8, 32, 128	
+sample points to investigate the
+effect of the number of data on the quality of model fitting
+for each choice of n, we plot the posterior p
+
+µ
+
+ D
+
+= N
+
+µ
+
+ µn, σ
+2
+n
+
+as well as the corresponding fitted model p
+
+x
+
+= N
+
+x
+
+ µn, σ
+2 = 4
+
+77 / 97
+for n = 2, we find µ2 = 3.07 and σ
+2
+2 = 1.50
+parameter posterior p
+
+µ
+
+ D
+
+data model p
+
+x
+
+vs ground-truth
+−5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0 −5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0
+µ2 = 3.07 is a better estimate of µ = 5
+78 / 97
+for n = 8, we find µ8 = 4.34 and σ
+2
+8 = 0.46
+parameter posterior p
+
+µ
+
+ D
+
+data model p
+
+x
+
+vs ground-truth
+−5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0 −5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0
+µ8 = 4.34 is an even better estimate of µ = 5
+79 / 97
+for n = 32, we find µ32 = 4.49 and σ
+2
+32 = 0.12
+parameter posterior p
+
+µ
+
+ D
+
+data model p
+
+x
+
+vs ground-truth
+−5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0 −5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0
+µ32 = 4.49 is an even better estimate of µ = 5
+80 / 97
+for n = 128, we find µ128 = 5.03 and σ
+2
+128 = 0.03
+parameter posterior p
+
+µ
+
+ D
+
+data model p
+
+x
+
+vs ground-truth
+−5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0 −5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0
+µ128 = 5.03 is a very good estimate of µ = 5
+81 / 97
+observe: people like to work with conjugate priors because they often lead to closed form
+solutions for the posterior predictive distribution p
+
+x
+
+ D
+
+indeed, our current setting is so simple that we can “easily” find a closed form for p
+
+x
+
+ D
+
+p
+
+x
+
+ D
+
+=
+Z
+p
+
+x
+
+ µ
+
+p
+
+µ
+
+ D
+
+dµ
+=
+Z
+1
+√
+2 π σ2
+e
+−
+(x−µ)
+2
+2 σ2
+1
+p
+2 π σ2
+n
+e
+−
+(µ−µn)
+2
+2 σ2
+n dµ
+=
+1
+√
+2 π σ σn
+e
+− 1
+2
+(x−µn)
+2
+σ2+σ2
+n · c
+
+σ, σn
+
+where we have a constant
+c
+
+σ, σn
+
+=
+Z
+e
+− 1
+2
+σ2+σ2
+n
+σ2 σ2
+n
+
+µ−
+σ2
+nx+σ2µn
+σ2+σ2
+n
+2
+dµ
+82 / 97
+⇒ we find
+p
+
+x
+
+ D
+
+= N
+
+x
+
+ µn, σ
+2 + σ
+2
+n
+
+in other words
+for our current simple setting, the posterior predictive is yet another Gaussian
+the posterior mean µn is treated as if it were the true sought after mean µ
+the known variance σ2
+is increased to account for additional uncertainty in x
+caused by our lack of knowledge of the exact µ
+83 / 97
+remarks
+in passing, our illustration showed that Bayesian analysis is
+well suited for online settings where data arrive one by one
+we put a Gaussian prior on the unknown parameter µ of our
+Gaussian model, because we knew in advance that it would
+turn out to be a conjugate prior for our setting
+conjugate priors are merely a mathematical convenience
+people like such priors because they “simplify” computations
+speaking about simplicity: Gaussian models are easy to work
+with but things can still get messy anyway . . .
+84 / 97
+2nd setting: known mean, unknown variance
+for simplicity, we assume µ is known, only σ
+2
+is unknown
+in settings like this, people prefer to work with the precision λ =
+1
+σ2
+parameterized in terms of the precision, our Gaussian model reads
+p
+
+x
+
+= N
+
+x
+
+ µ, λ
+−1
+
+for simplicity, we again assume a conjugate prior distribution for λ
+this conjugate prior is known to be the Gamma distribution
+p
+
+λ
+
+= G
+
+λ
+
+ α, β
+
+=
+β
+α
+Γ (α)
+λ
+α−1
+e
+−β λ
+85 / 97
+given (reasonable) initial guesses α0 and β0, we have the posterior
+p
+
+λ
+
+ D
+
+∝ N
+
+D
+
+ µ, λ
+−1
+
+G
+
+λ
+
+ α0, β0
+
+= λ
+α0−1
+λ
+n
+2 exp
+
+−β0λ −
+λ
+2
+Xn
+j=1
+
+xj − µ
+2
+
+
+which is yet another Gamma distribution (and thus a reproducing density)
+86 / 97
+going through the required motions, we find
+αn = α0 +
+n
+2
+βn = β0 +
+n
+2
+σˆ
+2
+n
+where we note the occurrence of the MLE
+σˆ
+2
+n =
+1
+n
+Xn
+j=1
+
+xj − µ
+2
+87 / 97
+the mode of a Gamma distribution is located at α−1
+β
+⇒ the MAP estimator for the sought after λ is given by
+λMAP = argmax
+λ
+p
+
+λ
+
+ D
+
+=
+αn − 1
+βn
+given this MAP estimator, our data model becomes
+p
+
+x
+
+= N
+
+x
+
+ µ,
+βn
+αn−1
+
+88 / 97
+illustration
+model fitted with n ∈
+
+2, 8, 32, 128	
+data points
+−5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0
+n = 2
+−5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0
+n = 8
+−5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0
+n = 32
+−5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0
+n = 128
+89 / 97
+3rd setting: unknown mean, unknown variance
+the most interesting / relevant case if of course if µ and σ
+2 = λ
+−1 are both unknown
+for simplicity, we assume a conjugate prior distribution which is the Normal-Gamma
+p
+
+µ, λ
+
+= NG
+µ, λ
+
+ µ0, λ0, α, β
+
+=
+β
+α
+Γ (α)
+r
+λ0
+2 π
+λ
+α− 1
+2 e
+−β λ e
+−
+λ λ0
+2
+(µ−µ0)
+2
+90 / 97
+given (reasonable) initial guesses µ0, λ0, α0 and β0, we have the posterior
+p
+
+µ, λ
+
+ D
+
+∝ N
+
+D
+
+ µ, λ
+−1
+
+NG
+µ, λ
+
+ µ0, λ0, α0, β0
+
+which is yet another Normal-Gamma distribution (and thus a reproducing density)
+91 / 97
+going through the required motions, we find
+λn = λ0 + n
+αn = α0 +
+n
+2
+µn =
+λ0 µ0 + n µˆn
+λn
+βn = β0 +
+1
+2
+σˆ
+2
+n +
+n λ0 (µ0 − µˆn)
+2
+2 (λ0 + n)
+where we note the occurrence of the MLEs µˆn and σˆ
+2
+n
+92 / 97
+the mode of a Normal-Gamma distribution is located at 
+µ,
+α− 1
+2
+β
+
+⇒ the MAP estimators for the sought after µ and λ amount to
+µMAP = argmax
+µ
+p
+
+µ
+
+ D
+
+= µn
+λMAP = argmax
+λ
+p
+
+λ
+
+ D
+
+=
+αn −
+1
+2
+βn
+given these two MAP estimators, our data model becomes
+p
+
+x
+
+= N
+
+x
+
+ µn,
+βn
+αn− 1
+2
+
+93 / 97
+illustration
+model fitted with n ∈
+
+2, 8, 32, 128	
+data points
+−5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0
+n = 2
+−5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0
+n = 8
+−5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0
+n = 32
+−5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0
+n = 128
+94 / 97
+observe: the last two settings we went through also allow for
+closed forms of the posterior predictive distribution p
+
+x
+
+ D
+
+without going into details, we therefore simply mention that
+uni-variate Gaussian model with Gamma prior on λ
+p
+
+x
+
+ D
+
+is a (three parameter) Student’s t-distribution
+uni-variate Gaussian model with Normal-Gamma prior on (µ,λ)
+p
+
+x
+
+ D
+
+is a (three parameter) Student’s t-distribution
+95 / 97
+summary
+96 / 97
+we now know about
+the idea of probabilistic model fitting
+the idea of maximum likelihood parameter estimation
+the idea of maximum a-posteriori parameter estimation
+the notion and practical advantages of conjugate priors
+the notion of (often unattainable) posterior predictive distributions
+what we don’t know yet is to MAP fit a Gaussian to multivariate data ;-)
+97 / 97

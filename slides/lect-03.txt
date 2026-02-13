@@ -1,0 +1,1703 @@
+Principles of Machine Learning
+Prof. Christian Bauckhage
+1 / 78
+lecture 03
+gradient-based optimization, gradient-free optimization, and gradient flows
+machine learning is all about model fitting and model fitting is all about parameter
+optimization
+often, there a no closed form solutions for optimal parameters so that we need to
+work with iterative estimation procedures
+most prominent in machine learning are gradient-based optimization schemes so
+that we might as well study them early on . . .
+in this lecture, we thus look at different flavors of gradient-based optimization . . .
+for the fun of it, we also mention the existence of gradient-free optimizers as well
+as the (foreshadowing) notion of gradient flows
+2 / 78
+outline
+setting the stage
+iterative least squares
+gradient-based optimization
+gradient-free optimization
+(least squares) gradient flows
+summary
+3 / 78
+setting the stage
+4 / 78
+given (labeled) data
+D =
+
+
+xj
+, yj
+n
+j=1
+⊂ R
+m × R
+t
+and assuming some parametrized model family
+fθ : R
+m → R
+t
+we may consider some loss L
+
+θ
+
+
+fθ, D
+
+to estimate
+θˆ = argmin
+θ
+L
+
+θ
+
+
+fθ, D
+
+this kind of training adjusts or fits the model to the data
+5 / 78
+last time, we assumed linear models
+fw
+
+x
+
+= φ
+⊺
+xw
+together with the least squares loss
+L
+
+w
+
+
+fw, D
+
+=
+X
+j
+
+fw
+
+xj
+
+− yj
+2
+we saw that we may simply write the loss as
+L
+
+w
+
+=
+
+Φ⊺w − y
+
+
+2
+and that the unique minimizer of this loss is
+wˆ = argmin
+w
+
+Φ⊺w − y
+
+
+2
+=
+
+ΦΦ⊺
+−1Φ y
+6 / 78
+today, we ignore models and losses but simplify things (and their notation)
+to begin with, we shall consider quadratic functions f : R
+n → R of the form
+f
+
+x
+
+=
+
+M x − v
+
+
+2
+=
+
+M x − v
+⊺
+
+M x − v
+
+= x
+⊺M⊺M x − 2 x
+⊺M⊺
+v + v
+⊺
+v
+given functions like these, we will ask for their minimizer which we write as
+x∗ = argmin
+x
+f
+
+x
+
+given what we already know about quadratic forms, we immediately realize
+x∗ =
+
+M⊺M
+−1M⊺
+v however . . .
+7 / 78
+note
+the solution x∗ =
+
+M⊺M
+−1M⊺
+v does not necessarily mean
+M x∗ = v
+it really only means that x∗ is the best possible answer to
+x∗ = argmin
+x
+
+M x − v
+
+
+2
+8 / 78
+in general, we have parameters M ∈ R
+m×n and v ∈ R
+m and solution x∗ ∈ R
+n
+in general, M x∗ is the orthogonal projection of vector v into the space
+spanned by the columns of matrix M
+here is an example / illustration where
+M =
+
+
+1 0
+0 1
+0 0
+
+ and v =
+
+
+4
+4
+2
+
+
+v
+Mx∗
+9 / 78
+for the special case of an invertible matrix M ∈ R
+n×n and a vector v ∈ R
+n
+, we have
+x∗ = M−1
+v
+such that
+M x∗ = M M−1
+v = v
+moreover, in this (very) special case, the general LSQ solution is still valid because
+x∗ =
+
+M⊺M
+−1M⊺
+v = M−1M−⊺M⊺
+v = M−1
+v
+note: this identity really only holds if M is square and invertible
+but, for simplicity, the next slides focus on this setting . . .
+10 / 78
+note
+if n is large, computing M−1
+is quite expensive
+⇔ efforts between O
+
+n
+2.3
+
+and O
+
+n
+3
+
+if M is ill-conditioned (⇔ almost singular), computing M−1
+is prone to numerical errors
+if entries of M are very small or large, computing M−1
+suffers from floating point limits
+⇒ for production level code, it is a very good idea to try to avoid matrix inversion
+next, we will therefore look at iterative least squares solving without matrix inversion
+11 / 78
+for all that follows, it will be beneficial to visualize objective functions which is sadly
+only possible for simple or didactic settings where x ∈ R
+2
+for instance, for a didactic setting where f : R
+2 → R with
+M =
+
+4 1
+1 3
+and v =
+
+1
+2
+
+we can visualize f(x) = ∥Mx − v∥
+2 via a 3D surface plot
+0
+0
+0
+12 / 78
+however, from now on, we will (always) visualize functions f : R
+2 → R
+in terms of [contour | level set | isoline] plots
+for example, for the above f(x) = ∥Mx − v∥
+2
+, these may look like this
+−2 −1 0 1 2 3 4 5
+−2
+−1
+0
+1
+2
+3
+4
+5
+⇔
+one more thing . . .
+13 / 78
+for every continuously differentiable scalar function f : R
+m → R,
+there exists an associated vector field, namely the gradient field
+g : R
+m → R
+m
+where
+g
+
+x
+
+= ∇f
+
+x
+
+=
+
+
+
+
+
+
+
+
+∂
+∂x1
+f(x)
+∂
+∂x2
+f(x)
+.
+.
+.
+∂
+∂xm
+f(x)
+
+
+
+
+
+
+
+
+the vector g(x) gives the direction of steepest increase of f at x
+its magnitude ∥g(x)∥ indicates the corresponding rate of change
+14 / 78
+note
+when minimizing a function f : R
+m → R, we are not interested
+in directions of steepest increase but of steepest decrease
+this information is contained in the negative gradient −∇f(x)
+function f negative gradient field −∇f
+15 / 78
+iterative least squares
+16 / 78
+running example
+in the following, we once again let M = 
+4 1
+1 3
+
+and
+v
+=
+
+12
+
+and consider the quadratic function f x =  M x − v 2
+whose unique minimizer is given by x∗ = argmin x  M x − v 2 = M−1
+v
+≈
+
+0.09 0.64
+
+x
+∗
+17 / 78
+we have
+x∗ = argmin
+x
+
+ M x − v
+
+
+2
+= argmin
+x
+x
+⊺M⊺M x − 2 x
+⊺M⊺
+v + cnst
+⇔ x∗ = argmin
+x
+1
+2
+x
+⊺H x ˜ − x
+⊺h
+where matrix H˜ = M⊺M is square, symmetric, and positive definite
+“one can show” (do it yourself !!!) that x∗ is a solution if and only if
+H x ˜ ∗ = h
+18 / 78
+claim (w/o proof)
+the problem H x ˜ = h can be solved without explicit matrix inversion
+this is because, given some initial x0 ∈ R
+n and an appropriate step
+size ηk ̸= 0, the sequence
+xk+1 = xk + ηk
+
+h − H x ˜ k
+
+(1)
+converges to the the solution of H x ˜ = h
+19 / 78
+sanity check
+if (1) converges in finitely many steps,
+then there exists some k ∈ N such that
+xk+1 = xk
+and therefore
+xk+1 = xk+1 + ηk
+
+h − H x ˜ k+1
+
+⇔ 0 = ηk
+
+h − H x ˜ k+1
+
+⇔ h = H x ˜ k+1
+20 / 78
+residual and energy function
+the vector
+rk = h − H x ˜ k
+is the residual in iteration k
+the function
+E
+
+x
+
+=
+1
+2
+x
+⊺H x ˜ − x
+⊺h
+is called an energy function
+21 / 78
+now that we know about the energy E(x) = 1
+2
+x
+⊺H x ˜ − x
+⊺h, it becomes clearer why
+we write H˜ to refer to matrix M⊺M
+this is because H˜ is a Hamiltonian operator (people with a background in quantum
+computing will know what this means ;-)
+however, our matrix H˜ must not be confused with the Hessian matrix H which also
+occurs frequently in the context of mathematical optimization . . .
+22 / 78
+note
+E
+
+x
+
+=
+1
+2
+x
+⊺H x ˜ − x
+⊺h
+⇒ ∇E
+
+x
+
+= H x ˜ − h
+23 / 78
+note
+⇒ the process in (1) can be written as
+xk+1 = xk + ηk
+
+h − H x ˜ k
+
+= xk + ηk
+
+−∇E
+
+xk
+
+= xk − ηk ∇E
+
+xk
+
+⇔ (1) is a gradient descent scheme
+24 / 78
+theorem
+the optimal step size for (1) is
+ηk =
+r
+⊺
+k
+rk
+r
+⊺
+k H r ˜
+k
+25 / 78
+proof
+defining
+g
+
+η
+
+= E
+
+xk + η rk
+
+=
+1
+2
+
+xk + η rk
+⊺
+H˜
+
+xk + η rk
+
+−
+
+xk + η rk
+⊺
+h
+we have
+d
+dη
+g
+
+η
+
+= r
+⊺
+k H˜
+
+xk + η rk
+
+− r
+⊺
+r h
+= r
+⊺
+k Hx ˜ k + η r
+⊺
+k H r ˜ k − r
+⊺
+r h
+= r
+⊺
+k
+
+Hx ˜ k − h
+
++ η r
+⊺
+k H r ˜
+k
+= −r
+⊺
+k
+r
+k + η r
+⊺
+k H r ˜
+k
+⇒ upon equating to zero and solving for η, we obtain the claimed result
+26 / 78
+iterative LSQ
+guess
+x
+0
+r
+0
+=
+h
+− H x ˜
+0
+for
+k
+=
+0, 1, 2, . . .
+h
+= H r ˜
+k
+x
+k
++
+1
+=
+x
+k
++
+r
+⊺k
+r
+k
+r
+⊺k
+h
+r
+k
+r
+k
++
+1
+=
+r
+k
+−
+r
+⊺k
+r
+k
+r
+⊺k
+h
+h x
+0
+x
+∗
+27 / 78
+at first sight, the above pseudo code does not look like an implementation of (1)
+however, it is an very efficient implementation of (1) with only one matrix-vector
+product per iteration . . .
+convince yourself that our pseudo code really implements (1); all the equations
+you need have already been presented
+the above example suggests that iterative least squares computation converges
+quickly and it generally really does
+however, we can do even better . . .
+28 / 78
+since matrix H˜ is symmetric and positive definite, it defines an inner product
+u
+⊺H v ˜ =
+
+
+u, v
+
+H˜ ≡
+
+
+H u ˜ , v
+
+=
+
+
+u, H˜
+⊺
+v
+
+=
+
+
+u, H v ˜
+
+two vectors are conjugate, if they are orthogonal under such an inner product
+now, let
+C =
+
+c1, c2, . . . , cn
+	
+be any set of conjugate vectors that span R
+n so that we have these equations
+x∗ =
+Xn
+j=1
+γj cj and H x ˜ ∗ =
+Xn
+j=1
+γj H c ˜ j = h
+for some appropriate choice of the coefficients γj
+29 / 78
+to see how these coefficients should look like, we further note
+c
+⊺
+k
+h = c
+⊺
+k H x ˜ ∗ =
+Xn
+j=1
+γj c
+⊺
+k H c ˜ j =
+Xn
+j=1
+γj
+
+
+ck, cj
+
+H˜ = γk
+
+
+ck, ck
+
+H˜ = γk c
+⊺
+k H c ˜ k
+this immediately yields
+γk =
+c
+⊺
+k
+h
+c
+⊺
+k H c ˜ k
+and suggests to solve H x ˜ = h via conjugate gradient descent
+30 / 78
+conjugate gradients
+guess
+x
+0
+r
+0
+=
+h
+− H x ˜
+0
+c
+0
+=
+h
+− H x ˜
+0
+for
+k
+=
+0, 1, 2, . . .
+η
+k
+=
+r
+⊺k
+r
+k
+c
+⊺k H c ˜
+k
+x
+k
++
+1
+=
+x
+k
++
+η
+k
+c
+k
+r
+k
++
+1
+=
+r
+k
+−
+η
+k H c ˜
+k
+c
+k
++
+1
+=
+r
+k
++
+1
+−
+r
+⊺k−
+1
+r
+k
+−
+1
+r
+⊺k
+r
+k
+H c ˜
+k
+x
+0
+x
+∗
+31 / 78
+the above figure suggests that the method of conjugate gradients does
+converge quickly (for convex functions !!!)
+indeed, as there can only be n conjugate directions in an n-dimensional
+space, it will converge within n steps (for convex functions !!!)
+the above pseudo code looks so formidable because it involves implicit
+Gram-Schmidt orthonormalization . . . we could study this in great detail
+but we won’t !
+instead, we next (briefly) look at different flavors of gradient descent for
+more general settings . . .
+32 / 78
+gradient-based optimization
+33 / 78
+general problem
+given a not so benign function
+f : R
+m → R
+for which we can compute the
+gradient
+∇f
+
+x
+
+∈ R
+m
+at any x ∈ R
+m, we want to find
+x∗ = argmin
+x
+f
+
+x
+
+34 / 78
+gradient descent (GD)
+guess some possible solution x0
+0
+35 / 78
+gradient descent (GD)
+guess some possible solution x0
+determine the negative gradient
+g1 = −∇f
+
+x0
+
+u0
+35 / 78
+gradient descent (GD)
+guess some possible solution x0
+determine the negative gradient
+g1 = −∇f
+
+x0
+
+update the current estimate
+x1 = x0 + η1 · g1
+with step size parameter η1
+x0
+x1
+35 / 78
+GD with fixed step size ( ∀ k : ηk = η )
+guess x0
+for k = 1, 2, . . .
+gk = −∇f
+
+xk−1
+
+xk = xk−1 + η· gk
+w0
+36 / 78
+GD with fixed step size ( ∀ k : ηk = η )
+guess x0
+for k = 1, 2, . . .
+gk = −∇f
+
+xk−1
+
+xk = xk−1 + η· gk
+what ???
+x0
+36 / 78
+vanishing / exploding gradients
+a gradient ∇f(x) is said to
+vanish, if
+
+∇f(x)
+
+ ≪ 1
+explode, if
+
+∇f(x)
+
+ ≫ 1
+37 / 78
+note
+GD with a fixed step size is usually a bad idea,
+even in settings with (trivial) convex loss functions
+⇒ humankind has put substantial efforts into devising
+smarter or faster or more robust GD algorithms . . .
+x0
+η too large ⇔ overshooting
+x0
+η too small ⇔ slow progress
+38 / 78
+GD with line search
+guess x0
+for k = 1, 2, . . .
+gk = −∇f
+
+xk−1
+
+ηk = argmin
+η
+f
+
+xk−1 + η · gk
+
+xk = xk−1 + ηk
+· gk
+x0
+39 / 78
+in practice, we usually deal with very involved functions f : R
+m → R
+⇒ in practice, we usually cannot exactly solve
+ηk = argmin
+η∈R
+f
+
+xk + η gk
+
+⇒ in practice, we usually do discrete searches
+ηk = argmin
+η∈E
+f
+
+xk + η gk
+
+using, say, E =
+
+0.01, 0.02, . . . , 0.09, 0.1, 0.2, . . . , 0.9, 1.0, 2.0, . . . 9.0
+	
+40 / 78
+the choice of an appropriate set E is not at all trivial and
+very much depends on the task at hand
+even if we could reliably decide for an appropriate set E,
+line search is too demanding for most problems
+⇔ it becomes infeasible / too slow if we need to find optimal
+values of numerous (billions) of variables
+but there are other ideas . . .
+41 / 78
+GD with momentum (where 0 < β < 1 )
+guess x0
+m0 = 0
+for k = 1, 2, . . .
+gk = −∇f
+
+xk−1
+
+mk =
+
+1 − β
+
+· gk + β · mk−1
+xk = xk−1 + η · mk
+x0
+42 / 78
+unrolling the recursion
+mk =
+
+1 − β
+
+· gk + β · mk−1
+we obtain the following
+m1 =
+
+1 − β
+
+· g1 + β · m0
+| {z }
+=0
+m2 =
+
+1 − β
+
+· g2 + β · m1 =
+
+1 − β
+
+· g2 + β ·
+
+1 − β
+
+· g1
+m3 =
+
+1 − β
+
+· g3 + β · m2 =
+
+1 − β
+
+· g3 + β ·
+
+1 − β
+
+· g2 + β
+2
+·
+
+1 − β
+
+· g1
+.
+.
+.
+mk =
+
+1 − β
+X
+k
+j=1
+β
+k−j
+gj
+43 / 78
+⇒ the momentum technique computes a convex combination of the current and
+the previous gradient or, just as well, a weighted sum of all previous gradients
+⇔ the momentum technique computes a kind of average gradient which makes
+it more robust against sudden changes in the loss landscape
+this fundamental idea dates back to Polyak’s pioneering work in the 1960s [1]
+in the context of neural network training, it was first considered by Rumelhart,
+Hinton, and Williams [2] because of course it was . . .
+choosing an appropriate parameter β and step size η is again not at all trivial
+44 / 78
+RMSprop
+guess x0
+m0 = 0
+for k = 1, 2, . . .
+gk = −∇f
+
+xk−1
+
+mk =
+
+1 − β
+
+· g
+2
+k + β · mk−1
+xk = xk−1 + η · √
+gk
+mk+ε
+note: read g
+2
+k
+as gk ⊙ gk and g √ k
+mk+ε
+as gk ⊘
+√mk + ε
+x0
+45 / 78
+ADAM
+guess
+x
+0
+m
+0
+=
+0
+v
+0
+=
+0
+for
+k
+=
+1, 2, . . .
+g
+k = −
+∇f
+x
+k
+−
+1
+
+m
+k
+=
+
+1
+−
+β
+
+·
+g
+k
++
+β
+·
+m
+k
+−
+1
+v
+k
+=
+
+1
+−
+γ
+
+·
+g
+2k
++
+γ
+·
+v
+k
+−
+1
+mˆ
+k
+=
+m
+k
+(
+1
+−
+β
+k
+)
+ˆv
+k
+=
+v
+k
+(
+1
+−
+γ
+k
+)
+x
+k
+=
+x
+k
+−
+1
++
+η
+·
+√mˆ
+k
+ˆv
+k
++
+ε
+x
+0
+46 / 78
+RMSprop stems from Hinton’s lab but was only disseminated as teaching material
+ADAM is due to Kingma and Ba who published it at ICLR’15 [3] . . . as of today, the
+paper has amassed more than 220.000 citations !!!
+ADAM has the following standard parameters (we’ll say more on this (much) later)
+β = 0.9
+γ = 0.999
+η = 0.0001
+ε = 0.00000001
+47 / 78
+question
+why is ADAM so popular ?
+answer
+because . . .
+48 / 78
+note
+practitioners know and theorists can show [1, 4] the following
+stability →
+convergence speed
+→
+GD
+momentum GD
+RMSprop
+ADAM
+stable
+fast
+49 / 78
+one more thing . . .
+from exercise 2, we (already) know that we may also consider
+xk+1 = xk − η H
+−1 ∇f
+
+xk
+
+where 0 < η ⩽ 1 and H denotes the Hessian matrix of f at xk
+H
+
+f (xk)
+
+=
+
+
+
+
+
+
+
+
+
+∂
+2
+∂x
+2
+1
+f (xk)
+∂
+2
+∂x1∂x2
+f (xk) · · ·
+∂
+2
+∂x1∂xm
+f (xk)
+∂
+2
+∂x2∂x1
+f (xk)
+∂
+2
+∂x
+2
+2
+f (xk) · · ·
+∂
+2
+∂x2∂xm
+f (xk)
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+∂
+2
+∂xm∂x1
+f (xk)
+∂
+2
+∂xm∂x2
+f (xk) · · ·
+∂
+2
+∂x
+2
+m
+f (xk)
+
+
+
+
+
+
+
+
+
+⇔ Hessians gather 2nd order derivatives of functions f : R
+m → R
+50 / 78
+Newton’s method
+guess x0
+for k = 1, 2, . . .
+gk = −∇f
+
+xk−1
+
+Hk = H
+
+f
+
+xk−1
+
+xk = xk−1 + η H
+−1
+k
+gk
+x0
+51 / 78
+note
+yes, parameter η is fixed in Newton’s method (when in doubt, use η = 0.15)
+it is mainly the Hessian which adjusts the current step sizes and directions
+as a second order method, Newton’s method only requires few iterations to
+approach a (local) minimum of the function to be optimized
+theoretically, Newton’s method is a near optimal optimization method,
+alas, practically, it is limited by its frequent need for matrix inversion
+⇔ Newton’s method is practically infeasible if we need to find optimal values of
+numerous (billions) of variables
+52 / 78
+principles of machine learning
+training a machine learning model (⇔ fitting a function to data) is to optimize the model’s parameters
+(w.r.t. an objective function of the given data)
+in this lecture, we are considering optimization from a general point of view and ask for minimizer(s) x∗
+of some function f (if we wanted to, we could also ask for maximizer(s) x∗ of −f )
+for most (practically relevant) functions f , it is impossible to determine closed form solutions for x∗ so
+that machine learning (⇔ model training) typically requires the use of iterative optimization algorithms
+nowadays, iterative optimization algorithms are almost synonymous with gradient descent techniques
+of which there are many
+nowadays, ADAM is the most popular technique because of its favorable trade-off between efficiency
+and quality (⇔ ease of computation and usefulness of results)
+(fast and robust methods involving inverse matrices are practically infeasible for large scale problems)
+53 / 78
+principles of machine learning
+optimizers such as ADAM usually come with hyper-parameters (β, γ,η, ε) which themselves should
+best be chosen optimally
+alas, choosing optimal hyper-parameters is itself hardly ever feasible so that machine learners either
+rely on intuition, long-term experience, or tentative brute-force searches
+⇔ when we train (modern) large-scale models, we usually have no guarantee that we will end up
+with the best possible parametrization
+(high-dimensional optimization is a pain and we will say much more about this throughout the course)
+54 / 78
+what comes next . . .
+all the approaches we studied above required computing gradients or even Hessians, i.e. first and second
+order derivatives of an objective function
+however, a frequently overlooked fact in machine learning is that there exist optimization algorithms which
+avoid derivatives altogether
+next, we therefore look at two prominent ideas for derivative-free optimization
+these are typically on the less efficient side of computation (yet not infeasible)
+their main appeal is that they work even if derivatives are hard or impossible to obtain, for instance, when
+dealing with discontinuous objective functions
+55 / 78
+gradient-free optimization
+56 / 78
+derivative-free optimization
+gradient-free optimizers do not compute ∇f(xk) but merely evaluate the objective f at
+several proposal points x in the vicinity of the current best estimate xk
+⇔ derivative-free optimization only evaluates f(x) and avoids evaluations of ∇f(x)
+yet, for this to work and converge, the proposals x near xk must be chosen cleverly . . .
+57 / 78
+simultaneous perturbation stochastic approximation
+SPSA due to Spall [5] roughly proceeds as follows
+guess x0 ∈ R
+m
+for k = 1, 2, . . .
+randomly draw / sample
+δ ∼ U
+−1, +1
+	m
+
+x
++ = xk−1 + ck δ
+x
+− = xk−1 − ck δ
+˜g =
+f (x+)−f (x−)
+2 ck δ
+xk = xk−1 − ak ˜g
+hyper-parameters ak
+, ck must be chosen carefully
+x0
+58 / 78
+the Nelder-Mead method
+the Nelder-Mead [6] or simplex downhill method minimizes f : R
+m → R by maintaining a set X =
+
+x1
+, x2
+, . . . , xm+1
+	
+of m + 1 proposal points
+which form a simplex in R
+m
+this simplex is iteratively updated using an intricate algorithm involving conditionally executed geometric operations which are called reflection,
+expansion, inside- and outside contraction, and shrinking
+initialize expand expand expand reflect i-contract
+expand i-contract reflect expand i-contract i-contract
+59 / 78
+(least squares) gradient flows
+60 / 78
+recall
+studying iterative least squares,
+we considered the problem
+x∗ = argmin
+x
+
+M x − v
+
+
+2
+got to know the energy function
+E
+
+x
+
+=
+1
+2
+x
+⊺M⊺M x − x
+⊺M⊺
+v
+and the iterative update scheme
+xk+1 = xk − ηk ∇E
+
+xk
+
+so far so good, but now . . .
+61 / 78
+for what follows, we consider a fixed step size ηk = η for all k so that we have
+xk+1 = xk − η ∇E
+
+xk
+
+(2)
+⇔
+xk+1 − xk
+η
+= −∇E
+
+xk
+
+(3)
+as we will need it later, we also recall that the energy gradient at xk amounts to
+∇E
+
+xk
+
+= M⊺M xk − M⊺
+v (4)
+62 / 78
+next, we do something crazy and assume a continuous function
+x : R+ → R
+m
+, t 7→ x(t)
+which produces the above discrete iterates xk and xk+1 like this
+x(t) = xk
+x(t + η) = xk+1 = xk − η ∇E
+
+xk
+
+= x(t) − η ∇E
+
+x(t)
+
+assuming this function, we immediately have
+x(t + η) − x(t)
+η
+= −∇E
+
+x(t)
+
+(5)
+and it become clear where we are headed . . .
+63 / 78
+note
+in the limit η → 0, (5) becomes
+d
+dt x(t) = −∇E
+
+x(t)
+
+(Leibnitz notation)
+⇔ x˙(t) = −∇E
+
+x(t)
+
+(Newton notation)
+⇒ we obtain an ordinary differential equation or a continuous time dynamical system for
+which the gradient updates in (2) are the forward Euler iterates for solving it
+much more crucially, we obtain an instance of a gradient flow where a system’s state
+evolves in the direction of the negative gradient of a potential (energy) function
+64 / 78
+gradient flow
+given a smooth differentiable function E : R
+m → R, a gradient flow
+is a smooth differentiable curve x : R+ → R
+m, t 7→ x(t) such that
+x˙(t) = −∇E
+
+x(t)
+
+65 / 78
+question
+but does our particular least squares flow
+x˙(t) = −∇E
+
+x(t)
+
+= M⊺
+v − M⊺M x(t)
+exist ?
+in other words, does the following integral
+x(t) = Z t
+0
+h
+M⊺
+v − M⊺M x(τ)
+i
+dτ
+exist ?
+answer
+yes !
+66 / 78
+example
+(quadratic) energy function
+0.0
+20.0
+40.0
+60.0
+80.0
+100.0
+120.0
+140.0
+160.0
+magnitude
+gradient flow field
+67 / 78
+in fact, as far as gradient flows go, least squares flows are rather simple
+they have a single and unique stationary point x∗ where ∇E(x∗) = 0, namely
+x∗ =
+
+M⊺M
+−1M⊺
+v
+this is of course our well known least squares solution for which we can verify
+∇E(x∗) = M⊺
+v − M⊺M x∗
+= M⊺
+v − M⊺M
+
+M⊺M
+−1M⊺
+v = M⊺
+v − M⊺
+v = 0
+68 / 78
+moreover, as the LSQ solution x∗ is a minimizer of a quadratic energy function E(x),
+it is also an asymptotically stable equilibrium point of the system x˙(t) = −∇E
+
+x(t)
+
+to quickly see that x∗ is a stable equilibrium of the system, x˙(t) = −∇E
+
+x(t)
+
+, we let
+H˜ = −M⊺M
+h = M⊺
+v
+and scrutinize the system
+x˙(t) = H x ˜ (t) + h
+from dynamical systems theory / control theory we know (?!?) that an equilibrium of
+this system is stable, if an only if all the eigenvalues of H˜ have negative real parts . . .
+69 / 78
+for our H˜ this is indeed the case, because
+1) matrix M⊺M is symmetric M⊺M =
+
+M⊺M
+⊺
+2) matrix M⊺M is a Gram matrix with entries
+
+M⊺M
+
+kl= m
+⊺
+k:m:l
+3) matrix M⊺M is therefore positive definite
+x
+⊺M⊺M x =
+X
+k
+X
+l
+xk xl m
+⊺
+k:m:l =
+"X
+k
+xk m:k
+#⊺ "X
+l
+xl m:l
+#
+=
+
+
+
+
+
+X
+k
+xk m:k
+
+
+
+
+
+2
+⩾ 0
+4) since M⊺M is symmetric and positive definite, its eigenvalues are real and positive
+⇒ since we have defined H˜ as H˜ = −M⊺M, all its eigenvalues are real and negative
+70 / 78
+finally, for any initial value x(0), least squares flows converge exponentially fast
+to their stationary / stable equilibrium point x∗
+to quickly see this, we once again consider
+x˙(t) = H x ˜ (t) + h
+and note that, at the equilibrium, we have
+x˙ ∗(t) = H x ˜ ∗(t) + h = −∇E
+
+x∗(t)
+
+= 0
+⇔ once the system reaches x∗, its state is stable and does not change anymore
+now . . .
+71 / 78
+now, since
+H x ˜ ∗ + h = 0 ⇔ h = −H x ˜ ∗
+we can rewrite our dynamical system as
+x˙(t) = H x ˜ (t) + h = H x ˜ (t) − H x ˜ ∗ = H˜
+
+x(t) − x∗
+
+given an initial value x(0), the solution to this first-order matrix differential equation is
+x(t) = x∗ + e
+t H˜
+
+x(0) − x∗
+
+=
+
+I − e
+t H˜
+
+x∗ + e
+t H˜
+x(0)
+72 / 78
+note
+matrix I denotes the identity matrix and
+e
+t H˜ =
+X∞
+k=0
+1
+k!
+
+t H˜
+k
+is a matrix exponential
+based on this definition, we can see that
+d
+dt e
+t H˜ = H˜ e
+t H˜
+73 / 78
+⇒ using the above and the equivalence
+x(t) = x∗ + e
+t H˜
+
+x(0) − x∗
+
+(6)
+⇔ x(t) − x∗ = e
+t H˜
+
+x(0) − x∗
+
+(7)
+we can verify our claim that (6) solves x˙(t) = H˜
+
+x(t) − x∗
+
+, because
+x˙(t) = d
+dt h
+x∗ + e
+t H˜
+
+x(0) − x∗
+
+i
+= H˜ e
+t H˜
+
+x(0) − x∗
+
+= H˜
+
+x(t) − x∗
+
+(using (7))
+74 / 78
+finally, since H˜ = −M⊺M has strictly negative eigenvalues, we have
+lim
+t→∞
+e
+t H˜ = 0
+where the decay is exponentially fast in t and which also establishes
+lim
+t→∞
+x(t) = lim
+t→∞
+h
+I − e
+t H˜
+
+x∗ + e
+t H˜
+x(0)
+i
+= x∗
+⇔ regardless of the initial value x(0), LSQ flows converge exponentially to x∗
+75 / 78
+summary
+76 / 78
+we now know about
+iterative least squares solvers
+different gradient descent schemes for optimization
+the existence of gradient-free optimization methods
+the notion of gradient flows and their use in optimization
+77 / 78
+references
+[1] B.T. Polyak. Some Methods of Speeding Up the Convergence of Iteration Methods.
+USSR Computational Mathematics and Mathematical Physics, 4(5), 1964.
+[2] D.E. Rumelhart, G.E. Hinton, and R.J. Williams. Learning Representations by
+Back-propagating Errors. Nature, 323(6088), 1986.
+[3] D.P. Kingma and L.J. Ba. Adam: A Method for Stochastic Optimization. In Proc. ICLR,
+2015.
+[4] S. Dereich, A. Jentzen, and A. Riekert. Sharp Higher Order Convergence Rates for the
+ADAM Optimizer. arXiv:2504.19426[math.OC], 2025.
+[5] J.C. Spall. A Stochastic Approximation Technique for Generating Maximum Likelihood
+Parameter Estimates. In Proc. American Control Conf., 1987.
+[6] J.A. Nelder and R. Mead. A Simplex Method for Function Minimization. Computer
+Journal, 7(4), 1965.
+78 / 78

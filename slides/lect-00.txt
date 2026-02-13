@@ -1,0 +1,148 @@
+Principles of Machine Learning
+Prof. Christian Bauckhage
+1 / 23
+organizational matters
+format
+2 + 2 = 4 SWS
+lectures
+Monday at 12:00
+exercises
+every two weeks on Friday at 14:00
+teamwork on problem sets (graded!)
+written exam (graded!)
+admission requires successful exercise completion
+2 / 23
+requirements
+exercise work in teams (5 people)
+successful completion of exercises
+solutions have to be handed in (one per tam)
+solutions have to be presented in short talks
+successful completion of written exam
+will be about lecture- and exercise material
+3 / 23
+note
+the exercises will mainly involve coding tasks
+these and all our coding examples throughout were prepared using
+Python 3.12.2
+numpy 1.26.4
+scipy 1.13.1
+sympy 1.12
+matplotlib 3.8.4
+and
+jax 0.6.2
+⇒ if you haven’t already, please install compatible versions to work with
+speaking about coding . . .
+4 / 23
+we need to talk about these . . .
+the GPTs Gemini DeepSeek Qwen
+. . .
+5 / 23
+AI coding capabilities . . .
+240
+human work load [min]
+GPT 5
+120
+60
+30
+0
+GPT 2 GPT 3 GPT 3.5 GPT 4
+2019 2020 2021 2022 2023 2024 2025 2026
+release date
+performance measures and data: METR research, 08/2025
+exponential curve fit and visualization: Bauckhage, 09/2025
+6 / 23
+. . . and where they are headed
+human work load
+52 weeks
+4 weeks
+1 week
+1 day
+1
+4 day
+GPT 5
+2024 2025 2026 2027 2028 2029 2030
+release date
+performance measures and data: METR research, 08/2025
+exponential curve fit and visualization: Bauckhage, 09/2025
+7 / 23
+take home message
+⇒ in 2025/26 it would be stupid not to use AI assistance for STEM exercises
+⇔ you are encouraged to exercise with AI (please report your experiences!!!)
+however: 1) if you use AI, you still need to verify that its answers are correct
+2) during the exam(s), you will not be allowed to work with AI
+it is what it is, we are living in “interesting” times . . .
+8 / 23
+exams
+as it stands right now, the two written exams will take place on
+1st exam: 13.02.2026 (yes, after Weiberfastnacht)
+2nd exam: 25.03.2026
+9 / 23
+lecture slides and exercises
+will be available on eCampus
+10 / 23
+books
+11 / 23
+highly recommended (⇔ still the best book in this arena)
+D.J.C. MacKay
+Information Theory, Inference, and Learning
+Algorithms, Cambridge University Press, 2003
+available online (just search for it)
+12 / 23
+highly recommended (⇔ a very gentle and readable book)
+S. Haykin
+Neural Networks and Learning Machines,
+Prentice Hall, 3rd edition, 2008
+available online (just search for it)
+13 / 23
+highly recommended (⇔ the best book on Bayesian “learning”)
+D.S. Sivia and J. Skilling
+Data Analysis: A Bayesian Tutorial, Oxford
+Science Publications, 2nd edition, 2006
+14 / 23
+recommended (⇔ old but very readable)
+R. Rojas
+Neural Networks: A Systematic Introduction,
+Springer, 1996
+available online (just search for it)
+15 / 23
+recommended (⇔ old but very readable)
+C.M. Bishop
+Neural Networks for Pattern Recognition, Oxford
+University Press, 1996
+16 / 23
+to verify claims regarding matrices and integrals (when needed)
+17 / 23
+“advanced” material
+C.M. Bishop
+Pattern Recognition and Machine Learning,
+Springer, 2006
+18 / 23
+updated version
+C.M. Bishop and H. Bishop
+Deep Learning, Springer Nature, 2023
+19 / 23
+advanced material
+T. Hastie, R. Tibshirand, and J. Friedman
+The Elements of Statistical Learning, Springer,
+2nd edition, 2009
+not for the faint at heart
+20 / 23
+advanced material
+T.M. Cover and J.A. Thomas
+Elements of Information Theory, Wiley, 2nd
+edition, 2006
+not for the faint at heart
+21 / 23
+YouTube channels
+22 / 23
+3blue1brown
+Socratica
+Mathemaniac
+eigenchris
+Mathoma
+mathematicalmonk
+Mathview
+.
+.
+.
+23 / 23

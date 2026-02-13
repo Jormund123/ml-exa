@@ -1,0 +1,2936 @@
+Principles of Machine Learning
+Prof. Christian Bauckhage
+1 / 87
+lecture 06
+probabilistic model fitting (part 2)
+in this lecture, we continue our study of probabilistic model fitting
+we first apply Bayesian methods to fit a multivariate Gaussian to multivariate data
+then, we revisit the regression problem and approach it from the points of view of
+maximum likelihood- and Bayesian parameter estimations
+next, we also revisit logistic regression classifiers and show that these, too, come
+with a probabilistic interpretation
+finally, we show that even tanh-neurons can be seen as Bayesian decision makers
+2 / 87
+outline
+recap
+probabilistic model fitting (2)
+(dis)advantages of Bayesian parameter estimation
+regression revisited
+least squares
+maximum likelihood
+Bayesian regression
+logistic regression revisited
+summary
+3 / 87
+recap
+4 / 87
+probabilistic modeling
+given data D =
+
+xj
+	n
+j=1
+, we hypothesize
+it has been sampled from a distribution
+p
+
+x
+
+ θ
+
+if we assume the data in D are i.i.d., then
+p
+
+D
+
+ θ
+
+= p
+
+x1, . . . , xn
+
+ θ
+
+=
+Yn
+j=1
+p
+
+xj
+
+ θ
+
+5 / 87
+probabilistic model fitting
+given D and our model hypothesis p
+
+x
+
+ θ
+
+, we
+want to estimate “optimal” model parameters θˆ
+the maximum likelihood estimator of θ is
+θML = argmax
+θ
+p
+
+D
+
+ θ
+
+the maximum a-posteriori estimator of θ is
+θMAP = argmax
+θ
+p
+
+θ
+
+ D
+
+6 / 87
+the likelihood function
+L
+
+θ
+
+≡ L
+
+θ
+
+ D
+
+= p
+
+D
+
+ θ
+
+= p
+
+x1, . . . , xn
+
+ θ
+
+=
+Yn
+j=1
+p
+
+xj
+
+ θ
+
+is understood as a function of θ ⇔ is not a probability density
+for convenience and numerical stability, we typically work with . . .
+the log-likelihood function
+L
+
+θ
+
+= log L
+
+θ
+
+= log p
+
+x1, . . . , xn
+
+ θ
+
+= logYn
+j=1
+p
+
+xj
+
+ θ
+
+=
+Xn
+j=1
+log p
+
+xj
+
+ θ
+
+7 / 87
+the MLEs of the parameters of a Gaussian N
+
+x
+
+ µ, Σ
+
+are
+µML =
+1
+n
+Xn
+j=1
+xj
+ΣML =
+1
+n
+Xn
+j=1
+
+xj − µMLxj − µML⊺
+while µML is an unbiased estimator, ΣML is a biased estimator
+E
+
+µML
+= µ ⇔ bias
+µML
+= E
+
+µ − µML
+= 0
+E
+
+ΣML
+=
+n − 1
+n
+Σ ⇔ bias
+ΣML
+= E
+
+Σ − ΣML
+̸= 0
+8 / 87
+we further have this crucial terminology
+p
+
+θ
+
+ D
+
+=
+p
+
+D
+
+ θ
+
+× p
+
+θ
+
+p
+
+D
+ ⇔ posterior =
+likelihood × prior
+evidence
+if prior p
+
+θ
+
+and posterior p
+
+θ
+
+ D
+
+are from the
+same probability distribution family, then we say
+p
+
+θ
+
+and p
+
+θ
+
+ D
+
+are conjugate probability distributions
+p
+
+θ
+
+is a conjugate prior of the the likelihood p
+
+D
+
+ θ
+
+p
+
+θ
+
+ D
+
+is a reproducing probability distribution
+9 / 87
+conjugate priors are mainly a mathematical convenience
+⇔ they may not really reflect “relevant” prior knowledge, but . . .
+they typically tremendously simplify the model fitting process
+for instance . . .
+10 / 87
+the evidence
+p
+
+D
+
+=
+Z
+p
+
+D, θ
+
+dθ =
+Z
+p
+
+D
+
+ θ
+
+p
+
+θ
+
+dθ
+(often) has a closed form solution if p
+
+θ
+
+is a conjugate prior of p
+
+D
+
+ θ
+
+the posterior predictive distribution
+p
+
+x
+
+ D
+
+=
+Z
+p
+
+x
+
+ θ
+
+p
+
+θ
+
+ D
+
+dθ ∝
+Z
+p
+
+x
+
+ θ
+
+p
+
+D
+
+ θ
+
+p
+
+θ
+
+dθ
+(often) has a closed form solution if p
+
+θ
+
+is a conjugate prior of p
+
+D
+
+ θ
+
+11 / 87
+people love Gaussian models
+p
+
+x
+
+ θ
+
+= N
+
+x
+
+ µ, Σ
+
+= N
+
+x
+
+ µ, Λ−1
+
+mainly because working with Gaussians is a breeze (we will see further examples below)
+however, note the following
++ for natural data (observations from physical / chemical / biological processes),
+Gaussians are often appropriate models (there are deep reasons for this)
+− for human-made data (e.g. income distributions, stock prices, voting behavior),
+Gaussians are often inappropriate models (there are deep reasons for this)
+12 / 87
+probabilistic model fitting (2)
+13 / 87
+fitting a multi-variate Gaussian
+finally, we consider multivariate data D =
+
+xj
+	n
+j=1
+and fit a multivariate Gaussian p
+
+x
+
+= N
+
+x
+
+ µ, Σ
+
+for which mean µ and covariance Σ are unknown
+in settings like this, it is again preferable to work with the precision matrix Λ = Σ
+−1
+when parameterized in terms of the precision matrix, our Gaussian model reads
+p
+
+x
+
+= N
+
+x
+
+ µ, Λ−1
+
+14 / 87
+for simplicity, we assume a conjugate prior distribution which is the Normal-Wishart
+p
+
+µ, Λ
+
+= NW
+µ, Λ
+
+ µ0, κ, W, ν
+
+= N
+
+µ
+
+ µ0,
+1
+κ Λ−1
+
+· W
+
+Λ
+
+ W, ν
+
+which involves the Wishart distribution
+W
+
+Λ
+
+ W, ν
+
+=
+1
+Γm(
+ν
+2
+)
+vuut
+det
+Λ
+ν−m−1
+2
+ν m det
+Wν
+ exp 
+−
+1
+2
+tr
+W−1Λ
+
+
+where m is the dimension of the xj ∈ R
+m
+15 / 87
+given (reasonable) initial guesses µ0, W0, κ0 and ν0, we have the posterior
+p
+
+µ, Λ
+
+ D
+
+∝ N
+
+D
+
+ µ, Λ−1
+
+NW
+µ, Λ
+
+ µ0, κ0, W0, ν0
+
+which is another Normal-Wishart distribution (and thus a reproducing density)
+John Wishart
+(∗1898, †1956)
+16 / 87
+going through the required motions, we find
+κn = κ0 + n
+νn = n0 + n
+µn =
+κ0 µ0 + n µˆn
+κn
+W−1
+n = W−1
+0 + (n − 1) Σˆ
+n +
+n κ0
+κn
+
+µ0 − µˆn
+µ0 − µˆn
+⊺
+where we note the occurrence of the MLEs µˆn and Σˆ
+n
+17 / 87
+corresponding MAP estimators for the sought after µ and Λ amount to
+µMAP = argmax
+µ
+p
+
+µ, Λ
+
+ D
+
+= µn
+ΛMAP = argmax
+Λ
+p
+
+µ, Λ
+
+ D
+
+= (νn − m)Wn
+given these two MAP estimators, our multi-variate data model becomes
+p
+
+x
+
+= N
+
+x
+
+ µn,
+W−1
+n
+νn−m
+
+18 / 87
+illustration
+data
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+MLE model
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+µML ≈
+
+175.7
+73.9
+
+ΣML ≈
+
+75.9 64.5
+64.5 186.9
+
+MAP model
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+µMAP ≈
+
+175.4
+73.8
+
+ΣMAP ≈
+
+71.1 59.1
+59.1 168.6
+
+19 / 87
+observe: the last example we went through also allows for
+closed forms of the posterior predictive distribution p
+
+x
+
+ D
+
+without going into details, we therefore simply mention that
+multi-variate Gaussian model with Normal-Wishart prior on (µ, Λ)
+p
+
+x
+
+ D
+
+is a multi-variate (three parameter) Student’s t-distribution
+20 / 87
+(dis)advantages of
+Bayesian parameter estimation
+21 / 87
+note
++ the prior p(θ) allows for incorporating (domain specific) knowledge
+± if no such knowledge is available, the prior is typically chosen such
+that it is mathematically convenient
+if the prior p(θ) is in the same family as the posterior p(θ | D),
+it is called a conjugate prior
+we saw that conjugate priors “simplify” computations because
+they lead to closed form solutions
+all densities in the exponential family come with conjugate priors
+22 / 87
+note
++ conjugate priors allow for closed form solutions of the posterior predictive density
+posterior predictive densities can be very valuable (we shall see examples later)
+− representing prior knowledge in terms of (conjugate) prior distributions is anything
+but intuitive and by and large a fantasy of proponents of the Bayesian framework
+for example: what are good initial guesses of the parameters of a Gamma prior?
+where do they come from? how are they justified? what is their significance?
+23 / 87
+note
+− Bayesian statistics does not allow for falsifying hypotheses
+⇔ there is no false hypothesis, only different degrees of belief
+if these are due to mathematical convenience, they may be questionable
+− if priors are not conjugate, then it is usually very difficult to compute the evidence
+p
+
+D
+
+=
+R
+p(D | θ) p(θ) dθ (no closed form solutions, curse of dimensionality, . . . )
+these difficulties may be tackled using, say, Markov Chain Monte Carlo (MCMC)
+24 / 87
+regression revisited
+25 / 87
+uni-variate linear regression
+given a training data sample D = 
+xj, yjnj=1
+assume a noisy linear model yj = φ⊺j w + ϵj φj = 1xj
+estimate optimal parameters w = w0 w1
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+26 / 87
+1st approach: least squares
+representing our training data as Φ = 
+| | | φ1 φ2 · · · φ
+n
+| | |
+
+y
+=
+
+y
+1
+y
+2 · · ·
+y
+n
+
+⊺
+and considering the squared loss Lw = Φ⊺w − y2
+we posit that optimal parameters
+will minimize this loss
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+27 / 87
+⇒ good parameters result from solving
+wˆ = argmin
+w
+
+Φ⊺w − y
+
+
+2
+⇒ the unique solution amounts to
+wˆ =
+
+ΦΦ⊺
+−1Φ y
+⇒ our fitted model is given by
+y = f
+
+x
+
+ wˆ
+
+= φ
+⊺
+xwˆ
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+28 / 87
+just to be clear . . .
+we decided to model our data via a linear function
+y = f
+
+x
+
+ w
+
+= φ
+⊺
+xw
+to determine the best linear function w.r.t. our data
+y = f
+
+x
+
+ wˆ
+
+= φ
+⊺
+xwˆ
+we decided to minimize a squared error (between
+model predictions and targets)
+the resulting optimized parameters depend on the
+given data, because
+wˆ =
+
+ΦΦ⊺
+−1Φ y
+29 / 87
+2nd approach: maximum likelihood
+if we assume identical Gaussian noise
+∀ j : ϵj ∼ N
+0, σ
+2
+
+our linear model can also be written as
+yj = φ
+⊺
+j w + N
+
+0, σ
+2
+
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+30 / 87
+if we furthermore define
+∀ j : µj = φ
+⊺
+j w
+we may also think probabilistically
+yj ∼ p
+
+yj
+
+ µj
+, σ
+2
+
+= N
+
+yj
+
+ µj
+, σ
+2
+
+⇔ each of the given yj has been drawn
+from a Gaussian distribution whose
+mean µj depends on a given xj and
+whose variance is σ
+2
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+31 / 87
+just to be clear . . .
+we decided to model our data D via a conditional probability
+y ∼ p
+
+y
+
+ µ(x), σ
+2
+
+where the value of y is conditioned on a function of x, namely
+µ(x) = f
+
+x
+
+ w
+
+= φ
+⊺
+x w
+where f happens to be the linear function considered above
+⇔ we model our data in D in terms of a conditional probability
+p
+
+y
+
+
+f(x | w), σ
+2
+
+= p
+
+y
+
+ x, w, σ
+2
+
+32 / 87
+more specifically, our model is y ∼ N y  f(x | w), σ2
+⇔ for each
+x, there is a uni-variate
+Gaussian with mean µ(x) = f  x  w
+these infinitely many Gaussians
+all have the same variance
+σ
+2
+fitting the model to the data in
+D
+can be done via MLE to get point
+estimates
+wML and
+σ
+2
+ML of optimal
+parameters
+150
+160 170 180 190 200
+0
+20 40 60 80 100 120
+33 / 87
+if the data in D are i.i.d., the likelihood for w is
+L
+
+w
+
+ D
+
+=
+Yn
+j=1
+N
+
+yj
+
+
+f(xj
+| w), σ
+2
+
+=
+Yn
+j=1
+1
+√
+2 π σ2
+exp 
+−
+1
+2 σ2
+
+f(xj
+| w) − yj
+2
+
+its87
+if the data in D are i.i.d., the likelihood for w is
+L
+
+w
+
+ D
+
+=
+Yn
+j=1
+N
+
+yj
+
+
+f(xj
+| w), σ
+2
+
+=
+Yn
+j=1
+1
+√
+2 π σ2
+exp 
+−
+1
+2 σ2
+
+f(xj
+| w) − yj
+2
+
+its log-likelihood is an arguably simpler function
+L
+
+w
+
+ D
+
+= −n log √
+2 π σ2 −
+1
+2 σ2
+Xn
+j=1
+
+f(xj
+| w) − yj
+2
+34 / 87
+note
+maximizing L(w) ⇔ minimizing −L(w)
+wML = argmin
+w
+n log √
+2 π σ2 +
+1
+2 σ2
+Xn
+j=1
+
+f(xj
+| w) − yj
+2
+= argmin
+w
+1
+2 σ2
+Xn
+j=1
+
+f(xj
+| w) − yj
+2
+= argmin
+w
+Xn
+j=1
+
+f(xj
+| w) − yj
+2
+= argmin
+w
+Xn
+j=1
+
+φ
+⊺
+j w − yj
+2
+= ar 87
+note
+maximizing L(w) ⇔ minimizing −L(w)
+wML = argmin
+w
+n log √
+2 π σ2 +
+1
+2 σ2
+Xn
+j=1
+
+f(xj
+| w) − yj
+2
+= argmin
+w
+1
+2 σ2
+Xn
+j=1
+
+f(xj
+| w) − yj
+2
+= argmin
+w
+Xn
+j=1
+
+f(xj
+| w) − yj
+2
+= argmin
+w
+Xn
+j=1
+
+φ
+⊺
+j w − yj
+2
+= argmin
+w
+
+Φ⊺w − y
+
+
+2
+35 / 87
+note
+⇒ we realize that
+least squares
+⇕
+maximum likelihood
+with a Gaussian noise model
+36 / 87
+since finding the maximum likelihood estimator wML of parameter w of our model N
+
+y
+
+
+f (x | w), σ2
+
+is the same problem as finding the minimizer wˆ of the squared error
+
+Φ⊺w − y
+
+
+2
+, we therefore have
+wML =
+ΦΦ⊺
+−1Φy
+given wML, we can next compute the maximum likelihood estimator σ2
+ML of parameter σ2 of our model
+σ
+2
+ML = argmin
+σ2
+n log √
+2 π σ2 +
+1
+2 σ2
+
+Φ⊺wML − y
+
+
+2
+37 / 87
+we may proceed as follows
+∂
+∂σ2
+
+n log √
+2 π σ2 +
+1
+2 σ2
+
+Φ⊺wML − y
+
+
+2
+
+!= 0
+⇔
+n
+2 σ2 −
+1
+2 σ4
+
+Φ⊺wML − y
+
+
+2 != 0
+⇔
+n
+2 σ2 =
+1
+2 σ4
+
+Φ⊺wML − y
+
+
+2
+from which we conclude that
+σ
+2
+ML =
+1
+n
+
+Φ⊺wML − y
+
+
+2
+38 / 87
+note
+⇒ we realize that
+the squared error
+
+Φ⊺w − y
+
+
+2
+= n σ
+2
+is a (scaled) variance
+⇕
+least squares minimizes a variance
+39 / 87
+once we have fitted our model
+y ∼ N
+y
+
+
+f(x | wML), σ
+2
+ML
+we can next ask the following
+question
+given any x, which y can we expect our model to predict ?
+40 / 87
+answer
+E
+
+y
+
+ x
+
+=
++
+Z∞
+−∞
+y · √
+1
+2 π σ2
+ML
+exp "
+−
+
+y − f(x | wML)
+2
+2 σ
+2
+ML #
+dy
+.
+.
+.
+= f
+
+x
+
+ wML
+41 / 87
+note
+⇒ while it may now be self-evident, we emphasize that
+a linear model
+y = φ
+⊺
+xw
+computes the expectation
+of a Gaussian model
+y ∼ N
+y
+
+ φ
+⊺
+xw, σ
+2
+
+42 / 87
+3rd approach: Bayesian estimation
+given training data
+D =
+
+
+xj
+, yj
+n
+j=1
+we next use Bayesian estimation to fit a Gaussian model
+yj ∼ N
+yj
+
+ φ
+⊺
+j w, σ
+2
+
+this will allow us to get a maximum a-posteriori estimate
+wMAP of w and a posterior predictive distribution p
+
+y
+
+ x, D
+
+43 / 87
+for simplicity, we assume σ
+2
+is known, only w is unknown
+⇔ we only require a prior distribution p
+
+w
+
+for parameter w
+for simplicity, we choose a conjugate prior ⇔ a Gaussian
+p
+
+w
+
+= N
+
+w
+
+ µ0, Σ0
+
+44 / 87
+if we would go through all the motions (which we won’t),
+we would find the posterior to be another Gaussian
+p
+
+w
+
+ D
+
+= N
+
+w
+
+ µn, Σn
+
+where
+Σn =
+h
+Σ
+−1
+0 +
+1
+σ2 ΦΦ⊺
+i−1
+µn = Σn
+h
+Σ
+−1
+0 µ0 +
+1
+σ2 Φy
+i
+45 / 87
+since the mode of a Gaussian coincides with its mean,
+we would have this maximum a-posteriori estimator
+wMAP = argmax
+w
+N
+
+w
+
+ µn, Σn
+
+= Σn
+h
+Σ
+−1
+0 µ0 +
+1
+σ2 Φy
+i
+but let’s simplify things . . .
+46 / 87
+next, we focus on the (important) special case where
+µ0 = 0
+Σ0 = σ
+2
+0
+I
+so that our Gaussian prior for parameter w becomes
+p
+
+w
+
+= N
+
+w
+
+ 0, σ
+2
+0
+I
+
+here, we will go through the motions . . .
+47 / 87
+for the posterior, we then have
+p
+
+w
+
+ D
+
+∝ p
+
+D
+
+ w
+
+p
+
+w
+
+∝
+Yn
+j=1
+N
+
+yj
+
+ φ
+⊺
+j w, σ
+2
+
+· N
+
+w
+
+ 0, σ
+2
+0
+I
+
+∝ exp 
+−
+1
+2σ2
+
+Φ⊺w − y
+
+
+2
+
+· exp 
+−
+1
+2σ
+2
+0
+
+w
+
+
+2
+
+∝ exp 
+−
+1
+2σ2
+
+Φ⊺w − y
+⊺
+
+Φ⊺w − y
+
+
+· exp 
+−
+1
+2σ
+2
+0
+w
+⊺w
+
+∝ exp"
+−
+1
+2
+
+1
+σ2
+
+Φ⊺w − y
+⊺
+
+Φ⊺w − y
+
++
+1
+σ
+2
+0
+w
+⊺w
+
+| {z }
+=γ
+#
+48 / 87
+expanding γ, we find
+γ = w
+⊺
+h
+1
+σ2 ΦΦ⊺ +
+1
+σ2
+0
+I
+i
+w − 2
+1
+σ2 y
+⊺Φ⊺ w +
+1
+σ2 y
+⊺
+y
+⇒ p
+
+w
+
+ D
+
+is an exponential of a quadratic form in w
+⇔ p
+
+w
+
+ D
+
+is indeed another Gaussian distribution
+49 / 87
+further tedious yet straightforward algebra yields
+p
+
+w
+
+ D
+
+∼ N
+w
+
+ µn, Σn
+
+where
+Σn =
+h
+1
+σ2 ΦΦ⊺ +
+1
+σ2
+0
+I
+i−1
+µn =
+1
+σ2 Σn Φ y
+50 / 87
+note
+⇒ the maximum a-posteriori estimator for w is
+wMAP = argmax
+w
+p
+
+w
+
+ D
+
+=
+1
+σ2
+h
+1
+σ2 ΦΦ⊺ +
+1
+σ2
+0
+I
+i−1
+Φ y
+=
+1
+σ2
+h
+1
+σ2
+
+ΦΦ⊺ +
+σ2
+σ2
+0
+I
+
+i−1
+Φ y
+=
+h
+ΦΦ⊺ +
+σ2
+σ2
+0
+I
+i−1
+Φ y
+51 / 87
+note
+compare the ML and MAP estimators
+wML =
+
+ΦΦ⊺
+−1Φ y
+wMAP =
+h
+ΦΦ⊺ +
+σ2
+σ2
+0
+I
+i−1
+Φ y
+and the corresponding linear models
+y = φ
+⊺
+x wML
+y = φ
+⊺
+x wMAP
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+MLE model
+MAP model
+52 / 87
+regarding the posterior predictive distribution,
+we observe that tedious calculus and algebra . . .
+p
+
+y
+
+ x, D
+
+=
+Z
+p
+
+y
+
+ x, D, w
+
+p
+
+w
+
+ x, D
+
+dw
+=
+Z
+p
+
+y
+
+ x, w
+
+p
+
+w
+
+ D
+
+dw
+=
+Z
+N
+
+y
+
+ φ
+⊺
+x w, σ
+2
+
+· N
+
+w
+
+ µn, Σn
+
+dw
+.
+.
+.
+note: we reasonably assume
+y is conditionally independent of D given x and w
+w is conditionally independent of x given D
+53 / 87
+yield
+p
+
+y
+
+ x, D
+
+= N
+
+y | µx, σ
+2
+x
+
+where
+µx = φ
+⊺
+x µn
+σ
+2
+x = σ
+2 + φ
+⊺
+x Σnφx
+54 / 87
+note
+⇒ the posterior predictive distribution for y given x and D
+is a Gaussian whose mean and variance depend on x
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+150
+160 170 180 190 200
+0
+20 40 60 80 100 120
+55 / 87
+questions
+1) what is Bayesian regression good for ?
+2) does it also apply to non-linear settings ?
+56 / 87
+questions
+1) what is Bayesian regression good for ?
+2) does it also apply to non-linear settings ?
+answers
+1) it yields fairly “robust” or “confidence scored” explanations of the given data
+2) yes, because it does not care about the nature of the feature map we work with
+let’s look at a couple of examples . . .
+56 / 87
+example
+posterior predictive distribution for Bayesian regression with 2nd order polynomial
+−10 −5 0 5 10
+0.0
+2.5
+5.0
+7.5
+10.0
+12.5
+15.0
+17.5
+p
+
+y
+
+ x, D
+
+−10 −5 0 5 10
+0.0
+2.5
+5.0
+7.5
+10.0
+12.5
+15.0
+17.5
+one-sigma plot
+57 / 87
+examples
+−10 −5 0 5 10
+0.0
+2.5
+5.0
+7.5
+10.0
+12.5
+15.0
+17.5
+−10 −5 0 5 10
+0.0
+2.5
+5.0
+7.5
+10.0
+12.5
+15.0
+17.5
+−10 −5 0 5 10
+0.0
+2.5
+5.0
+7.5
+10.0
+12.5
+15.0
+17.5
+−10 −5 0 5 10
+0.0
+2.5
+5.0
+7.5
+10.0
+12.5
+15.0
+17.5
+−10 −5 0 5 10
+0.0
+2.5
+5.0
+7.5
+10.0
+12.5
+15.0
+17.5
+same as above
+−10 −5 0 5 10
+0.0
+2.5
+5.0
+7.5
+10.0
+12.5
+15.0
+17.5
+missing data
+−10 −5 0 5 10
+0.0
+2.5
+5.0
+7.5
+10.0
+12.5
+15.0
+17.5
+few data
+−10 −5 0 5 10
+0.0
+2.5
+5.0
+7.5
+10.0
+12.5
+15.0
+17.5
+outliers
+58 / 87
+logistic regression revisited
+59 / 87
+binary classification
+given a set of annotated training data
+D =
+
+
+xj
+, yj
+n
+j=1
+which consists of pairs of data points
+xj ∈ R
+m
+from two classes Ω1 and Ω2 together
+with associated class labels
+yj =
+
++1 if xj ∈ Ω1
+−1 if xj ∈ Ω2
+60 / 87
+logistic regression (classifier)
+a logistic regression classifier
+f
+
+x
+
+= tanh
+x
+⊺w − b
+
+is being trained by estimating
+wˆ, ˆb = argmin
+w,b
+L
+
+w, b
+
+where L
+
+w, b
+
+is the logistic loss
+L
+
+w, b
+
+=
+Xn
+j=1
+log
+1 + e
+−2yj(x
+⊺
+j w−b)
+
+61 / 87
+question
+but why is this called a logistic regression classifier ?
+62 / 87
+question
+but why is this called a logistic regression classifier ?
+answer
+because . . .
+62 / 87
+for readability, we henceforth let
+aj ≡ 2
+
+x
+⊺
+j w − b
+
+to simply write the logistic loss as
+L =
+Xn
+j=1
+log
+1 + e
+−yj aj
+
+we further introduce new indicators zj =
+1−yj
+2
+∈
+
+0, 1
+	
+for which we note this property
+
+−1
+zj =
+
++1 if zj = 0
+−1 if zj = 1
+63 / 87
+⇒ working with the zj
+, we can write
+L =
+Xn
+j=1
+log
+1 + e
+(−1)
+z
+j aj
+
+=
+X
+j:zj=0
+log
+1 + e
+aj
+
++
+X
+j:zj=1
+log
+1 + e
+−aj
+
+next, we recall the logistic function
+σ
+
+x
+
+=
+1
+1 + e−x ⇔ σ
+
+−x
+
+= 1 − σ
+
+x
+
+from which we obtain the identities
+1 + e
+aj =
+1
+σ(−aj)
+=
+1
+1 − σ(aj)
+and 1 + e
+−aj =
+1
+σ(aj)
+64 / 87
+⇒ working with the σ(aj), we can write
+L =
+X
+j:zj=0
+log 
+1
+1 − σ(aj)
+
++
+X
+j:zj=1
+log 
+1
+σ(aj)
+
+=
+X
+j:zj=0
+log
+1
+
+− log
+1 − σ
+
+aj
+
+
++
+X
+j:zj=1
+log
+1
+
+− log
+σ
+
+aj
+
+
+= − X
+j:zj=0
+log
+1 − σ
+
+aj
+
+
+−
+X
+j:zj=1
+log
+σ
+
+aj
+
+
+since zj ∈
+
+0, 1
+	
+, this can be compacted to
+L = −Xn
+j=1
+
+1 − zj
+
+log
+1 − σ
+
+aj
+
+
++ zj
+log
+σ
+
+aj
+
+
+65 / 87
+note
+⇔ if the aj were i.i.d. and σ(aj) with aj
+7→ (0, 1) was a probability qj
+, then the logistic loss
+L = −Xn
+j=1
+
+1 − zj
+
+log
+1 − σ
+
+aj
+
+
++ zj
+log
+σ
+
+aj
+
+
+would correspond to the negative log-likelihood for the following likelihood function
+L =
+Yn
+j=1
+
+1 − qj
+1−zj
+· q
+zj
+j
+⇔ minimizing the logistic loss L would be equivalent to maximizing the likelihood L
+but can the qj = σ(aj) be interpreted as probabilities ?
+66 / 87
+note
+if we understand the σ(aj) as conditional probabilities such that
+1 − σ
+
+aj
+
+= p
+
+zj = 0
+
+ aj
+
+= p
+
+yj = +1
+
+ xj
+, w, b
+
+⇔ σ
+
+aj
+
+= p
+
+zj = 1
+
+ aj
+
+= p
+
+yj = −1
+
+ xj
+, w, b
+
+we obtain a valid probabilistic interpretation of logistic regression
+67 / 87
+probabilistic binary classifiers model the posterior p
+
+Ω1
+
+ x
+
+= 1 − p
+
+Ω2
+
+ x
+
+where
+p
+
+Ω1
+
+ x
+
+=
+p
+
+x
+
+ Ω1
+
+p
+
+Ω1
+
+p
+
+x
+ =
+p
+
+x
+
+ Ω1
+
+p
+
+Ω1
+
+p
+
+x
+
+ Ω1
+
+p
+
+Ω1
+
++ p
+
+x
+
+ Ω2
+
+p
+
+Ω2
+
+using these (elementary) identities
+ab
+ab + cd
+=
+1
+ab+cd
+ab
+=
+1
+1 + cd
+ab
+=
+1
+1 + 1
+ab
+cd
+=
+1
+1 + e−s
+where s = log ab
+cd
+the posterior can also be written as
+p
+
+Ω1
+
+ x
+
+=
+1
+1 + e−x = σ
+
+x
+
+where x = log
+p
+
+x
+
+ Ω1
+
+p
+
+Ω1
+
+p
+
+x
+
+ Ω2
+
+p
+
+Ω2
+ = log p
+
+x
+
+ Ω1
+
+p
+
+Ω1
+
+− log p
+
+x
+
+ Ω2
+
+p
+
+Ω2
+
+⇒ a logistic regression classifier models the abstract expression log p
+
+x
+
+ Ω1
+
+p
+
+Ω1
+
+− log p
+
+x
+
+ Ω2
+
+p
+
+Ω2
+
+in terms of x
+⊺w − b
+68 / 87
+a hard probabilistic binary classifier f : R
+m → {±1} computes
+f
+
+x
+
+=
+
++1 if p
+
+Ω1
+
+ x
+
+⩾ p
+
+Ω1
+
+ x
+
+−1 otherwise
+however, if we are already going through the hassle of modeling
+and evaluating the posteriors p
+
+x
+
+ Ω1
+
+and p
+
+x
+
+ Ω2
+
+, we may
+as well predict class probability vectors
+q ∈ ∆1 =
+
+
+x ∈ R
+2
+
+
+ x ⩾ 0 ∧ 1
+⊺x = 1
+
+⇒ we might as well consider a classifier f : R
+m → ∆1
+that computes
+f
+
+x
+
+=
+
+q1
+q2
+
+=
+
+p
+
+Ω1
+
+ x
+
+p
+
+Ω2
+
+ x
+
+
+∆k−1
+is the standard simplex in R
+k
+it will feature prominently later on . . .
+69 / 87
+principle of machine learning
+instead of directly predicting class labels for K ⩾ 2 classes,
+it may be better to predict (a vector of) class probabilities
+f
+
+x
+
+=
+
+
+
+
+
+p
+
+Ω1
+
+ x
+
+p
+
+Ω2
+
+ x
+
+.
+.
+.
+p
+
+ΩK
+
+ x
+
+
+
+
+
+
+such probabilities can be turned into decisions by using, say
+k∗ = argmax
+k
+h
+f
+
+x
+
+i
+k
+= argmax
+k
+e
+⊺
+k
+f
+
+x
+
+70 / 87
+principle of machine learning
+when training probabilistic classifiers, we do not work with class labels such as
+yj ∈
+
+0, 1
+	
+or yj ∈
+
+−1, +1
+	
+or yj ∈
+
+1, 2, . . . , K
+	
+instead, it is much better (more convenient) to consider class label vectors like
+yj =
+
+0
+1
+
+or yj =
+
+
+0
+1
+0
+
+ or even yj =
+
+
+1/4
+1/2
+1/4
+
+
+71 / 87
+note
+all the preceding examples considered label vectors yj ∈ ∆
+K−1
+such vectors are called probability vectors or stochastic vectors
+in classification tasks, their entries represent class probabilities
+
+yj
+
+i
+= p
+
+Ωi
+
+ xj
+
+the binary variables zj ∈ {0, 1} which we worked with above can
+be understood as entries of stochastic vectors zj ∈ ∆
+1
+, namely
+zj =
+
+1 − zj
+zj
+
+=
+
+p
+
+Ω1
+
+ xj
+
+p
+
+Ω2
+
+ xj
+
+
+72 / 87
+cross entropy
+letting y,ˆy ∈ ∆
+K−1 be two probability vectors / discrete distributions, the cross entropy
+H
+
+y,ˆy
+
+= −Ey
+
+log ˆy
+
+= −X
+K
+k=1
+yk log ˆyk
+of ˆy relative to y is an information theoretic measure of much these distributions agree
+⇔ if y is a target and ˆy is a prediction (such as produced by a classifier), then the cross
+entropy H
+
+y,ˆy
+
+is a (possible) measure of the quality of the prediction
+73 / 87
+note
+we generally have asymmetry H
+
+y,ˆy
+
+̸= H
+
+ˆy, y
+
+⇔ (cross) entropies are not distances
+machine learning practitioners usually consider H
+
+y,ˆy + ϵ
+
+where ϵ ≪ 1,
+(e.g. ϵ = 10−8
+) to avoid problems with ˆyk = 0 for which log ˆyk is undefined
+yes, this is a quick and dirty and altogether brutal fix but common practice
+theoreticians would argue that ˆyk = 0 indicates a zero probability which can be excluded from computations and compute
+H
+
+y,ˆy
+
+= − X
+k:ˆy
+k
+̸=0
+yk
+log ˆyk
+74 / 87
+note
+in our analysis of the logistic loss function, we used probability vectors
+zj =
+
+1 − zj
+zj
+
+and qj =
+
+1 − qj
+qj
+
+recalling that the j-th term Lj of the logistic loss function L is given by
+Lj = −
+1 − zj
+
+log
+1 − qj
+
+− zj
+log
+qj
+
+= −
+K
+X=2
+k=1
+
+zj
+
+k
+log
+qj
+
+k
+we now realize that this quantity is the cross entropy between a target
+distribution (zj) and a predicted distribution which results from training
+a classifier ( qj
+)
+75 / 87
+note
+⇒ we realize that
+the logistic loss function
+L
+
+w, b
+
+=
+Xn
+j=1
+log
+1 + e
+−2yj(x
+⊺
+j w−b)
+
+used in binary classifier training with xj ∈ R
+m
+and yj ∈ {±1} is a sum of cross entropies
+76 / 87
+one more thing . . .
+in lecture 04, we considered the logistic loss
+to train a binary classifier of the form
+f
+
+x
+
+= h
+
+a
+
+x
+ = tanh
+x
+⊺w − b
+
+now, we note that tanh used to be a popular
+activation function for neural networks
+next, we shall show that tanh-neurons are
+Bayesian decision makers
+−1 x1 x2 · · · xm
+h(a)
+y
+b w1 w2
+wm
+77 / 87
+to see how tanh(a) relates to Bayesian decision making,
+we reconsider the binary classification problem
+assign a ∈ R to either one of two classes Ω1 or Ω2
+a Bayesian classifier for this problem is given by
+Ω
+
+a
+
+=
+
+Ω1 if p
+
+Ω1
+
+ a
+
+⩾ p
+
+Ω2
+
+ a
+
+Ω2 otherwise
+where
+p
+
+Ωi
+
+ a
+
+=
+p
+
+a
+
+ Ωi
+
+· p
+
+Ωi
+
+p
+
+a
+ =
+p
+
+a, Ωi
+
+p
+
+a, Ω1
+
++ p
+
+a, Ω2
+
+78 / 87
+next, we make three didactic assumptions
+1) the priors of both classes are equal
+p
+
+Ωi
+
+=
+1
+2
+2) their likelihoods follow normal distributions
+p
+
+a
+
+ Ωi
+
+= √
+1
+2πσ2
+i
+e
+−
+(a−µi)
+2
+2σ2
+i
+3) these are mirror symmetric about a = 0 so that
++µ1 = −µ2 = µ
+σ
+2
+1 = σ
+2
+2 = σ
+2
+79 / 87
+⇒ we consider joint distributions
+p
+
+a, Ω1
+
+=
+1
+2
+√
+1
+2πσ2
+e
+− a
+2
+2σ2 e
+−
+µ2
+2σ2 e
++
+a µ
+σ2
+p
+
+a, Ω2
+
+=
+1
+2
+√
+1
+2πσ2
+e
+− a
+2
+2σ2 e
+−
+µ2
+2σ2 e
+−
+a µ
+σ2
+−µ +µ
+1
+p(a, Ω2) p(a, Ω1)
+80 / 87
+⇒ we have the following posteriors
+p
+
+Ω1
+
+ a
+
+=
+e
++
+a µ
+σ2
+e
++
+a µ
+σ2 + e
+−
+a µ
+σ2
+p
+
+Ω2
+
+ a
+
+=
+e
+−
+a µ
+σ2
+e
++
+a µ
+σ2 + e
+−
+a µ
+σ2
+−µ +µ
+1
+p(Ω1 | a) = p(a,Ω1)
+p(a) p(Ω2 | a) = p(a,Ω2)
+p(a)
+81 / 87
+now, we observe
+p
+
+Ω1
+
+ a
+
+⩾ p
+
+Ω2
+
+ a
+
+⇔ p
+
+Ω1
+
+ a
+
+− p
+
+Ω2
+
+ a
+
+⩾ 0
+p
+
+Ω1
+
+ a
+
+− p
+
+Ω2
+
+ a
+
+=
+e
++
+a µ
+σ2 − e
+−
+a µ
+σ2
+e
++
+a µ
+σ2 + e
+−
+a µ
+σ2
+−µ +µ
+-1
+1
+p(Ω1 | a) − p(Ω2 | a)
+82 / 87
+⇒ our Bayesian classifier computes
+Ω
+
+a
+
+=
+
+Ω1 if p
+
+Ω1
+
+ a
+
+⩾ p
+
+Ω2
+
+ a
+
+Ω2 otherwise
+=
+
+Ω1 if tanh
+β a
+
+⩾ 0
+Ω2 otherwise
+where
+β =
+µ
+σ2
+83 / 87
+note
+⇒ when a neuron computes
+f
+
+x
+
+= h
+
+a
+
+x
+ = tanh
+x
+⊺w − b
+
+it maps x ∈ R
+m to a = w
+⊺x − b ∈ R and then evaluates the difference of
+two posterior distributions whose corresponding likelihoods are simple
+Gaussians (with means b + µ, b − µ and variances σ
+2 = µ)
+84 / 87
+summary
+85 / 87
+we now know about
+maximum likelihood regression as well as Bayesian regression
+the fact that (ordinary) least squares regression is the same as
+maximum likelihood regression with a Gaussian noise model
+⇔ the fact that a least squared error is actually a (scaled) variance
+probabilistic interpretations of- or models for (binary) classification
+the fact that logistic losses are sums of cross entropies in disguise
+the fact that even tanh activations allow for a Bayesian interpretation
+turn page for final words of wisdom . . .
+86 / 87
+Bayesian inference appears to be cumbersome and tedious
+indeed, our lectures only scratched the surface of the idea
+“real world” Bayesian inference is often very, very involved
+however . . .
+there also are so called variational Bayes techniques
+in particular, stochastic variational Bayes techniques
+these enable Bayesian inference with very large models (millions of parameters)
+indeed, so called variational autoencoders have become a popular model class
+and allow for Bayesian backpropagation to train (recurrent) neural networks . . .
+87 / 87

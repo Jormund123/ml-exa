@@ -1,0 +1,1605 @@
+Principles of Machine Learning
+Prof. Christian Bauckhage
+1 / 76
+lecture 04
+binary classification, logistic regression classifiers, and autodiff
+training a binary classifier is one of the most fundamental machine learning tasks
+a fundamental model family for binary classification are linear binary classifiers
+for these, there exists a whole zoo of training objectives which typically result in
+different kinds of classifiers (which typically produce different results)
+in this lecture, we focus on a model class of quite some (theoretical) importance,
+namely on logistic regression classifiers
+we show how to train them using gradient descent and finally touch upon how to
+automatize gradient descent by employing incredibly useful autodiff techniques
+2 / 76
+outline
+(linear) binary classifiers
+logistic regression classifiers
+computation graphs and autodiff
+summary
+3 / 76
+(linear) binary classifiers
+4 / 76
+binary classification
+given a set of annotated training data
+D =
+
+
+xj
+, yj
+n
+j=1
+which consists of pairs of observations
+xj ∈ R
+m
+from two classes Ω1 and Ω2 together
+with associated class labels
+yj =
+
++1 if xj ∈ Ω1
+−1 if xj ∈ Ω2
+5 / 76
+our goal is to train a binary classifier model
+f
+
+x
+
+=
+
++1 if x ∈ Ω1
+−1 if x ∈ Ω2
+so that we can classify new observations x
+x
+6 / 76
+question
+how to proceed ?
+answer
+there actually are numerous model classes suitable for our problem
+a popular and simple choice is the class of linear binary classifiers
+7 / 76
+consider this
+we may determine a projection vector w
+w
+8 / 76
+consider this
+we may determine a projection vector w
+it spans a 1-dimensional subspace of R
+m
+w
+8 / 76
+consider this
+we may determine a projection vector w
+it spans a 1-dimensional subspace of R
+m
+we may compute inner products x
+⊺
+j w to
+project the training data into this space
+w
+8 / 76
+consider this
+we may determine a projection vector w
+it spans a 1-dimensional subspace of R
+m
+we may compute inner products x
+⊺
+j w to
+project the training data into this space
+we may estimate a threshold or bias b
+w and b define an (m − 1)-dimensional
+hyperplane in R
+m
+H =
+
+
+x ∈ R
+m
+
+
+
+x
+⊺w = b
+
+w
+b
+8 / 76
+working with the plane we just found, we
+can (confidently ?!?) classify any x ∈ R
+m
+f
+
+x
+
+=
+
++1 if x
+⊺w ⩾ b
+−1 otherwise
+x
+9 / 76
+we could also be more careful and define f x = Ω1 if x⊺w > b Ω2 if x⊺w < b R if x⊺w = b
+in the olden days (up to the 1990s),
+R was
+called the rejection class
+then people forgot about rejection classes
+then people rediscovered their usefulness
+this rediscovery was sold as a discovery :(
+nowadays, our more careful model is thus
+an example of an abstaining classifier x
+10 / 76
+linear binary classifier
+a (hard) linear binary classifier is a
+model of the following general form
+f
+
+x
+
+=
+
++1 if x
+⊺w ⩾ b
+−1 if x
+⊺w < b
+=
+
++1 if x
+⊺w − b ⩾ 0
+−1 if x
+⊺w − b < 0
+= sign
+x
+⊺w − b
+
+x
+w
+b
+11 / 76
+notation
+the signum function is usually defined as
+sign
+x
+
+=
+
+
+
++1 if x > 0
+0 if x = 0
+−1 if x < 0
+however, in this course, we shall consider
+sign
+x
+
+=
+
++1 if x ⩾ 0
+−1 if x < 0
+12 / 76
+note
+there exist numerous special kinds of linear binary classifiers f
+
+x
+
+= sign
+x
+⊺w − b
+
+they distinguish themselves in how they estimate weight vector w and bias term b
+⇔ they distinguish themselves with regard to the optimization criterion they consider
+LDA perceptron learning logistic regression L2 SVM
+. . .
+13 / 76
+principle of machine learning
+for most machine learning tasks, there are several models which can solve them
+which model to choose depends on the application context and goals we aim for
+unfortunately, we often have to trade off goals
+accuracy / reliability of model predictions
+explainability of of model predictions
+low application efforts (compute)
+low training efforts (compute)
+low training data needs
+.
+.
+.
+14 / 76
+note
+linear binary classifiers can (obviously) only work for linearly separable classes
+solutions for the case of non-linearly separable classes will be studied later on
+linearly separable classes non-linearly separable classes
+15 / 76
+note
+we once again have
+f
+
+x
+
+= sign
+x
+⊺w − b
+
+⇔
+−1 x1 x2 · · · xm
+h(a)
+y
+b w1 w2
+wm
+⇔ a single binary classifier can be understood as a single artificial neuron
+16 / 76
+disclaimer
+(the many flavors of) support vector machines provide the arguably most reliable
+or most robust linear binary classifiers
+however, for the remainder of today’s lecture, we will focus on logistic regression
+classifiers, because
+in contrast to SVMs, we can easily study them based on what we already know
+if we understand them, we have a solid basis for understanding neural networks
+finally, there is a probabilistic interpretation of logistic regression which will be of
+interest later on
+17 / 76
+logistic regression classifiers
+18 / 76
+preparatory remarks (1)
+the main problem of training a binary classifier
+f
+
+x
+
+= sign
+x
+⊺w − b
+
+from data D is to estimate optimal parameters
+wˆ, ˆb = argmin
+w,b
+L
+
+w, b
+
+ D
+
+the choice of the loss function L is up to us and we already saw that different choices
+may result in different flavors of classifiers
+depending on which flavor we opt for, optimal weights wˆ and bias ˆb can be estimated
+consecutively (LDA first determines wˆ and then ˆb) or simultaneously (as we’ll do next)
+19 / 76
+preparatory remarks (2)
+looking at the expression x
+⊺w − b, we see another inner product in disguise, namely
+x
+⊺w − b = φ
+⊺
+xω
+with these R
+m+1 vectors
+φx =
+
+−1
+x
+
+ω =
+
+b
+w
+
+we have already seen that such feature representations may have advantages . . .
+however, in what follows, we will deliberately not work with this representation
+20 / 76
+preparatory remarks (3)
+in what follows, we assume training data
+D =
+
+
+xj
+, yj
+n
+j=1
+with data points xj ∈ R
+m and class labels
+yj ∈
+
+−1, +1
+	
+we insist on bipolar labels yj ∈ {−1, +1} rather than on binary labels yj ∈ {0, 1}
+while the latter have their use, the former are essential to the mathematical ideas
+(⇔ specific loss function design) which we will study next . . .
+21 / 76
+question
+OK, now for real, how do we estimate optimal parameters of a binary classifier
+f
+
+x
+
+= sign
+x
+⊺w − b
+
+?
+answer
+well, one approach for logistic regression classifiers involves gradient descent
+qu / 76
+question
+OK, now for real, how do we estimate optimal parameters of a binary classifier
+f
+
+x
+
+= sign
+x
+⊺w − b
+
+?
+answer
+well, one approach for logistic regression classifiers involves gradient descent
+question
+but isn’t sign discontinuous and has vanishing gradients almost everywhere ?
+22 / 76
+answer
+yes, but the following surrogate function is continuous and continuously differentiable
+tanh
+β x
+
+=
+sinh(β x)
+cosh(β x)
+=
+e
+βx − e
+−βx
+e
+βx + e−βx
+=
+1 − e
+−2βx
+1 + e−2βx
+=
+2
+1 + e−2βx
+− 1
+it maps any x ∈ R into the open interval (−1, +1) and also has the following property
+lim
+β→∞
+tanh
+β x
+
+= sign
+x
+
+23 / 76
+illustration
+sign
+x
+⊺w − b
+
+b
+−1
++1
+x
+|w
+24 / 76
+illustration
+tanh
+β
+
+x
+⊺w − b
+
+b
+−1
++1
+x
+|w
+β = 0.5
+β = 1.0
+β = 2.0
+β = 4.0
+β = 8.0
+25 / 76
+principle of machine learning
+it can be a good idea to relax logically reasonable models like
+f
+
+x
+
+= sign
+x
+⊺w − b
+
+to computationally (much) more manageable models such as
+f
+
+x
+
+= tanh
+β
+
+x
+⊺w − b
+
+
+26 / 76
+towards the logistic loss . . .
+now, if we agree to train a binary classifier of the form
+f
+
+x
+
+= tanh
+β
+
+x
+⊺w − b
+
+
+our goal is to adjust its parameters such that we have
+the following behavior on our training data
+∀ j : f
+
+xj
+
+= tanh
+β
+
+x
+⊺
+j w − b
+
+
+≈ yj
+it thus seems tempting to minimize the quadratic loss
+L
+
+w, b, β
+
+
+f , D
+
+=
+1
+n
+Xn
+j=1
+
+tanh
+β
+
+x
+⊺
+j w − b
+
+
+− yj
+2
+but let us widen our horizon . . .
+27 / 76
+observe
+the hyperbolic tangent is an odd function such that
+− tanh
+x
+
+= tanh
+−x
+
+this has interesting implications for our training goal
+tanh
+β
+
+x
+⊺
+j w − b
+
+
+≈ yj
+28 / 76
+note
+since the hyperbolic tangent is odd and we insist on
+yj ∈
+
+±1
+	
+⇔ y
+2
+j = 1
+we have this remarkable sequence of equivalences
+tanh
+β
+
+x
+⊺
+j w − b
+
+
+≈ yj
+⇔ yj tanh
+β
+
+x
+⊺
+j w − b
+
+
+≈ 1
+⇔ tanh
+yj β
+
+x
+⊺
+j w − b
+
+
+≈ 1
+29 / 76
+note
+since we also have tanh
+β x
+
+=
+2
+1+e−2βx − 1,
+we can continue the above steps as follows
+tanh
+yj β
+
+x
+⊺
+j w − b
+
+
+≈ 1
+⇔
+2
+1 + e
+−yj2β(x
+⊺
+j w−b)
+≈ 2 (next, divide by 2 and take reciprocal)
+⇔ 1 + e
+−yj2β(x
+⊺
+j w−b) ≈ 1
+⇔ log
+1 + e
+−yj2β(x
+⊺
+j w−b)
+
+≈ 0
+30 / 76
+logistic loss
+⇒ we may consider the (average) logistic loss
+L
+
+w, b, β
+
+ D
+
+=
+1
+n
+Xn
+j=1
+log
+1 + e
+−2βyj(x
+⊺
+j w−b)
+
+as a minimization objective for classifier training
+“one can show” that this function is always convex
+⇔ the logistic loss has unique global minimizers wˆ, ˆb, βˆ
+31 / 76
+remarks
+L as defined above is called a logistic loss because
+it involves functions of the form
+σ
+
+γ x
+
+=
+1
+1 + e−γx
+also known as logistic functions
+we’ll say more about these later on
+32 / 76
+gradients of the logistic loss
+if we decide for gradient descent to determine
+wˆ, ˆb, βˆ = argmin
+w,b,β
+L
+
+w, b, β
+
+= argmin
+w,b,β
+1
+n
+Xn
+j=1
+log
+1 + e
+−2βyj(x
+⊺
+j w−b)
+
+we must be able to compute the partial derivatives
+∂L
+∂β,
+∂L
+∂b
+, and ∂L
+∂w
+we therefore note . . .
+33 / 76
+we have Lw, b, β
+
+=
+1n
+Xnj=1
+L
+j
+
+w, b, β
+
+and therefore ∂L
+∂β
+=
+1n
+Xnj=1
+∂
+L
+j
+∂β
+∂
+L∂b
+=
+1n
+Xnj=1
+∂
+L
+j
+∂
+b
+∂
+L
+∂
+w
+=
+1n
+Xnj=1
+∂
+L
+j
+∂
+w
+34 / 76
+we further have
+Lj
+
+w, b, β
+
+= log
+1 + e
+−2βyj(x
+⊺
+j w−b)
+
+= log
+gj
+
+hj
+
+w, b, β
+
+which involves
+gj
+
+hj
+
+= 1 + e
+hj
+hj
+
+w, b, β
+
+= −2 β yj
+
+x
+⊺
+j w − b
+
+35 / 76
+⇒ we have
+∂Lj
+∂β =
+∂Lj
+∂gj
+∂gj
+∂hj
+∂hj
+∂β =
+1
+gj
+· e
+hj
+·
+
+−2 yj
+
+x
+⊺
+j w − b
+
+∂Lj
+∂b
+=
+∂Lj
+∂gj
+∂gj
+∂hj
+∂hj
+∂b
+=
+1
+gj
+· e
+hj
+·
+
+2 β yj
+
+∂Lj
+∂w
+=
+∂Lj
+∂gj
+∂gj
+∂hj
+∂hj
+∂w
+=
+1
+gj
+· e
+hj
+·
+
+−2 β yj xj
+
+36 / 76
+note
+if you feel rusty about your symbolic differentiation skills, then simply fire up sympy
+from sympy import symbols, diff, log, exp
+x, y, w, b, beta = symbols(’x y w b beta’, real=True)
+h = -2 * y * beta * (x*w - b)
+g = 1 + exp(h)
+L = log(g)
+print (diff(L, beta))
+print (diff(L, b))
+print (diff(L, w))
+⇔ for decades now, computers can perform symbolic differentiation for us (without AI)
+37 / 76
+⇒ with all this in place, we can run
+guess
+w
+0, b
+0, β
+0
+for
+k
+=
+0, 1, 2, . . .
+β
+k
++
+1
+=
+β
+k
+−
+η
+·
+1n
+Xnj=1
+∂
+L
+j
+∂β
+k
+b
+k
++
+1
+=
+b
+k
+−
+η
+·
+1n
+Xnj=1
+∂
+L
+j
+∂
+b
+k
+w
+k
++
+1
+=
+w
+k
+−
+η
+·
+1n
+Xnj=1
+∂
+L
+j
+∂
+w
+k
+so let’s do it . . .
+38 / 76
+numpy
+import numpy as np
+# training
+matXtrn = ...
+vecYtrn = ...
+params = init_parameters(matXtrn.shape[0])
+params = train_LR_model(params, matXtrn, vecYtrn)
+# testing
+matXtst = ...
+vecYtst = apply_LR_model(matXtst, params)
+where . . .
+39 / 76
+def init_parameters(data_dim):
+wgts = 0.5 * np.ones(data_dim)
+bias = 0.0
+beta = 1.0
+return wgts, bias, beta
+def apply_LR_model(X, params):
+w, b, B = params
+return np.tanh(B * (X.T @ w - b))
+so far so good, but here we go . . .
+40 / 76
+def train_LR_model(params, X, y, eta=0.05, kmax=100):
+w, b, B = params
+for k in range(kmax):
+h = -2 * B * y * (X.T @ w - b)
+g = 1 + np.exp(h)
+dLdg = 1 / g
+dgdh = np.exp(h)
+dhdB = -2 * y * (X.T @ w - b)
+dhdb = 2 * y * B
+dhdw = -2 * y * B * X
+dLdB = np.mean(dLdg * dgdh * dhdB)
+dLdb = np.mean(dLdg * dgdh * dhdb)
+dLdw = np.mean(dLdg * dgdh * dhdw, axis=1)
+B = B - eta * dLdB
+b = b - eta * dLdb
+w = w - eta * dLdw
+return w, b, B
+41 / 76
+results
+soft classifier hard classifier
+f
+
+x
+
+= tanh
+β
+
+x
+⊺w − b
+
+f
+
+x
+
+= sign
+tanh
+β
+
+x
+⊺w − b
+
+42 / 76
+observe
+apparently, the math checks out !!!
+⇔ our tedious numpy implementation yields results we would hope for
+however, let us dwell on the “tedious” part in the previous statement
+in the early 2010s, the machine learning landscape changed drastically
+this was largely due to the availability of big data for training and (minor)
+theoretical progress in deep learning (DL has a longer history than most
+people think, i.e. it had already been around for quite some time)
+but what was also crucially important was that machine learners (finally)
+adopted the use of automatic differentiation and open-sourced new tools
+nowadays, there are several python autodiff libraries and an interesting
+one of those is jax . . .
+43 / 76
+jax
+import jax
+import jax.numpy as jnp
+# training
+matXtrn = ...
+vecYtrn = ...
+params = init_parameters(matXtrn.shape[0])
+params = train_LR_model(params, matXtrn, vecYtrn)
+# testing
+matXtst = ...
+vecYtst = apply_LR_model(matXtst, params)
+where . . .
+44 / 76
+def init_parameters(data_dim):
+wgts = 0.5 * jnp.ones(data_dim)
+bias = 0.0
+beta = 1.0
+return wgts, bias, beta
+def apply_LR_model(X, params):
+w, b, B = params
+return jnp.tanh(B * (X.T @ w - b))
+so far, the only difference is our use of jnp, but now . . .
+45 / 76
+def loss_fnct(params, X, y):
+w, b, B = params
+return jnp.mean(jnp.log(1 + jnp.exp(-2 * B * y * (X.T @ w - b))))
+@jax.jit
+def update_parameters(params, X, y, eta):
+grads = jax.grad(loss_fnct)(params, X, y)
+return [param - eta * grad for param, grad in zip(params, grads)]
+def train_LR_model(params, X, y, eta=0.05, kmax=100):
+for k in range(kmax):
+params = update_parameters(params, X, y, eta)
+what ???
+46 / 76
+note
+yes, this is it !!!
+all we need to do is to define (a properly vectorized) loss function and then let
+the jax.grad autodiff capabilities worry about all the (error prone) details
+our code could be more efficient (⇔ avoid for loops) but we aim at readability
+also, using optax, we could “easily” invoke ADAM or other specific optimizers
+47 / 76
+principle of machine learning
+work with autodiff libraries (pytorch, tensorflow, jax (!!!), . . . ) wherever possible
+let’s touch upon the underlying theory . . .
+48 / 76
+computation graphs and autodiff
+49 / 76
+it has become a tradition for ML courses to preface discussions of what autodiff is
+with discussions of what it is not, so here we go . . .
+autodiff is not automatic symbolic differentiation as in
+from sympy import symbols, diff
+x, y = symbols(’x y’, real=True)
+def fnct(x, y):
+return x**2 + y**2
+def grad(f):
+dfdx = diff(f(x, y), x)
+dfdy = diff(f(x, y), y)
+return (dfdx, dfdy)
+print (grad(fnct))
+>>> (2*x, 2*y)
+50 / 76
+⇒ autodiff is not computation with symbols but with numbers, however . . .
+autodiff is also not numerical differentiation as in
+def fnct(x: float, y: float) -> float:
+return x**2 + y**2
+def grad(f, x, y, dx=1e-5, dy=1e-5):
+dfdx = (f(x+dx, y) - f(x-dx, y)) / (2*dx)
+dfdy = (f(x, y+dy) - f(x, y-dy)) / (2*dy)
+return (dfdx, dfdy)
+print (grad(fnct, 2, 4))
+>>> (4.000000000026205, 7.999999999874773)
+51 / 76
+autodiff (AD)
+in a sense, autodiff (AD) systems combine the best of both the above approaches
+they “know” about (symbolic) derivatives of (basic) mathematical functions
+(negative, add, mul, . . . , exp, log, sin, . . . ) and about chain rules for
+deriving composite univariate and multivariate functions
+they use this “knowledge” to differentiate functions whose arguments and
+parameters have been instantiated to certain numerical values
+⇔ AD applies symbolically informed data structures to numerically evaluate gradients
+52 / 76
+AD can operate in two fashions called forward mode and reverse mode
+next, we will focus on the latter since it is (usually) more important in ML
+finally, for much of what follows, we must keep in mind the difference between
+symbolic expressions f
+
+x
+
+= x
+2 and evaluations f
+
+x
+
+
+x=4 = f
+
+4
+
+= 16
+⇔ although we will use symbols (X, y, w, b, β) to refer to arguments and parameters of a function (L), we will
+largely assume that these have been instantiated to specific numerical values (eg. w = [1, 0]
+⊺, b = 2.3, . . .)
+so, let’s go for it . . .
+53 / 76
+to begin with, we set up a more general learning task than in the previous sections
+⇔ next, we will consider the problem of minimizing a regularized logistic loss function
+L = Ll + Lr
+which sums these two terms
+Lr = Lr
+
+w
+
+=
+1
+2
+w
+⊺w
+Ll = Ll
+
+w, b, β
+
+=
+1
+n
+X
+j
+log
+1 + exp
+−2 β yj
+
+x
+⊺w − b
+
+
+the what, why, and how of regularization will be studied later on
+54 / 76
+observe that we may “reduce” notational clutter by vectorizing Ll
+Ll =
+1
+n
+X
+j
+log
+1 + exp
+−2 β yj
+
+x
+⊺w − b
+
+
+⇔ Ll =
+1
+n
+1
+⊺
+h
+log
+1 + exp
+−2 β y ⊙
+
+X
+⊺w − 1 b
+
+i
+where the functions log and exp now act element-wise on vectors
+55 / 76
+we next introduce variables
+v1 =
+
+X
+⊺w − 1 b
+
+v2 = −2 β y ⊙ v1
+v3 = 1 + exp
+v2
+
+v4 = log
+v3
+
+v5 =
+1
+n
+1
+⊺
+v4
+v6 =
+1
+2
+w
+⊺w
+v7 = v5 + v6
+to break down how to compute L for given
+values of data X, y and parameters w, b, β
+into bite sized steps
+here is what an autodiff system would do
+V1 = X
+⊺w
+V2 = V1 − 1b
+V3 = y ⊙ V2
+V4 = β · V3
+V5 = −2 · V4
+V6 = exp(V5)
+V7 = 1 + V6
+V8 = log(V7)
+V9 = 1
+n
+1
+⊺V8
+V10 = w
+⊺w
+V11 = 1
+2
+· V10
+V12 = V9 + V11
+as this is too fine-grained for us to bother
+with, we shall stick with our variables . . .
+56 / 76
+computation graph
+⇒ we can visualize how to compute L = v7 in terms of this computation graph
+w
+b
+β
+X y
++
+v1 v2 v3 v4 v5
+v6
+v7
+57 / 76
+remarks
+any computation graph G =
+
+V, E
+
+is a directed acyclic graph (DAG)
+all edges
+u, v
+
+∈ E ⊆ V × V are ordered pairs of vertices (⇔ point from u to v)
+no path in G starts and ends at the same vertex v ∈ V (⇔ there are no cycles)
+also, recall the notions of the two sets
+pred
+v
+
+=
+
+
+u ∈ V
+
+
+
+u, v
+
+∈ E
+
+succ
+v
+
+=
+
+
+w ∈ V
+
+
+
+v, w
+
+∈ E
+
+of predecessors (parents) and successors (children) of a vertex
+58 / 76
+forward pass
+w
+b
+β
+X y +
+v1 v2 v3 v4 v5
+v6
+v7
+given our computation graph, we “see”
+how to iteratively compute v7, namely
+for k = 1, . . . , K(= 7)
+vk = fk
+
+pred
+vk
+
+for instance, for vertex v2, we have the following
+pred
+v2
+
+=
+
+y, β, v1
+	
+f2
+
+pred
+v2
+ = −2 β y ⊙ v1
+59 / 76
+w
+b
+β
+X y +
+v1 v2 v3 v4 v5
+v6
+v7
+given our computation graph, we “see”
+how v7 depends on parameters w, b, β
+for instance
+∂v7
+∂β =
+∂v7
+∂v5
+∂v5
+∂β +
+∂v7
+∂v6
+∂v6
+∂β =
+∂v7
+∂v5
+∂v5
+∂v4
+∂v4
+∂v3
+∂v3
+∂v2
+∂v2
+∂β + 0
+∂v7
+∂w
+=
+∂v7
+∂v5
+∂v5
+∂w
++
+∂v7
+∂v6
+∂v6
+∂w
+=
+∂v7
+∂v5
+∂v5
+∂v4
+∂v4
+∂v3
+∂v3
+∂v2
+∂v2
+∂v1
+∂v1
+∂w
++
+∂v7
+∂v6
+∂v6
+∂w
+but let’s be clever . . .
+60 / 76
+consider, say the derivative ∂v7 ∂v1 = ∂v7 ∂v5 ∂v5 ∂v4 ∂v4 ∂v3 ∂v3 ∂v2 ∂
+v
+2
+∂
+v
+1
+and observe these identities ∂v7 ∂v5 ∂v5 ∂v4 ∂v4 ∂v3 ∂v3 ∂v2 ∂v2 ∂v1 = ∂
+v
+2
+∂
+v
+1
+∂
+v
+3
+∂
+v
+2
+∂
+v
+4
+∂
+v
+3
+∂
+v
+5
+∂
+v
+4
+∂
+v
+7
+∂
+v
+5
+=
+∂
+v
+2
+∂
+v
+1
+∂
+v
+3
+∂
+v
+2
+∂
+v
+4
+∂
+v
+3
+∂
+v
+7
+∂
+v
+4
+=
+∂
+v
+2
+∂
+v
+1
+∂
+v
+3
+∂
+v
+2
+∂
+v
+7
+∂
+v
+3
+=
+∂
+v
+2
+∂
+v
+1
+∂
+v
+7
+∂
+v
+2
+61 / 76
+note
+we henceforth write
+¯vk ≡
+∂vK
+∂vk
+and observe that
+we particularly have
+¯vK =
+∂vK
+∂vK
+= 1
+we generally have
+¯vk =
+X
+vl ∈ succ(vk)
+∂vl
+∂vk
+¯vl
+for instance, we need summation to compute
+w¯ =
+∂v1
+∂w
+¯v1 +
+∂v6
+∂w
+¯v6
+62 / 76
+backward pass
+w
+b
+β
+X y +
+v1 v2 v3 v4 v5
+v6
+v7
+after a forward pass, we can iteratively
+compute instantiated gradients, namely
+for k = K − 1, . . . , 1
+¯vk =
+P
+vl ∈ succ(vk)
+∂vl
+∂vk
+¯vl
+63 / 76
+⇒ given instances of X, y, w, b, β, we can compute
+variable values
+v1 =
+
+X
+⊺w − 1 b
+
+v2 = −2 β y ⊙ v1
+v3 = 1 + exp
+v2
+
+v4 = log
+v3
+
+v5 =
+1
+n
+1
+⊺
+v4
+v6 =
+1
+2
+w
+⊺w
+v7 = v5 + v6
+gradient values (⇔ adjoints)
+¯v7 = 1
+¯v6 = v6
+¯v5 = v5
+¯v4 =
+1
+n
+1¯v5
+¯v3 =
+1
+v3
+⊙ ¯v4
+¯v2 = exp(v2) ⊙ ¯v3
+¯v1 = −2 β y ⊙ ¯v2
+64 / 76
+⇒ given values for X, y, w, b, β,
+we can compute these values
+β¯ = −2
+
+y ⊙ v1
+⊺
+¯v2
+¯b = −1
+⊺
+¯v1
+w¯ = X¯v1 + w · ¯v6
+⇒ we can use these values to perform
+gradient descent
+guess w0, b0, β0
+for k = 0, 1, 2, . . .
+βk+1 = βk − η · β¯
+k
+bk+1 = bk − η · ¯bk
+wk+1 = wk − η · w¯k
+try it !!!
+65 / 76
+question
+OK, but we did all of this manually . . . where is the autodiff part ?
+answer
+here . . .
+66 / 76
+AD systems build primal graphs
+w
+b
+β
+X y +
+v1 v2 v3 v4 v5
+v6
+v7
+and their adjoints
+w¯
+¯b
+β¯
+X¯ y¯
+v¯1 v¯2 v¯3 v¯4 v¯5
+v¯6
+v¯7
+under the hood, they use smarter data structures
+67 / 76
+most crucially, AD systems completely revamp the underlying “math engine”
+⇔ they redefine all math operations negative, add, mul, . . . , exp, log, sin, . . .
+on the next slides, we didactically demonstrate this but only consider add and mul
+⇔ we define a class which we can use to declare numerical variables and to add and
+multiply such variables . . .
+68 / 76
+variables (⇔ instances of arguments, parameters, constants) are containers with a
+primal entry, an adjoint entry, and a successor list
+class Var:
+def __init__(self, value):
+self.prml = value
+self.adjn = 1.0
+self.succ = []
+def __add__(self, other):
+res = Var(self.prml + other.prml)
+# dres/dself = 1
+# dres/dother = 1
+self.succ.append(( 1, res))
+other.succ.append((1, res))
+return res
+def __mul__(self, other):
+res = Var(self.prml * other.prml)
+# dres/dself = other.prml
+# dres/dother = self.prml
+self.succ.append((other.prml, res))
+other.succ.append((self.prml, res))
+return res
+69 / 76
+with this we can consider computation graphs of simple expressions and represent
+them as (manually) sorted lists, for example
+x = Var(2)
+y = Var(4)
+a = x * y
+b = a + x
+comp_graph = [x, y, a, b]
+of course, given function definitions such as
+def f(x, y):
+return x * y + x
+a real autodiff system would build such a graph (and its representation) automatically
+however, our didactic demo is not that fancy but really mainly aims at the following . . .
+70 / 76
+given a list such as comp graph, we can apply this backward pass gradient function
+def grad(graph):
+for vk in graph[-2::-1]:
+vk.adjn = sum( dvldvk * vl.adjn for dvldvk, vl in vk.succ )
+indeed, when we run
+grad(comp_graph)
+print (f’b_bar = {b.adjn}’)
+print (f’a_bar = {a.adjn}’)
+print (f’x_bar = {x.adjn}’)
+print (f’y_bar = {y.adjn}’)
+we obtain this result
+>>> b_bar = 1.0
+>>> a_bar = 1.0
+>>> x_bar = 5.0
+>>> y_bar = 2.0
+71 / 76
+this makes sense, since the symbolic expression
+b = a + x = xy + x
+has the following four symbolic partial derivatives
+∂b
+∂b = 1
+∂b
+∂a= 1
+∂b
+∂x = y + 1
+∂b
+∂y = x
+which, when evaluated for x = 2 and y = 4 become
+¯b = 1 ¯a = 1
+¯x = 5 ¯y = 2
+72 / 76
+concluding remarks
+the ideas behind (forward- and reverse mode) autodiff techniques date back to the
+1960s and 1970s [1, 2]
+for whatever reasons, it really took until the late 2000s until they were adopted for
+mainstream machine learning
+once this happened though, it helped kicking off the deep learning revolution since
+autodiff seamlessly simplifies error-backpropagation [3] for neural network training
+in this course, we advocate using jax rather than, say, pytorch or tensorflow
+while it may not be gentle to beginners, it is more general or widely applicable than
+other libraries and is now also increasingly adopted by key industrial players . . .
+73 / 76
+summary
+74 / 76
+we now know about
+the binary classification problem
+linear binary classifiers in general and logistic regression classifiers in particular
+the practically ridiculously important technique of automatic differentiation (autodiff)
+75 / 76
+references
+[1] R.E. Wengert. A Simple Automatic Derivative Evaluation Program. Communications of
+the ACM, 7(8), 1964.
+[2] S. Linnainmaa. Taylor Expansion of the Accumulated Rounding Error. BIT Numerical
+Mathematics, 16(2), 1976.
+[3] D.E. Rumelhart, G.E. Hinton, and R.J. Williams. Learning Representations by
+Back-propagating Errors. Nature, 323(6088), 1986.
+76 / 76

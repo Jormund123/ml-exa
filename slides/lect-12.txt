@@ -1,0 +1,1410 @@
+Principles of Machine Learning
+Prof. Christian Bauckhage
+1 / 76
+lecture 12
+overfitting, classifier evaluation, kernelized regression, and PINNs
+in this lecture, we tie up a couple of loose ends . . .
+we address the crucial problem of overfitting and point out its potential
+drawbacks or even dangers
+to quantitatively analyze what it means for a model to overfit, we briefly
+look at / recall model evaluation metrics
+regarding the kernel trick, we show how to perform kernelized regression,
+connect this to earlier topics, and also consider support vector regression
+for the fun of it, we finally have another look at informed learning and study the
+idea of physics informed neural networks
+2 / 76
+outline
+recap
+overfitting and model evaluation
+kernel least squares regression
+support vector regression
+neural ODE solving
+summary
+3 / 76
+recap
+4 / 76
+trained with labeled training data D = 
+xj, yjnj=1 xj ∈ Ω1 ∪ Ω2	 ⊂ Rm yj = +1, if xj ∈ Ω1 −1, if xj ∈ Ω2 a linear binary classifier is a model yx = +1 if w⊺x ⩾ b −1 if w⊺x < b = signw⊺x − b
+that predicts a class label
+y for
+x
+w
+b
+x
+5 / 76
+linear classifiers will only work reasonably well if their training- and test data
+are either perfectly or “almost” linearly separable
+−4 −2 0 2 4 6 8 10
+−2
+0
+2
+4
+6
+8
+10
+linearly separable training data
+−4 −2 0 2 4 6 8 10
+−2
+0
+2
+4
+6
+8
+10
+almost linearly separable training data
+6 / 76
+linear classifiers will fail miserably when facing clearly non-linearly separable data
+−2 0 2
+−2
+0
+2
+−1 1
+−1
+1
+−5 −3 −1 1 3
+−4
+−2
+0
+2
+4
+7 / 76
+there are many machine learning models that can handle non-linearly separable data
+a comparatively cheap and general approach is to resort to kernelized linear models !
+kernelization means to invoke the . . .
+8 / 76
+the kernel trick is to
+1) rewrite an algorithm for data analysis in such a manner
+that all input data only appear in form of inner products
+with other data
+2) replace all occurrences of such inner products by some
+(appropriate) Mercer kernel evaluation
+this way, we can apply linear models to non-linear settings
+9 / 76
+note
+kernelization of SVMs is basically for free as
+we don’t need to worry about step 1) of the KT
+for example, assuming training data and labels
+X =
+
+
+| | |
+x1 x2 · · · xn
+| | |
+
+ ∈ R
+m×n
+y =
+
+y1 y2 · · · yn
+⊺
+∈ R
+n
+we recall the following fundamentals of L2 SVMs . . .
+10 / 76
+to train an L2 SVM is to estimate
+µˆ = argmin
+µ
+µ
+⊺
+h
+X
+⊺X ⊙ yy⊺ + yy⊺ +
+1
+C
+I
+i
+µ
+s.t.
+1
+⊺µ = 1
+µ ⩾ 0
+w =
+h
+X ⊙ y
+⊺
+i
+µˆ
+b = − y
+⊺µˆ
+where
+h
+X
+⊺X
+i
+ij
+= x
+⊺
+i
+xj
+11 / 76
+to apply an L2 SVM is to compute
+y
+
+x
+
+= sign
+x
+⊺w − b
+
+= signhx
+⊺X ⊙ y
+⊺
+i
+µˆ − b
+
+where
+h
+x
+⊺X
+i
+j
+= x
+⊺
+xj
+12 / 76
+⇒ during training and application of an L2 SVM, all training data (xj)
+and any input (x) exclusively occur in form of inner products
+⇒ we can equivalently work with
+µˆ = argmin
+µ
+µ
+⊺
+h
+K ⊙ yy⊺ + yy⊺ +
+1
+C
+I
+i
+µ
+s.t.
+1
+⊺µ = 1
+µ ⩾ 0
+y
+
+x
+
+= signhk
+⊺
+
+x
+
+⊙ y
+⊺
+i
+µˆ − b
+
+where
+h
+K
+i
+ij
+= k
+
+xi
+, xj
+
+h
+k
+
+x
+
+i
+j
+= k
+
+x, xj
+
+13 / 76
+example
+non-linear decision functions learned by kernel L2 SMVs with Gaussian kernels
+14 / 76
+note
+every fundamental machine learning method can be and has been kernelized
+prominent examples are least squares models, LDA, PCA, k-means clustering . . .
+we shall return to this point on page 41
+15 / 76
+overfitting and model evaluation
+16 / 76
+consider, say, two overlapping
+Gaussians in R
+m (here m = 2)
+N1
+
+x
+
+ µ1, Σ1
+
+=
+e
+− 1
+2
+(x−µ1)
+⊺Σ−1
+1
+(x−µ1)
+p
+(2π)
+m det Σ1
+N2
+
+x
+
+ µ2, Σ2
+
+=
+e
+− 1
+2
+(x−µ2)
+⊺Σ−1
+2
+(x−µ2)
+p
+(2π)
+m det Σ2
+17 / 76
+⇒ training- and test data samples which
+we might draw from these Gaussians
+will likely overlap
+this can be an issue for classifiers
+training data
+18 / 76
+performance on training data
+Gaussian kernel SVM, σ = 1
+8 Gaussian kernel SVM,σ = 3 QDA
+which one is best ?
+19 / 76
+performance on independent test data
+Gaussian kernel SVM, σ = 1
+8 Gaussian kernel SVM,σ = 3 QDA
+now which one is best ?
+20 / 76
+note
+the SVM with σ =
+1
+8
+severely overfits its training data
+⇒ it will perform (very) poorly on independent test data
+recall two fundamental ML principles from lecture 01
+training data must be representative
+⇔ they should reflect all relevant aspects of what is to be learned
+test data must be independent from the training data
+⇔ when working rigorously, we really must insist on Dtrn ∩ Dtst = ∅
+21 / 76
+consider this evaluation on independent test data
+true positives true negatives false positives false negatives
+kernel SVM, σ = 1
+8
+QDA
+22 / 76
+known label classifier prediction nature of y
+
+xk
+
+illustration
+yk = +1 y
+
+xk
+
+= +1 true positive
+yk = −1 y
+
+xk
+
+= +1 false positive
+yk = −1 y
+
+xk
+
+= −1 true negative
+yk = +1 y
+
+xk
+
+= −1 false negative
+23 / 76
+question
+what is worse false negatives or false positives ?
+24 / 76
+question
+what is worse false negatives or false positives ?
+answer
+that depends !!!
+here are two examples . . .
+24 / 76
+setting 1: industry 4.0
+the operating company of an atomic power plant asks you for a classifier which
+predicts the state of the plant from measurements x such that
+y
+
+x
+
+=
+
++1 ⇔ everything is fine
+−1 ⇔ a meltdown is imminent
+if your classifier produces many false negatives, i.e. predicts meltdowns although
+everything is fine, this is a nuisance for the staff but otherwise inconsequential
+if your classifier produces just a single false positive, i.e. predicts everything to be
+fine although a meltdown is imminent, it would be absolutely catastrophic
+25 / 76
+setting 2: spam detection
+you are asked to develop a classifier which takes some description x of the content
+of an email and predicts whether the email is spam or not, namely legitimate
+y
+
+x
+
+=
+
++1 ⇔ email is legitimate
+−1 ⇔ email is spam
+if your classifier yields many false negatives, i.e. moves many emails to the spam
+folder although they are OK, important content might get lost
+if your classifier yields many false positives, i.e. does not really recognize spam,
+then it performs poorly but this is overall of little consequence
+26 / 76
+classifier evaluation
+next, we write the counts of all true positives, false positives,
+true negatives, and false negatives observed on test data as
+TP, FP, TN, FN
+given these counts, the following equivalent “tables”
++1 −1
++1 TP FP
+−1 FN TN
+⇔
+Ω1 Ω2
+Ω1 c11 c12
+Ω2 c21 c22
+are commonly called confusion matrices, because
+FN = c21 counts how often class Ω1 gets confused with class Ω2
+FP = c12 counts how often class Ω2 gets confused with class Ω1
+27 / 76
+TP, FP, TN, FN arithmetic
+the total number of all classifications is: TP + TN + FP + FN
+the number of correct classifications is: TP + TN
+the number of incorrect classification is: FP + FN
+⇒ ideally, we would like to see: FP + FN = 0
+but how to quantify less ideal behaviors ?
+28 / 76
+accuracy, precision, and recall
+accuracy measures the percentage of all correct decisions, the higher the better
+A =
+TP + TN
+TP + FP + TN + FN
+⇔ 0 ⩽ A ⩽ 1
+precision measures the percentage of correct +1 decisions, the higher the better
+P =
+TP
+TP + FP
+⇔ 0 ⩽ P ⩽ 1
+recall measures the percentage of desirable +1 decisions, the higher the better
+R =
+TP
+TP + FN
+⇔ 0 ⩽ R ⩽ 1
+29 / 76
+further measures
+sometimes, high recall is more important than high precision (e.g. in setting 1)
+sometimes, high precision is more important than high recall (e.g. in setting 2)
+ideally, P and R would both be high; alas, in practice, there often is a trade-off
+to account for this trade-off, there exist combined measures like the F1 score
+F1 = 2 ·
+P · R
+P + R
+which is the harmonic mean of precision and recall
+30 / 76
+generalizations
+all this generalizes to multi-class settings with
+k different classes Ω1,Ω2, . . . ,Ωk where
+A =
+P
+i
+cii
+P
+i
+P
+j
+cij
+Pi = P
+cii
+j
+cij
+Ri = P
+cii
+j
+cji
+Ω1 Ω2 · · · Ωk
+Ω1 c11 c12 · · · c1k
+Ω2 c21 c22 · · · c2k
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+Ωk ck1 ck2 · · · ckk
+now, back to our Gaussians . . .
+31 / 76
+note
+Gaussian kernel SVM, β =
+1
+8 QDA
+training test training test
+A = 1.0 A = 0.78 A = 0.94 A = 0.97
+P = 1.0 P = 0.70 P = 0.98 P = 0.98
+R = 1.0 R = 0.96 R = 0.93 R = 0.96
+32 / 76
+principle of machine learning (reiterated)
+good performance of a model on its training data means nothing
+what really counts are generalization / extrapolation capabilities of a trained model
+⇔ what really counts is how well a trained model performs on independent test data
+33 / 76
+note
+for our Gaussian setting, the QDA
+classifier is near optimal since . . .
+given two known densities such as
+p1
+
+x
+
+= N1
+
+x
+
+ µ1, Σ1
+
+p2
+
+x
+
+= N2
+
+x
+
+ µ2, Σ2
+
+decision theory dictates us to use
+y
+
+x
+
+=
+
++1 if p1
+
+x
+
+> p2
+
+x
+
+−1 otherwise
+= sign
+p1
+
+x
+
+− p2
+
+x
+
+
+optimal decision boundary
+34 / 76
+question
+but, in practice, there are no known densities only data samples . . .
+then why does a QDA classifier work so well in Gaussian settings ?
+answer
+because . . .
+35 / 76
+quadratic discriminant analysis
+a QDA classifier estimates / computes
+µˆ1 =
+1
+n1
+X
+x∈Ω1
+x
+µˆ2 =
+1
+n2
+X
+x∈Ω2
+x
+Σˆ
+1 =
+1
+n1
+X
+x∈Ω1
+
+x − µˆ1
+x − µˆ1
+⊺
+Σˆ
+2 =
+1
+n2
+X
+x∈Ω2
+
+x − µˆ2
+x − µˆ2
+⊺
+y
+
+x
+
+= sign
+N1
+
+x
+
+ µˆ1, Σˆ
+1
+
+− N2
+
+x
+
+ µˆ2, Σˆ
+2
+
+
+QDA decision boundary
+36 / 76
+question
+but, seriously, why worry about overfitting ?
+answer
+because real world classes are often fuzzy ⇔ do overlap ⇔ are not separable
+in applications where this is the case, overly eager decisions can be harmful !
+(recall our brief look at the forgotten concept of rejection classes in lecture 04)
+37 / 76
+examples
+which of these are ones and which are a sevens ?
+why can’t LLMs “admit” when they “don’t know” the answer ?
+⇔ why do LLMs tend to hallucinate bad / irresponsible replies ?
+.
+.
+.
+38 / 76
+two more things . . .
+when used improperly (without care),
+deep neural networks are very prone
+to overfitting
+however, they can excel in real world
+settings which have sharp but “crazy”
+decision boundaries . . .
+reminder: machine learning is an art
+rater than a science
+borders between Baarle-Nassau (NL)
+and Baarle-Hertoog (BE)
+39 / 76
+kernel least squares regression
+40 / 76
+every fundamental machine learning method can be and has been kernelized
+prominent examples are least squares models, LDA, PCA, k-means clustering . . .
+in contrast to SVMs, this typically requires to first rewrite the training algorithm
+and the trained model such that data only occur in form of inner products
+as an example, we consider this . . .
+41 / 76
+recall / observe
+in least squares regression, we work with models of the form
+y = f
+
+x
+
+ w
+
+= fw
+
+x
+
+= φ
+⊺
+xw
+where φx = φ(x) is an appropriate feature representation of x
+given what we discussed lately, the expression φ
+⊺
+xw appears kernelizable
+however, the primal LSQ solution / model parameter
+w =
+
+ΦΦ⊺
+−1Φ y
+from lecture 02 cannot be kernelized as it does not involve inner products
+42 / 76
+recall / observe
+on the other hand, the dual LSQ solution / model parameter
+w = Φ
+
+Φ⊺Φ
+−1
+y
+from lecture 09 allows us to (re)write the LSQ model like this
+y = fw
+
+x
+
+= φ
+⊺
+xΦ
+
+Φ⊺Φ
+−1
+y
+⇔ data only enters this model via inner products which we may replace by kernels
+φ
+⊺
+xΦ
+
+Φ⊺Φ
+−1
+→ k
+⊺
+xK
+−1
+to achieve this, we had to rewrite the (standard) primal model in terms of its dual
+43 / 76
+example
+polynomial LSQ with
+φ
+
+x
+
+=
+
+1 x x2
+x
+3
+⊺
+−1 0 1 2 3 4
+−0.5
+0.0
+0.5
+1.0
+1.5
+2.0
+2.5
+kernel LSQ with
+k
+
+xi
+, xj
+
+=
+
+10 + xi xj
+3
+−1 0 1 2 3 4
+−0.5
+0.0
+0.5
+1.0
+1.5
+2.0
+2.5
+44 / 76
+numpy
+polynomial LSQ
+def polyFeatureMatrix(vecX, d):
+return np.vander(vecX, d+1).T
+vecXtrn = ...
+vecYtrn = ...
+degr = 3
+matF = polyFeatureMatrix(vecXtrn, degr=1)
+vecW = la.lstsq(matF.T, vecYtrn, rcond=None)[0]
+vecXtst = ...
+matFtst = polyFeatureMatrix(vecXtst, degr)
+vecYtst = matFtst.T @ vecW
+(regularized) kernel LSQ
+def polyKernelMatrix(vecU, vecV, b=0, d=1):
+return (b + np.outer(vecU, vecV))**d
+vecXtrn = ...
+vecYtrn = ...
+bias = 10
+degr = 3
+regu = 1
+matK = polyKernelMatrix(vecXtrn, vecXtrn, bias, degr)
+vecXtst = ...
+matI = np.eye(len(vecXtrn))
+vecK = polyKernelMatrix(vecXtst, vecXtrn, bias, degr)
+vecYtst = vecK @ la.inv(matK + regu * matI) @ vecYtrn
+45 / 76
+note
+compare regularized kernel least squares regression
+y = k
+⊺
+x
+
+K + λ I
+−1
+y
+to the expectation of a one-point GP from lecture 07
+E
+
+y
+
+ x
+
+= k
+⊺
+x
+
+K + σ
+2
+I
+−1
+y where
+kx
+
+j = k
+
+x, xj
+
+which we know is equivalent to RBF LSQ regression from lecture 02
+⇔ for an identical Mercer kernel k(·, ·), these models are identical !
+46 / 76
+principle of machine learning
+often, there is nothing new under the sun
+⇔ it is rather common for ML models to be reinvented again and again
+usually, such reinventions go by different names which is unfortunate
+on the plus side, different points of view on the same model typically
+allow for deeper insights into what is going on
+47 / 76
+support vector regression
+48 / 76
+recall / observe
+from exercise 5, we already know that we can apply SVMs to regression problems
+for instance, for LSQ SVMs, the corresponding (primal) training task is to estimate
+wˆ, ˆb = argmin
+w, b, ξ
+1
+2
+
+w
+⊺w + C ξ
+⊺ξ
+
+s.t. y = Φ⊺w + b 1 + ξ
+where the available (appropriately feature mapped) training data are gathered in
+Φ =
+
+
+| | |
+φ1 φ2 · · · φn
+| | |
+
+
+y =
+
+y1 y2 · · · yn
+⊺
+49 / 76
+recall / observe
+in lecture 11, we solved the above (primal) problem using
+
+ˆλ
+ˆb
+
+=
+"
+Φ⊺Φ +
+1
+C
+I 1
+1
+⊺
+0
+#−1
+
+y
+0
+
+wˆ = Φˆλ
+⇒ a trained least squares SVM regression model is given by
+y
+
+x
+
+= φ
+⊺
+xΦˆλ + ˆb
+of course this can be kernelized . . .
+50 / 76
+note
+replacing matrix Φ⊺Φ by a kernel matrix K with [K]ij = k(xi
+, xj) and vector φ
+⊺
+xΦ by
+a kernel vector k
+⊺
+x with [kx]j = k(x, xj), we obtain
+
+ˆλ
+ˆb
+
+=
+
+K +
+1
+C
+I 1
+1
+⊺
+0
+−1 
+y
+0
+
+(kernelized training)
+y
+
+x
+
+= k
+⊺
+x
+ˆλ + ˆb (kernelized application)
+⇒ we do not have to worry about designing feature maps φ(·) anymore but instead
+can worry about (appropriate) Mercer kernels k(·, ·) which, when in doubt, will be
+Gaussians . . .
+51 / 76
+example
+training data
+0 15 30 45 60
+time [s]
+0
+20
+40
+60
+80
+temperature [◦C]
+Gaussian kernel LSQ SVM, C = 1.000
+0 30 60 90 120
+time [s]
+0
+20
+40
+60
+80
+temperature [◦C]
+σ = 32.0
+σ = 24.0
+σ = 48.0
+52 / 76
+comparison
+Gaussian process regression
+0 30 60 90 120
+time [s]
+0
+20
+40
+60
+80
+temperature [◦C]
+Gaussian kernel LSQ SVM, C = 1.000
+0 30 60 90 120
+time [s]
+0
+20
+40
+60
+80
+temperature [◦C]
+σ = 32.0
+σ = 24.0
+σ = 48.0
+53 / 76
+observation
+both kernel-based models account well for the training data (⇔ they can interpolate)
+but their predictions beyond the training interval seem odd (⇔ they can’t extrapolate)
+in fact, our data measures how a liquid in a (poorly isolated) coffee cup cools down
+and physics (Newton’s law of cooling) says that we should see exponential decay
+y(x) =
+y0 − yE
+
+· e
+−k x + yE
+y0 = y(0) is the initial temperature and
+yE denotes environmental temperature
+yes . . . for generality, we stick with y(x)
+we could or should write T(t) but won’t
+54 / 76
+illustration
+training data
+0 15 30 45 60
+time [s]
+0
+20
+40
+60
+80
+temperature [◦C]
+physically reasonable model
+0 30 60 90 120
+time [s]
+0
+20
+40
+60
+80
+temperature [◦C]
+55 / 76
+note
+looking at the physically reasonable model, we realize that our kernel-based models
+overfit their scarce training data (if we had more data, they would work much better)
+yet both models are already regularized (i.e. involve K + λ I), so what can we do ?
+well, we could use our knowledge from exercise 1 and directly fit an exponential . . .
+but where would be the fun in that ? instead, we next look at yet another idea for
+knowledge-based model fitting or informed machine learning !
+56 / 76
+neural ODE solving
+57 / 76
+note
+the physical model
+y(x) =
+y0 − yE
+
+· e
+−k x + yE
+solves the following initial value problem (IVP)
+y
+′
+(x) = −k
+
+y(x) − yE
+
+y(0) = y0
+58 / 76
+to see this, we first of all observe
+dy
+dx
+= −k
+
+y − yE
+
+⇔
+Z
+dy
+
+y − yE
+ = − Z
+k dx
+⇔ ln
+y − yE
+
+= −k x + c
+⇔
+
+y − yE
+
+= e
+−k x+c
+⇔ y = e
+−k x+c + yE
+⇔ y = e
+c
+· e
+−k x + yE
+59 / 76
+to determine the constant c, we second of all observe
+y(0) = y0 ⇔ y0 = e
+c
+· e
+−k·0 + yE
+⇔ y0 = e
+c + yE
+⇔ c = ln
+y0 − yE
+
+in summary, we therefore do indeed have the solution
+y(x) = e
+ln[y0−yE]
+· e
+−k x + yE
+=
+
+y0 − yE
+
+· e
+−k x + yE
+60 / 76
+now, here is an idea . . .
+if we are given (noisy) training data
+xj
+, yj
+
+for which physical world knowledge
+tells us that they are observations / measurements of a decay process with
+y
+′
+
+xj
+
+= −k y
+xj
+
++ k yE
+y
+
+x0
+
+= y0
+can’t we boldly consider a parameterized model fθ that models y and y
+′
+in that
+fθ
+
+x
+
+≈ y
+
+x
+
+f
+′
+θ
+
+x
+
+≈ y
+′
+
+x
+
+= −k y
+x
+
++ k yE
+yes, we can !
+61 / 76
+fitting such a model fθ to training data could be
+understood as solving a constrained problem
+θˆ, ˆk, ˆyE = argmin
+θ, k, yE
+X
+j
+
+fθ
+
+xj
+
+− yj
+2
+s.t. ∀ j : f
+′
+θ
+
+xj
+
+= −k yj + k yE
+or 76
+fitting such a model fθ to training data could be
+understood as solving a constrained problem
+θˆ, ˆk, ˆyE = argmin
+θ, k, yE
+X
+j
+
+fθ
+
+xj
+
+− yj
+2
+s.t. ∀ j : f
+′
+θ
+
+xj
+
+= −k yj + k yE
+or, just as well but (arguably) easier to handle
+θˆ, ˆk, ˆyE = argmin
+θ, k, yE
+1
+n
+X
+j
+
+fθ
+
+xj
+
+− yj
+2
+s.t.
+1
+n
+X
+j
+
+f
+′
+θ
+
+xj
+
++ k yj − k yE
+2
+= 0
+(⋆)
+62 / 76
+working with (⋆), the corresponding Lagrangian is
+L
+
+θ, k, yE, λ
+
+=
+1
+n
+X
+j
+
+fθ
+
+xj
+
+− yj
+2
++ λ ·
+1
+n
+X
+j
+
+f
+′
+θ
+
+xj
+
++ k yj − k yE
+2
+and, treating λ as a constant (say λ = 10), we obtain a loss function for model fitting
+L
+
+θ, k, yE
+
+=
+1
+n
+X
+j
+
+fθ
+
+xj
+
+− yj
+2
++ 10 ·
+1
+n
+X
+j
+
+f
+′
+θ
+
+xj
+
++ k yj − k yE
+2
+63 / 76
+remarks (1)
+the idea of data-based modeling an unknown y(x) by a function fθ(x) such that
+fθ
+
+xj
+
+≈ y
+
+xj
+
+f
+′
+θ
+
+xj
+
+≈ y
+′
+
+xj
+
+may be familiar to those who have (some) experience with spline interpolation
+64 / 76
+remarks (2)
+the idea of data-based modeling an unknown y(x) by a function fθ(x) such that
+fθ
+
+xj
+
+≈ y
+
+xj
+
+f
+′
+θ
+
+xj
+
+≈ y
+′
+
+xj
+
+dates back to the early 1990s [1, 2]
+however, without autodiff software, it used to be excruciatingly difficult to execute
+on theother hand, with autodiff software, it is more or less a breeze and has been
+(re)popularized by Raissi, Perdikaris, Karniadakis [3]
+working with neural network models, these authors referred to their approach as
+Physics-informed Neural Networks (PINNs)
+let’s implement one of those . . .
+65 / 76
+numpy (for problem setup)
+here are noisy observations from
+y
+
+x
+
+=
+
+y0 − yE
+
+· e
+−k x + yE
+with (ground-truth) parameters
+y0 = 80.1
+yE = 21.5
+k = 0.06
+import numpy as np
+vecXtrn = jnp.array([ 0.0, 15.0, 30.0, 45.0, 60.0]) # seconds
+vecYtrn = jnp.array([80.1, 45.3, 31.2, 25.4, 23.1]) # degrees Celsius
+vecXtrn = vecXtrn.reshape(-1,1) # turn arrays of shape (n, )
+vecYtrn = vecYtrn.reshape(-1,1) # into arrays of shape (n,1)
+66 / 76
+jax (for the real deal)
+basic imports
+import jax
+import jax.numpy as jnp
+import jax.random as jrnd
+import jax.nn as jnn
+import jax.nn.initializers as jnninit
+from jax.example_libraries import stax # we again work with stax
+from jax.example_libraries import optimizers # we also work with ADAM
+67 / 76
+neural network setup
+def swish(x):
+"""
+swish is a softened ReLU
+"""
+return x / (1+jnp.exp(-x))
+init_net, run_net = stax.serial(
+stax.Dense(256, W_init=jnninit.glorot_normal(), b_init=jnninit.zeros),
+stax.elementwise(swish),
+stax.Dense(256, W_init=jnninit.glorot_normal(), b_init=jnninit.zeros),
+stax.elementwise(swish),
+stax.Dense(256, W_init=jnninit.glorot_normal(), b_init=jnninit.zeros),
+stax.elementwise(swish),
+stax.Dense( 1, W_init=jnninit.glorot_normal(), b_init=jnninit.ones ))
+why these choices ? because . . .
+68 / 76
+physics informed loss function
+@jax.jit
+def pinf_loss(parameters, xs, ys, l=10.):
+NetParams, k, yE = parameters
+ddx_net = jax.vmap(jax.grad(lambda x : run_net(NetParams, x)[0]))
+preds = run_net(NetParams, xs)
+grads = ddx_net(xs)
+return jnp.mean((preds - ys)**2) + l * jnp.mean((grads - (-k * (preds - yE)))**2)
+69 / 76
+training procedure (involving ADAM)
+def train_net_and_hyper(NetParams, k, yE, vecX, vecY, step_size, epochs):
+@jax.jit
+def training_step(state, vecX, vecY):
+loss_and_grads = jax.value_and_grad(lambda parameters : pinf_loss(parameters, vecX, vecY))
+loss, grads = loss_and_grads(opt_params(state))
+return loss, opt_update(0, grads, state)
+opt_init, opt_update, opt_params = optimizers.adam(step_size=step_size)
+state = opt_init((NetParams, k, yE))
+for epoch in range(epochs):
+loss, state = training_step(state, vecX, vecY)
+if epoch % 100 == 0: print (f’epoch: {epoch}, loss: {loss}’)
+return opt_params(state)
+70 / 76
+finally, model training and application
+guess_k, guess_yE = 0.1, 20.0
+_, rnd_NetParams = init_net(jrnd.PRNGKey(42), (-1,1))
+step_size, epochs = 0.001, 50_000
+opt_NetParams, opt_k, opt_yE = train_net_and_hyper(rnd_NetParams, guess_k, guess_yE,
+vecXtrn, vecYtrn, step_size, epochs)
+print (opt_k, opt_yE)
+vecXtst = np.linspace(0, 122, 240).reshape(-1,1)
+vecYtst = run_net(opt_NetParams, vecXtst)
+# and onward to plotting ...
+71 / 76
+result
+training data
+0 15 30 45 60
+time [s]
+0
+20
+40
+60
+80
+temperature [◦C]
+physics informed neural net
+0 30 60 90 120
+time [s]
+0
+20
+40
+60
+80
+temperature [◦C]
+ˆk = 0.0519
+ˆyE = 20.9521
+72 / 76
+remarks (3)
+regarding the possible difficulties of neural differential equation solving, our example
+must be considered trivial
+it nevertheless illustrates why and how modern ML is disrupting the natural sciences
+indeed, AI assisted research will likely dominate all future scientific work and if
+you are interested in a respective career, you must be prepared for this . . .
+73 / 76
+summary
+74 / 76
+we now know about
+the potential for- and dangers of overfitting
+the basics of (classifier) model evaluation
+how to kernelize least squares models
+how to apply SVMs to regression tasks
+physics informed learning / PINNs
+⇔ lot’s of MSc / PhD thesis potential
+75 / 76
+references
+[1] H. Lee and I. Kang. Neural Algorithms for Solving Differential Equations. J. of
+Computational Physics, 91(1), 1990.
+[2] A.J. Meade and A.A. Fernandez. The Numerical Solution of Linear Ordinary
+Differential Equations by Feedforward Neural Networks. Mathematical and Computer
+Modelling, 19(12), 1994.
+[3] M. Raissi, P. Perdikaris, and G.E. Karniadakis. Physics-informed Neural Networks: A
+Deep Learning Framework for Solving Forward and Inverse Problems Involving
+Nonlinear Partial Differential Equations. J. of Computational Physics, 378, 2019.
+76 / 76

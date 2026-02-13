@@ -1,0 +1,66 @@
+Protocol from memory Principles of Machine Learning
+MA-INF 4111
+WS 2023/24
+Prof. Bauckhage
+Task 1 2 3 4 5 6 7 Σ
+Points 10 10 10 10 40 points are needed to pass.
+10 15 15 80
+Exercise 1 (5+5 P)
+a) What is Machine Learning?
+b) What is a loss function / objective function? Describe their roles in Machine Learning?
+Exercise 2 Likelihood (2+2+3+3 P)
+a) Given an sample D= {x1,...,xn}, express their joint probability: P(□|θ) = p(x1,...,xn|Θ) =
+solution: n
+j=1 p(xj|θ)
+b) Using the above, write down the log-likelihood function L(θ) =
+solution: As the above is the Likelihood function, it follows that Lθ) = log L(θ) =n
+j=1 log p(xj|θ)
+c) Write down a maximum likelihood estimator of θ
+ΘML =
+solution: argmax
+θ
+p(D|θ)
+d) Write down a maximum a-posteriori estimator for θ
+ΘMAP =
+solution: argmax
+p(θ|D)
+θ
+Exercise 3 Bayesian data analysis (2+2+2+4 P)
+Given a distribution p(D|θ).
+a) Write down Bayes’ theorem to compute the posterior.
+solution: p(θ|D) = p(D|θ) p(θ)
+p(D)
+b) Explain the notion of conjugate priors.
+c) Explain the notion of posterior predictive distribution and write down the posterior predictive distribution
+based on the notation in subtask a).
+d) Reason about why Bayesian inference is often very hard in practise. Give at least one example.
+Exercise 4 Simple convex optimisation (4+4+2 P)
+Considerˆ
+x= argmin
+x
+||xj−x||2
+a) How would you solve this?
+b) Explicitly computeˆ
+x
+ˆ
+x=
+c) What does your computation in b) imply?
+1
+Exercise 5 The Kernel trick (5+5 P)
+a) What’s the kernel trick?
+b) Where and how is the Kernel trick used in Machine Learning?
+Exercise 6 Support Vector Machines (5+5+5 P)
+a) Write down the (formal) Dual Problem of L2 SVM training.
+b) How would you solve this problem?
+c) Using the Karush-Kuhn-Tucker conditions: Once you have solved the L2 training problem, how can w
+and bbe computed?
+w=
+b=
+Exercise 7 Gaussian processes (5+10 P)
+Given x= input, y= output, N(0,C(Θ))
+a) We often model with N(0,C(θ)), but you cannot always assume a zero-mean. How do you work with
+arbitrary y?
+b) How can you get the optimal parameters for C(Θ)? The explanation should include the kernel for C(Θ)
+as well as other explicit formulas.
+How would you solve the optimisation problem, considering it is not convex?
+2

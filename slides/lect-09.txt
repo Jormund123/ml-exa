@@ -1,0 +1,1858 @@
+Principles of Machine Learning
+Prof. Christian Bauckhage
+1 / 79
+lecture 09
+constrained optimization (part 1)
+Nothing takes place in the world whose meaning is not that of some maximum or minimum.
+–Leonhard Euler
+True optimization is the revolutionary contribution of modern research to decision making.
+–George Danzig
+Constrained optimization is the art of compromise between conflicting objectives.
+–William A. Dembski
+surprisingly many machine learning problems are so called constrained optimization problems
+in this lecture, we study how to solve such problems; we look at the truly important concepts of
+Lagrange multipliers and -functions, the Karush-Kuhn-Tucker conditions, and Lagrange duality
+the content of this lecture is very dense but we will apply it again and again in the remainder of this course
+2 / 79
+outline
+setting the stage
+constrained optimization
+Lagrange multipliers / Lagrangians
+Karush-Kuhn-Tucker conditions
+Lagrange duality
+summary
+3 / 79
+setting the stage
+4 / 79
+motivating problem
+a different kind of observation
+sequence of symbols
+BBCBCAABCCCABCA
+BCACCAACABBCCAB
+CABCCCCCCABABBC
+BAABBBCACCCABCC
+CCCBABBABCACCAC
+CABCACABCCCABBB
+CACCCCCABCBBCCA
+BBBCCCBCCABCABB
+CBCABCABCABBABA
+BABAACABCBAABCA...
+5 / 79
+motivating problem
+a different kind of observation
+sequence of symbols
+BBCBCAABCCCABCA
+BCACCAACABBCCAB
+CABCCCCCCABABBC
+BAABBBCACCCABCC
+CCCBABBABCACCAC
+CABCACABCCCABBB
+CACCCCCABCBBCCA
+BBBCCCBCCABCABB
+CBCABCABCABBABA
+BABAACABCBAABCA...
+a possible kind of model
+discrete time Markov chain (DTMC)
+A B
+C
+p(A|A)
+p(B|A)
+p(C|A)
+p(B|B)
+p(A|B)
+p(C|B)
+p(C|C)
+p(A|C)
+p(B|C)
+5 / 79
+setting / approach
+observe a sequence over m symbols
+encode each symbol using a (distinct)
+positive integer 1, 2, . . . , m
+assume a (homogeneous) DTMC with
+state space
+Q =
+
+1, 2, . . . , m
+	
+let qt ∈ Q denote the state at time t and
+estimate m × m state transition matrix P
+Pij = p
+
+qt = i
+
+ qt−1 = j
+
+from the observed sequence q1, . . . , qn
+1 2
+3
+p11
+p21
+p31
+p22
+p12
+p32
+p33
+p13
+p23
+6 / 79
+the probability of observing a sequence q1, . . . , qn ∈ Q
+⋆ amounts to
+p
+
+q1, . . . , qn
+
+= p
+
+q1
+ Yn
+t=2
+p
+
+qt
+
+ qt−1
+
+= p
+
+q1
+ Yn
+t=2
+Pqtqt−1
+with respect to P, we are thus dealing with the following likelihood
+L
+
+P
+
+= p
+
+q1
+ Yn
+t=2
+Pqtqt−1
+= p
+
+q1
+ Ym
+i=1
+Ym
+j=1
+P
+nij
+ij
+where nij is the number of observed transitions from state j to state i
+7 / 79
+⇒ the log-likelihood is
+L
+
+P
+
+= cnst +
+Xm
+i=1
+Xm
+j=1
+nij log Pij
+⇒ / 79
+⇒ the log-likelihood is
+L
+
+P
+
+= cnst +
+Xm
+i=1
+Xm
+j=1
+nij log Pij
+⇒ the approach
+∂L
+∂Pkl
+=
+nkl
+Pkl
+!
+= 0
+would suggest that Pkl = ∞ for all k, l ∈
+
+1, . . . , m
+	
+8 / 79
+question
+what went wrong ???
+9 / 79
+question
+what went wrong ???
+answer
+we did not consider the fact that P must be stochastic
+that is, we did not incorporate the equality constraints
+Xm
+i=1
+Pij = 1, j = 1, . . . , m
+9 / 79
+note
+⇒ what we are really dealing with is the following
+equality constrained maximization problem
+Pˆ = argmax
+P∈Rm×m
+X
+i
+X
+j
+nij log Pij
+s.t.
+X
+i
+Pij = 1, j = 1, . . . , m
+read “s.t.” either as “such that” or as “subject to”
+10 / 79
+battle plan
+next, we first solve our exemplary problem to show that it can be done
+our solution strategy will drop out of thin air, but bear with us, because . . .
+we then discuss constrained optimization problems in general
+next, we discuss Lagrange multipliers and the KKT conditions
+along the way, we discuss further (important) examples
+11 / 79
+disclaimer
+we are running out of symbols !
+so far, we already used “L” for loss and likelihood and “L” for log-likelihood
+in what follows, we will be working with Lagrange functions (Lagrangians),
+these too are commonly denoted using either one of the symbols “L” or “L”
+⇒ in what follows, we use “L” to denote Lagrange functions
+12 / 79
+to solve the problem
+Pˆ = argmax
+P∈Rm×m
+X
+i
+X
+j
+nij log Pij
+s.t.
+X
+i
+Pij = 1, j = 1, . . . , m
+we may introduce m Lagrange multipliers λ1, . . . , λm and consider the Lagrangian
+L
+
+P, λ
+
+=
+X
+i
+X
+j
+nij log Pij +
+X
+j
+λj
+ X
+i
+Pij − 1
+!
+13 / 79
+if we then solve
+∂L
+∂Pkl
+=
+nkl
+Pkl
++ λl
+!
+= 0
+we find “more reasonable” results, namely
+Pkl = −
+nkl
+λl
+14 / 79
+if we then solve
+∂L
+∂Pkl
+=
+nkl
+Pkl
++ λl
+!
+= 0
+we find “more reasonable” results, namely
+Pkl = −
+nkl
+λl
+plugging them into the constraints establishes
+X
+i
+Pij =
+X
+i
+−
+nij
+λj
+= 1 ⇔ −λj =
+X
+i
+nij
+14 / 79
+if we then solve ∂L∂Pkl = nkl Pkl
++
+λ
+l !=
+0
+we find “more reasonable” results, namely Pkl = −nkl λl
+plugging them into the constraints establishes Xi Pij = Xi −nij λj = 1 ⇔ −λj = Xi nij
+⇒ the final (correct) MLEs for the
+Pij amount to
+Pˆij
+=
+Pnij k nkj
+14 / 79
+discussion
+to make sense of our result
+p
+
+qt+1 = i
+
+ qt = j
+
+= Pˆij = P
+nij
+k
+nkj
+we may consider the following
+if the chain is currently in state j, it will probabilistically transit to
+any state i ∈ Q =
+
+1, . . . , m
+	
+and we must have
+X
+i
+p
+
+qt+1 = i
+
+ qt = j
+
+= 1
+since the probabilities of transiting from j to any i must sum to 1
+our estimated state transition probabilities Pˆij meet this condition
+X
+i
+Pˆij =
+X
+i
+P
+nij
+k
+nkj
+=
+P
+i P
+nij
+k
+nkj
+= 1
+15 / 79
+training data
+BCAABABABCBBCAC
+CCCCCBBCCCCCCCC
+ABBBABBAABCCCBC
+ACACBABCCBABBBC
+CAACCACCCACACCC
+CCCCCBBCCCCCCCA
+BCCCCCCCCBCABAC
+ACCABBABACABCCC
+ABCCBCCABBBBCCA
+BABBCCCABCCBCAB
+CCBBBAABBCCCCCA
+CCCCCABCABCBABC
+BCACCACAAABBCAB
+CACCCCCCABBAABA
+trained model
+A B
+C
+0.15
+0.57
+0.28
+0.33
+0.27
+0.40
+0.60
+0.28
+0.12
+16 / 79
+ground truth process
+A B
+C
+0.2
+0.6
+0.2
+0.3
+0.2
+0.5
+0.6
+0.3
+0.1
+trained model
+A B
+C
+0.15
+0.57
+0.28
+0.33
+0.27
+0.40
+0.60
+0.28
+0.12
+17 / 79
+constrained optimization
+18 / 79
+disclaimer
+the above problem was a bit special because we had to estimate a matrix
+but if we wanted to, we can always vectorize matrices, for instance like so
+P =
+
+
+| |
+p1
+· · · pm
+| |
+
+ ⇔ p =
+
+
+
+p1
+.
+.
+.
+pm
+
+
+
+⇒ next, we focus on the “general case” of optimizing functions f of vectors x
+19 / 79
+disclaimer
+the above problem was a bit special because it was a maximization problem
+yet, in machine learning, we usually think in terms of minimization problems
+this difference is not a big deal, as we can always turn the one into the other
+ˆx = argmax
+x
+f(x) ⇔ ˆx = argmin
+x
+−f(x)
+⇒ next, we will understand optimization problems to be minimization problems
+20 / 79
+with that said, let’s enter the rabbit hole . . .
+21 / 79
+constrained optimization problem
+let f : R
+m → R be some objective function
+a constrained optimization problem is an
+optimization problem of the general form
+ˆx = argmin
+x∈Rm
+f(x)
+s.t. x ∈ S
+where
+S ⊂ R
+m is the feasible set of the constrained problem
+ˆx ∈ S is a (local) solution if f(ˆx) ⩽ f(x) for all x ∈ B(ˆx, ε)
+22 / 79
+constraint equations
+in practice, the feasible set is usually (⇔ almost always)
+characterized / defined in terms of constraint equations
+ˆx = argmin
+x∈Rm
+f(x)
+s.t. gi(x) = 0, i = 1, . . . , p equality constraints
+hj(x) ⩽ 0, j = 1, . . . , q inequality constraints
+we will see examples soon . . .
+23 / 79
+remarks
+we say the problem is in standard form, if there are zeros on the right hand sides of all constraints
+and if all inequality constraints are “less than or equal to” equations
+there is no loss of generality, because constraints can always be brought into this form, for instance
+˜gi(x) = c ⇔ ˜gi(x) − c = 0 ⇔ gi(x) = 0
+˜hj(x) ⩾ c ⇔ −˜hj(x) + c ⩽ 0 ⇔ hj(x) ⩽ 0
+note, however, that other people or software packages for numerical optimization may have different
+ideas for what it means for an optimization problem to be in standard form . . .
+⇔ don’t be confused when you see other definitions in the literature, in manuals, on stackexchange . . .
+speaking of other people . . . there also is no standard way of writing down optimization problems, for
+instance, the following are all supposed to be equivalent
+ˆx = argmin
+x∈Rm
+f (x)
+s.t. x ∈ S
+⇔
+ˆx = min
+x∈Rm
+f (x)
+s.t. x ∈ S
+⇔
+min
+x∈Rm
+f (x)
+s.t. x ∈ S
+this is sloppy and lazy writing and confusing for beginners, but it is what it is . . .
+24 / 79
+Lagrange multipliers / Lagrangians
+25 / 79
+problems involving only equality constraints can be
+solved using the method of Lagrange multipliers
+for simplicity, we first consider problems with just a
+single equality constraint
+ˆx = argmin
+x∈Rm
+f(x)
+s.t. g(x) = 0
+Joseph-L. Lagrange
+(∗1736, †1813)
+26 / 79
+Lagrangian, Lagrange multiplier
+in order to solve
+ˆx = argmin
+x∈Rm
+f(x)
+s.t. g(x) = 0
+we consider the Lagragian
+L
+
+x, λ
+
+= f(x) + λ g(x)
+where λ ∈ R is called a Lagrange multiplier
+27 / 79
+claim (for a rigorous proof, see [1])
+given L, we (attempt to) solve
+∇L
+
+x, λ
+
+=
+"
+∂L
+∂x
+∂L
+∂λ #
+=
+"
+0
+0
+#
+⇔ we (try to) simultaneously solve
+∇x f
+
+x
+
++ λ ∇x g
+
+x
+
+= 0
+g
+
+x
+
+= 0
+because, if the problem has a solution ˆx, there exists ˆλ such that
+∇x f
+
+ˆx
+
+= −ˆλ ∇x g
+
+ˆx
+
+28 / 79
+let’s look at a toy example . . .
+29 / 79
+a high-school problem
+in high-school, we (likely) learned how to solve problems like this
+A farmer has bought a coil of barbed wire of length L and wants to fence
+off a rectangular area A of land of maximum size.
+Which side lengths 0 ⩽ x1, x2 ⩽ L should (s)he choose for the rectangle ?
+the solution strategy we learned likely involved the use of substitutions and calculus
+preparation (substitution)
+A = A(x1, x2) = x1 · x2
+L = L(x1, x2) = 2 x1 + 2 x2
+⇒ x1 =
+L
+2
+− x2
+⇒ A =
+
+L
+2
+− x2
+
+· x2 =
+L
+2
+x2 − x
+2
+2
+solution (calculus)
+dA
+dx2
+=
+L
+2
+− 2 x2
+!= 0
+⇒ x2 =
+L
+4
+⇒ x1 =
+L
+2
+− x2 =
+L
+4
+30 / 79
+note
+the high-school method obviously works, but . . .
+there are several issues with this simple approach
+in general, expressing xi as a function of xj may break “symmetry”
+in general, it might not be possible to express xi as a function of xj
+.
+.
+.
+the method of Lagrange multipliers provides us with a more general approach
+so, let’s put it into action . . .
+31 / 79
+the farmer’s problem is
+ˆx = argmin
+x∈R2
+− x1 x2
+s.t. 2
+
+x1 + x2
+
+= L
+⇔
+ˆx = argmin
+x∈R2
+− x1 x2
+s.t. 2
+
+x1 + x2
+
+− L = 0
+⇔
+ˆx = argmin
+x∈R2
+f (x)
+s.t. g(x) = 0
+the corresponding Lagrangian is
+L
+
+x,λ
+
+= −x1 x2 + λ
+
+2
+
+x1 + x2
+
+− L
+
+= f (x) + λg(x)
+32 / 79
+deriving and equating to zero yields ∂L∂x1 = ∂f ∂x1 + λ ∂g ∂x1
+= −
+x
+2
++
+2
+λ
+=
+0
+∂
+L
+∂
+x
+2
+=
+∂f ∂x2
++
+λ
+∂
+g
+∂
+x
+2
+= −
+x
+1
++
+2
+λ
+=
+0
+∂
+L
+∂λ
+=
+g
+(
+x
+1, x
+2) =
+2
+x
+1
++
+2
+x
+2
+=
+L
+in matrix / vector form, this becomes  0 −1 2 −1 0 2
+2 2 0
+
+x
+1
+x
+2λ
+
+=
+
+00L
+
+⇒ the solution is ˆx1ˆx2λˆ  =
+
+12
+−
+12
+14
+−
+12
+12
+14
+14
+14
+18
+
+
+00L
+
+=
+
+L4L4L8
+
+33 / 79
+let’s look at an important example . . .
+34 / 79
+regularized least squares
+consider this
+ordinary least squares problem
+wˆ = argmin
+w∈Rm
+
+Φ⊺w − y
+
+
+2
+wˆ =
+
+ΦΦ⊺
+−1Φ y
+regularized least squares problem
+wˆ = argmin
+w∈Rm
+
+Φ⊺w − y
+
+
+2
+s.t.
+
+w
+
+
+2
+= c
+wˆ = . . .
+once we have solved the RLS problem, we will recognize why it is of interest !!!
+35 / 79
+the RLS problem is
+wˆ = argmin
+w∈Rm
+
+Φ⊺w − y
+
+
+2
+s.t.
+
+w
+
+
+2
+= c
+⇔
+wˆ = argmin
+w∈Rm
+w
+⊺ΦΦ⊺w − 2w
+⊺Φ y + y
+⊺
+y
+s.t. w
+⊺w − c = 0
+the Lagrangian is
+L
+
+w, λ
+
+= w
+⊺ΦΦ⊺w − 2w
+⊺Φ y + y
+⊺
+y + λ
+
+w
+⊺w − c
+
+= w
+⊺
+
+ΦΦ⊺ + λ I
+
+w − 2w
+⊺Φ y + cnst
+= w
+⊺M(λ) w − 2w
+⊺
+v + cnst
+36 / 79
+the zero-equated gradient is
+∂L
+∂w
+= 2
+
+ΦΦ⊺ + λ I
+
+w − 2 Φ y
+!
+= 0
+∂L
+∂λ = w
+⊺w − c
+!
+= 0
+solving this for w and λ simultaneously is not as easy as in the farmer’s problem
+to see why, we rewrite the above equations in matrix / vector form and observe
+
+2 M(λ) −2 v
+w
+⊺ −c
+ w
+1
+
+=
+
+0
+0
+
+⇒ the matrix on the LHS depends on w and λ
+⇔ the above equations are not linear in [w,λ]
+⊺ however . . .
+37 / 79
+note
+if we treat λ not as a problem variable but as a
+problem parameter, we can easily solve for w
+2
+
+ΦΦ⊺ + λ I
+
+w − 2 Φy
+!
+= 0
+⇔
+
+ΦΦ⊺ + λ I
+
+w = Φ y
+⇔ w =
+
+ΦΦ⊺ + λ I
+−1Φ y
+have you seen this solution before ?
+38 / 79
+note
+OLS solution
+wˆ =
+
+ΦΦ⊺
+−1Φ y
+RLS solution
+wˆ =
+h
+ΦΦ⊺+λ I
+i−1
+Φ y
+MLE solution (from lecture 06)
+wˆ =
+
+ΦΦ⊺
+−1Φ y
+MAP solution (from lecture 06)
+wˆ =
+h
+ΦΦ⊺ +
+σ2
+σ2
+0
+I
+i−1
+Φ y
+39 / 79
+principle of machine learning
+there is a lot to be said about regularization in machine learning . . .
+but this would take as too far afield from the main topic of this lecture
+for now, we therefore simply claim
+just as MAP estimates are more noise- or outlier robust than ML estimates,
+RLS solutions are more noise- or outlier robust than OLS solutions
+40 / 79
+back to our main discussion . . .
+41 / 79
+for problems with multiple equality constraints
+ˆx = argmin
+x∈Rm
+f(x)
+s.t. gi(x) = 0, i = 1, . . . , p
+we work with a vector of Lagrange multipliers
+λ =
+
+λ1, λ2, . . . , λp
+⊺
+and the following extended Lagrangian
+L
+
+x, λ
+
+= f
+
+x
+
++
+X
+i
+λi gi
+
+x
+
+42 / 79
+for problems with equality and inequality constraints
+ˆx = argmin
+x∈Rm
+f(x)
+s.t. gi(x) = 0, i = 1, . . . , p
+hj(x) ⩽ 0, j = 1, . . . , q
+we work with two vectors of Lagrange multipliers
+λ =
+
+λ1, λ2, . . . , λp
+⊺
+µ =
+
+µ1, µ2, . . . , µq
+⊺
+and the following further extended Lagrangian
+L
+
+x, λ, µ
+
+= f
+
+x
+
++
+X
+i
+λi gi
+
+x
+
++
+X
+j
+µj hj
+
+x
+
+43 / 79
+note
+we may consider vector valued constraint functions
+g : R
+m → R
+p
+h : R
+m → R
+q
+to write the above problem / Lagrangian as follows
+ˆx = argmin
+x∈Rm
+f
+
+x
+
+s.t. g
+
+x
+
+= 0
+h
+
+x
+
+⩽ 0
+L
+
+x, λ, µ
+
+= f
+
+x
+
++ λ
+⊺
+g
+
+x
+
++ µ
+⊺h
+
+x
+
+44 / 79
+question
+speaking about inequality constraints . . . shouldn’t we
+have formalized the farmer’s problem as
+ˆx = argmin
+x∈R2
+− x1 x2
+s.t.
+1
+⊺
+x = L/2
+x ⩾ 0
+x ⩽ 1 · L
+and similarly for the introductory Markov chain problem ?
+what happened to the respective inequality constraints ?
+why didn’t we incorporate these inequality constraints ?
+45 / 79
+answer
+we did not need them, because they were inactive
+⇔ we did not need them, because the solution didn’t
+reside on a boundary of the constraint region
+to make sense of this statement,
+we have to dig even deeper . . .
+46 / 79
+Karush-Kuhn-Tucker conditions
+47 / 79
+fundamental claim (w/o proof)
+consider the general optimization problem
+argmin
+x∈Rm
+f(x)
+s.t. gi(x) = 0, i = 1, . . . , p
+hj(x) ⩽ 0, j = 1, . . . , q
+if ˆx solves this problem, then ∃ ˆλi
+, µˆj such that
+the Karush-Kuhn-Tucker conditions are met . . .
+48 / 79
+KKT conditions
+1) stationarity
+∇f
+
+ˆx
+
++
+X
+i
+ˆλi ∇gi
+
+ˆx
+
++
+X
+j
+µˆj ∇hj
+
+ˆx
+
+= 0
+2) primal feasibility
+gi
+
+ˆx
+
+= 0 ∀ i
+hj
+
+ˆx
+
+⩽ 0 ∀ j
+3) dual feasibility
+µˆj ⩾ 0 ∀ j
+4) complementary slackness
+µˆj hj
+
+ˆx
+
+= 0 ∀ j
+49 / 79
+let’s look at a “toy” example . . .
+50 / 79
+an inequality constrained problem
+argmin
+x∈R2
+f(x) =
+x1 − 7
+2
++
+
+x2 − 3
+2
+s.t. h1(x) = 2 x1 + x2 ⩽ 7
+h2(x) = x1 + 3 x2 ⩽ 18
+x2
+7 x1
+3
+f(x)
+h1(x) ≤ 0
+h2(x) ≤ 0
+51 / 79
+KKT 1) demands " ∂f ∂x1 ∂f ∂x2 # + µ1 "
+∂
+h
+1
+∂
+x
+1
+∂
+h
+1
+∂
+x
+2
+#
++
+µ
+2
+"
+∂
+h
+2
+∂
+x
+1
+∂
+h
+2
+∂
+x
+2
+#
+=
+"
+00
+#
+which immediately leads to 2 x1 + 0 x2 + 2 µ1 + 1µ2
+= 14
+0
+x
+1
++
+2
+x
+2
++
+1
+µ
+1
++
+3
+µ
+2
+=
+6
+assuming that both inequality constraints
+are active, we also consider 2 x1 + 1 x2 = 7 1 x1 + 3 x2 = 18
+and thus obtain 4 equations for 4 unknowns
+52 / 79
+solving the matrix / vector equation 
+2 0 2 1
+0 2 1 3
+2 1 0 0
+1 3 0 0
+
+
+x
+1
+x
+2 µ1 µ2
+
+=
+
+1467
+18
+
+yields the following result x1 x2 µ1 µ2 =  0.6 5.8 8.8 −4.8
+this violates KKT 3)
+53 / 79
+we therefore inactivate the second constraint,
+i.e. set
+µ
+2
+=
+0, and repeat the whole exercise
+solving the resulting matrix / vector equation 
+2 0 2
+0 2 1
+2 1 0
+
+
+x
+1
+x
+2 µ1
+
+=
+
+1467
+
+yields the following result x1 x2 µ1 = 314
+this is a feasible solution
+54 / 79
+we therefore inactivate the second constraint,
+i.e. set
+µ
+2
+=
+0, and repeat the whole exercise
+solving the resulting matrix / vector equation 
+2 0 2
+0 2 1
+2 1 0
+
+
+x
+1
+x
+2 µ1
+
+=
+
+1467
+
+yields the following result x1 x2 µ1 = 314
+this is a feasible solution
+x
+2
+3
+x
+1
+1
+xˆ
+54 / 79
+Lagrange duality
+55 / 79
+once more . . .
+to solve the problem
+argmin
+x
+f(x)
+s.t. gi(x) = 0, i = 1, . . . , p
+hj(x) ⩽ 0, j = 1, . . . , q
+we work with the Lagrangian
+L
+
+x, λ, µ
+
+= f
+
+x
+
++
+X
+i
+λi gi
+
+x
+
++
+X
+j
+µj hj
+
+x
+
+⇔ we work with a linear combination of different functions
+56 / 79
+if ˜x is feasible, we must have
+L
+
+˜x, λ, µ
+
+= f
+
+˜x
+
++
+X
+i
+λi gi
+
+˜x
+
+| {z }
+=0
++
+X
+j
+µj hj
+
+˜x
+
+| {z }
+⩽0
+⩽ f
+
+˜x
+
+this is because KKT 2) and 3) demand that for all i and j
+gi
+
+˜x
+
+= 0
+hj
+
+˜x
+
+⩽ 0
+µj ⩾ 0
+57 / 79
+if ˆx is feasible and optimal, we have
+L
+
+ˆx, λ, µ
+
+= f
+
+ˆx
+
++
+X
+i
+λi gi
+
+ˆx
+
+| {z }
+=0
++
+X
+j
+µj hj
+
+ˆx
+
+| {z }
+=0
+= f
+
+ˆx
+
+this is because, in this case KKT 4) dictates
+µj hj
+
+ˆx
+
+= 0
+58 / 79
+note
+ˆx is not a variable but a fixed (yet unknown) quantity
+⇒ L
+
+xˆ, λ, µ
+
+is a function of λ and µ
+59 / 79
+Lagrangian dual
+the function D : R
+p × R
+q → R
+D
+
+λ, µ
+
+= inf
+x
+L
+
+x, λ, µ
+
+= inf
+x
+
+ f(x) +X
+i
+λi gi(x) +X
+j
+µj hj(x)
+
+
+is called the Lagrangian dual
+it is concave and, for µ ⩾ 0, we have D
+
+λ, µ
+
+⩽ f
+
+ˆx
+
+⩽ f
+
+x
+
+60 / 79
+Lagrange duality
+primal problem
+argmin
+x
+f(x)
+s.t. g(x) = 0
+h(x) ⩽ 0
+⇔
+dual problem
+argmax
+λ,µ
+D
+
+λ, µ
+
+s.t. µ ⩾ 0
+61 / 79
+note
+for x, λ, µ, ˆx,
+ˆλ, µˆ all feasible, we have
+D
+
+λ, µ
+
+⩽ D
+
+ˆλ, µˆ
+
+⩽ f
+
+ˆx
+
+⩽ f
+
+x
+
+⇒ the value of the dual is a lower bound of the value of the primal
+⇔ solving the dual problem gives the best lower bound on the primal problem
+if the duality gap is zero, i.e. if D
+
+ˆλ, µˆ
+
+= f
+
+ˆx
+
+, we say the duality is strong
+strong duality holds if the primal problem is convex and has a feasible solution
+let’s see this in action . . .
+62 / 79
+final (very important) example . . .
+63 / 79
+claim (w/o immediate proof)
+for “tall” matrices Φ⊺
+, the unconstrained least squares problem
+wˆ = argmin
+w
+
+Φ⊺w − y
+
+
+2
+is equivalent to the following constrained least squares problem
+wˆ = argmin
+w
+
+w
+
+
+2
+s.t. Φ⊺w − y = 0
+64 / 79
+the Lagrangian for the constrained problem is
+L
+
+w, λ
+
+= w
+⊺w + λ
+⊺
+
+Φ⊺w − y
+
+to obtain the corresponding Lagrangian dual
+D
+
+λ
+
+= inf
+w
+L
+
+w, λ
+
+we consider
+∂L
+∂w
+=
+∂
+∂w
+h
+w
+⊺w + λ
+⊺
+
+Φ⊺w − y
+
+i
+= 2w + Φλ !
+= 0
+which yields
+w = −
+1
+2 Φλ
+65 / 79
+plugging this into L
+
+w, λ
+
+, we obtain
+D
+
+λ
+
+=
+1
+4
+λ
+⊺Φ⊺Φλ −
+1
+2
+λ
+⊺Φ⊺Φλ − λ
+⊺
+y
+= −
+1
+4
+λ
+⊺Φ⊺Φλ − λ
+⊺
+y
+fr 79
+plugging this into L
+
+w, λ
+
+, we obtain
+D
+
+λ
+
+=
+1
+4
+λ
+⊺Φ⊺Φλ −
+1
+2
+λ
+⊺Φ⊺Φλ − λ
+⊺
+y
+= −
+1
+4
+λ
+⊺Φ⊺Φλ − λ
+⊺
+y
+from solving
+∂D
+∂λ
+=
+∂
+∂λ
+h
+−
+1
+4
+λ
+⊺Φ⊺Φλ − λ
+⊺
+y
+i
+= −
+1
+2 Φ⊺Φλ − y
+!
+= 0
+we then find
+ˆλ = −2
+
+Φ⊺Φ
+−1
+y
+66 / 79
+plugging this back into L
+
+w, λ
+
+yields
+L
+
+w
+
+= w
+⊺w − 2 y
+⊺
+
+Φ⊺Φ
+−⊺Φ⊺w + 2 y
+⊺
+
+Φ⊺Φ
+−⊺
+y
+derivi
+plugging this back into L
+
+w, λ
+
+yields
+L
+
+w
+
+= w
+⊺w − 2 y
+⊺
+
+Φ⊺Φ
+−⊺Φ⊺w + 2 y
+⊺
+
+Φ⊺Φ
+−⊺
+y
+deriving and equating to zero
+∂L
+∂w
+= 2w − 2 Φ
+
+Φ⊺Φ
+−1
+y
+!
+= 0
+finally establishes
+wˆ = Φ
+
+Φ⊺Φ
+−1
+y
+67 / 79
+wait . . . what?
+68 / 79
+note
+earlier, we found
+wˆ =
+
+ΦΦ⊺
+−1Φ y
+now, we obtained
+wˆ = Φ
+
+Φ⊺Φ
+−1
+y
+thes
+note
+earlier, we found
+wˆ =
+
+ΦΦ⊺
+−1Φ y
+now, we obtained
+wˆ = Φ
+
+Φ⊺Φ
+−1
+y
+these are indeed equal, because
+
+ΦΦ⊺
+−1Φ Φ⊺Φ = Φ
+ΦΦ⊺
+
+ΦΦ⊺
+−1Φ = Φ
+Φ
+
+Φ⊺Φ
+−1 Φ⊺Φ = Φ
+ΦΦ⊺ Φ
+
+Φ⊺Φ
+−1
+= Φ
+69 / 79
+note
+dealing with a data matrix Φ ∈ R
+m×n where
+m = data dimensionality
+n = # data examples
+it is a common (big data) setting that n ≫ m and, in this case, we have
+wˆ =
+
+ΦΦ⊺
+−1
+| {z }
+Rm×m
+Φ y matrix inversion is cheap
+wˆ = Φ
+
+Φ⊺Φ
+−1
+| {z }
+Rn×n
+y matrix inversion is expensive
+70 / 79
+question
+if computing the dual solution
+w = Φ
+
+Φ⊺Φ
+−1
+y
+is (much) more expensive than the primal solution
+w =
+
+ΦΦ⊺
+−1Φ y
+then why would we ever bother with the dual ???
+71 / 79
+answer
+Φ⊺Φ is a Gram matrix and we have already seen that these are interesting
+reasons to care about dual solutions will become clear in the next lectures !
+72 / 79
+summary
+73 / 79
+we now know about
+constrained optimization
+the notion of Lagrange functions
+the Karush-Kuhn-Tucker conditions
+the notion of Lagrange duality, primal-, and dual problems
+the phenomenon of strong duality (in the context of least squares)
+74 / 79
+constrained optimization problem in standard form
+xˆ = argmin
+x∈Rm
+f(x)
+s.t. g(x) = 0
+h(x) ⩽ 0
+75 / 79
+Lagrangian
+L
+
+x, λ, µ
+
+= f
+
+x
+
++ λ
+⊺
+g
+
+x
+
++ µ
+⊺h
+
+x
+
+76 / 79
+Karush-Kuhn-Tucker conditions
+1) stationarity
+∇f
+
+ˆx
+
++ˆλ
+⊺∇g
+
+ˆx
+
++µˆ
+⊺∇h
+
+ˆx
+
+= 0
+2) primal feasibility
+g
+
+ˆx
+
+= 0
+h
+
+ˆx
+
+⩽ 0
+3) dual feasibility
+µˆ ⩾ 0
+4) complementary slackness
+µˆ ⊙ h
+
+ˆx
+
+= 0
+77 / 79
+Lagrange duality
+primal problem
+argmin
+x
+f(x)
+s.t. g(x) = 0
+h(x) ⩽ 0
+⇔
+dual problem
+argmax
+λ,µ
+D
+
+λ, µ
+
+s.t. µ ⩾ 0
+78 / 79
+references
+[1] C. Bauckhage and D. Speicher. Lecture Notes on Machine Learning: Lagrange
+Multipliers (Part 3). Technical report, B-IT,University of Bonn, 2019.
+79 / 79

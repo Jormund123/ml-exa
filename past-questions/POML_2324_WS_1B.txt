@@ -1,0 +1,30 @@
+Protokoll
+Task 1
+a) What is machine learning? And why is it useful?
+b) What is a Loss function (or an objective function) and for what is it used in machine learning?
+Task 2)
+a) joint probability for i.i.d.
+b) Log likelihood with respect to theta
+c) ML - estimatar
+d) MAP- estimator
+Task 3) Bayesian inference
+a) b) c) what is the posterior predictive distribution ? Definition or mathematical formulation
+What is a conjugate distribution?
+What are problems during Bayesian Inference?
+d) Bayes Theorem
+4) convex approximation
+x^ = argmin_x SUM euclidean distance(x_j - x)
+a) what would be way to minimize this problem?
+b) Close form for w^
+c) Interpretation for w
+5) Kernel trick
+a) b) what is the kernel trick?
+Why is it interesting for machine learning?
+6) SVM
+a) b) c) write down the dual form of L_2 SVM?
+What is a way to solve is?
+What are the solutions for w and b?
+7) Gaussian Processes
+a) b) when we have input y that is not 0, how can we still solve (exercise sheet)
+What could be a loss function for this? How could you derive a solution for this non-convex
+loss function? Write down a way to solve this.

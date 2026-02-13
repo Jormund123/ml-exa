@@ -1,0 +1,2275 @@
+course evaluation
+https://fha8.de/oN1Yx
+1 / 88
+Principles of Machine Learning
+Prof. Christian Bauckhage
+2 / 88
+lecture 14
+k-means clustering, GMMs, and the EM algorithm
+in this lecture, we first briefly recall the idea of k-means clustering and discuss
+several algorithms to compute it
+we then point out implicit limitations of k-means clustering which practitioners
+should (or must) be aware of
+these then lead us to two main topics of this lecture, namely Gaussian mixture
+models (GMMs) and the expectation maximization (EM) algorithm
+3 / 88
+outline
+data clustering
+k-means clustering
+Lloyd’s algorithm
+Hartigans’s algorithm
+MacQueen’s algorithm
+characteristics of k-means
+Gaussian mixture models
+the expectation maximization algorithm
+summary
+4 / 88
+data clustering
+5 / 88
+clustering
+⇔ given a finite data set D, automatically identify latent structures
+or groups of similar data points within D
+→
+6 / 88
+note
+in general, clustering is an ill-posed problem
+7 / 88
+example
+how to cluster this set of objects ?
+are the possible clusters unique ?
+8 / 88
+note
+there are many clustering philosophies and algorithms
+hierarchical clustering
+divisive or agglomerative linkage methods, . . .
+(cor)relational clustering
+spectral clustering, graph cuts, . . .
+density-based clustering
+DBSCAN, ITVQ, . . .
+prototype-based clustering
+k-means, k-medoids, LBG, . . .
+9 / 88
+note
+differences between methods boil down to how they answer these questions
+Q1: what defines similarity of data points ?
+Q2: what properties should a cluster have ?
+10 / 88
+k-means clustering
+11 / 88
+k-means clustering
+is the “most popular” prototype-based clustering approach for vector valued data
+D =
+
+x1, . . . , xn
+	
+⊂ R
+m
+12 / 88
+k-means clustering
+determines k ≪ n clusters Ci and answers Q2 as follows
+Ci ⊂ D, Ci ∩ Cj = ∅ ∀ i ̸= j,
+[
+k
+i=1
+Ci = D
+considers cluster centroids µi
+to answer Q1 as follows
+Ci =
+
+
+x ∈ D
+
+
+
+
+ x − µi
+
+
+2
+⩽
+
+ x − µj
+
+
+2
+∀ i ̸= j
+
+µi =
+1
+|Ci
+|
+X
+x∈Ci
+x
+13 / 88
+note
+⇒ the essential problem of k-means clustering is to find k suitable centroids µ1, . . . , µk
+once the user has specified k, this can be done by minimizing an objective function
+E
+
+C1, C2, . . . , Ck
+
+= Ek
+there are various possible formulations, however . . .
+14 / 88
+k-means objective function
+k-means is most commonly achieved through minimizing
+Ek =
+X
+k
+i=1
+X
+xj∈Ci
+
+ xj − µi
+
+
+2
+=
+X
+k
+i=1
+Xn
+j=1
+zij
+
+ xj − µi
+
+
+2
+(1)
+where we introduced additional binary indicator variables
+zij =
+
+1, if xj ∈ Ci
+0, otherwise
+(2)
+15 / 88
+note
+the problem of solving
+argmin
+µ1,...,µk
+Ek
+looks innocent but is actually NP-hard
+(in the exercise, we already saw that k-means clustering is
+an integer programming problem in disguise ⇔ NP-hard)
+⇒ Ek has numerous local minima and there exists no algorithm
+known today that is guaranteed to find the optimal solution
+16 / 88
+principles of machine learning
+⇒ we have
+any known algorithm for k-means clustering is a heuristic
+⇒ we realize
+in practice, any algorithm for k-means clustering should be
+run several times to empirically determine the best solution
+17 / 88
+Lloyd’s algorithm (aka the k-means algorithm)
+t ← 0
+“somehow” initialize µ1, µ2, . . . , µk
+repeat
+for i = 1, . . . , k // update clusters
+Ci =
+
+
+x ∈ D
+
+
+
+
+ x − µi
+
+
+2
+⩽
+
+ x − µj
+
+
+2
+
+for i = 1, . . . , k // update centroids
+µi =
+1
+|Ci
+|
+X
+x∈Ci
+x
+t ← t + 1
+until convergence
+18 / 88
+possible convergence criteria
+centroids stabilize
+
+µi
+[t] − µi
+[t − 1]
+
+ ⩽ ϵ ∀ i
+clusters stabilize
+Ci
+[t] ∩ Ci
+[t − 1] = Ci
+[t] ∀ i
+iterations exceed a threshold
+t > tmax
+19 / 88
+example
+initialization 1st update 2nd update
+· · ·
+final result
+20 / 88
+note
+Lloyd’s algorithm is guaranteed to converge, because
+1) since
+µi = argmin
+µ∈Rm
+X
+x∈Ci
+
+x − µ
+
+
+2
+the centroid updates cannot increase Ek
+2) by design the cluster updates cannot increase Ek
+⇒ we have 0 ⩽ Ek[t + 1] ⩽ Ek[t] so that Lloyd’s algorithm converges to a (local) minimum
+21 / 88
+note
+the fact that Lloyd’s algorithm will converge says nothing about the quality
+of the solution
+the fact that Lloyd’s algorithm will converge says nothing about the speed
+of convergence
+in fact, it usually converges quickly but its quality crucially depends on the
+initialization of the means µ1, µ2, . . . , µk
+www.youtube.com/watch?v=5I3Ei69I40s
+www.youtube.com/watch?v=9nKfViAfajY
+22 / 88
+Hartigan’s algorithm
+for all
+x
+∈
+D
+randomly assign
+x to a cluster
+C
+i
+for all
+C
+i
+∈
+
+C
+1, . . . ,
+Ck
+	
+compute cluster centroid
+µ
+i
+repeat
+converged
+← True
+for all
+x
+∈
+D
+determine
+C
+i
+=
+C
+(
+x
+)
+remove
+x from
+C
+i
+recompute
+µ
+i
+determine Cw = argmin
+Cj
+E
+
+C
+1, . . . ,
+Cj
+∪
+{x
+}, . . . ,
+Ck
+
+if
+Cw
+̸=
+C
+i
+converged
+← False
+assign
+xj
+to
+Cw
+recompute
+µ
+w
+until converged
+23 / 88
+example
+random initialization result after one outer loop result after two outer loops
+24 / 88
+Hartigan’s algorithm
+is much less well known than Lloyd’s algorithm
+is provably more robust than Lloyd’s algorithm
+is slow and a bit cumbersome to implement
+provably converges
+converges quickly
+www.youtube.com/watch?v=ivr91orblu8
+25 / 88
+MacQueen’s algorithm
+initializeµ
+1, µ
+2, . . . ,
+µ
+k
+	
+=
+
+x
+1, x
+2, . . . ,
+x
+k
+	
+
+n
+1, n
+2, . . . ,
+n
+k
+	
+=
+
+1, 1, . . . ,
+1
+	
+for all
+x
+∈
+
+x
+k
++
+1, x
+k
++
+2, . . . ,
+x
+n
+	
+determine winner centroid µw = argmin i  x − µi2
+update cluster size and centroid nw ← nw + 1 µw ← µw + 1nw  x − µw
+for all
+C
+i
+∈
+
+C
+1, . . . ,
+Ck
+	
+C
+i
+=
+
+
+x
+∈
+D  
+x
+−
+µ
+i
+
+2
+⩽
+
+x
+−
+µ
+l
+
+2
+
+26 / 88
+example
+after 3 points after 4 points after 5 points after 6 points
+after 100 points after 150 points after 200 points after 250 points
+27 / 88
+MacQueen’s algorithm
+is also known as online k-means
+exploits that sample means can be computed recursively
+µ
+(n) =
+1
+n
+Xn
+j=1
+xj =
+1
+n
+Xn−1
+j=1
+xj +
+1
+n
+xn =
+n − 1
+n
+µ
+(n−1) +
+1
+n
+xn
+applies to situations where |D| ≫ 1 or where the data arrive one at a time
+www.youtube.com/watch?v=hzGnnx0k6es
+28 / 88
+characteristics of k-means
+29 / 88
+k-means clustering works well if the data consist of k isotropic,
+well separated Gaussian blobs
+→
+30 / 88
+it also works for non-isotropic but still well separated Gaussian blobs
+→
+31 / 88
+if the data consist of isotropic but not so well separated blobs,
+k-means results are not as “plausible” as one would hope for
+→
+32 / 88
+serious problems arise for non-isotropic nearby blobs
+→
+33 / 88
+if the data do not consist of Gaussian blobs, we cannot
+expect k-means to produce cognitively plausible results
+→
+34 / 88
+question
+why is this ?
+answer
+let’s see . . .
+35 / 88
+Gaussian mixture models
+36 / 88
+a probabilistic view on clustering
+imagine the given xj ∈ D were produced as follows
+sample a cluster Ci according to a discrete probability p
+
+Ci
+
+sample a point xj according to a continuous conditional probability p
+
+xj
+
+ Ci
+
+under this generative model, the probability for observing a certain xj
+is given by
+p
+
+xj
+
+=
+X
+k
+i=1
+p
+
+xj
+
+ Ci
+
+p
+
+Ci
+
+37 / 88
+two modeling assumptions
+1) let the elements in each cluster be distributed according to
+p
+
+x
+
+ Ci
+
+= N
+
+x
+
+ µi
+, Σi
+
+= γi e
+− 1
+2
+(x−µi)
+⊺Σ−1
+i
+(x−µi)
+i.e. a multivariate Gaussian with normalization constant γi
+2) let Σi = I (each Gaussian is isotropic and of unit variance)
+p
+
+x
+
+ Ci
+
+= N
+
+x
+
+ µi
+
+= (2 π)
+− m
+2 e
+− 1
+2
+∥x−µi∥
+2
+38 / 88
+⇒ writing wi = p
+
+Ci
+
+, we have a simple Gaussian mixture model (GMM)
+p
+
+x
+
+ θ
+
+=
+X
+k
+i=1
+wi N
+
+xj
+
+ µi
+
+whose parameters are but weights and means
+θ =
+
+w1, µ1, . . . , wk, µk
+
+39 / 88
+likelihood and log-likelihood
+L
+
+θ
+
+ D
+
+= p
+
+D
+
+ θ
+
+=
+Yn
+j=1
+p
+
+xj
+
+ θ
+
+=
+Yn
+j=1
+X
+k
+i=1
+wi N
+
+xj
+
+ µi
+
+L
+
+θ
+
+ D
+
+= log p
+
+D
+
+ θ
+
+=
+Xn
+j=1
+log p
+
+xj
+
+ θ
+
+=
+Xn
+j=1
+log "X
+k
+i=1
+wi N
+
+xj
+
+ µi
+
+#
+40 / 88
+note
+the above log-likelihood is rather unwieldy (a sum over logarithms of sums) so that
+the recipe of considering ∇L = 0 does not lead to a closed form solution, but . . .
+a great idea due to Dempster et al. (1977) is to assume a set of indicator variables
+Z =
+
+z11,z12, . . . ,zkn	
+just as introduced in (2) and to consider . . .
+41 / 88
+complete likelihood
+L
+
+θ
+
+ D, Z
+
+=
+Yn
+j=1
+X
+k
+i=1
+zij wi N
+
+xj
+
+ µi
+
+42 / 88
+note
+since
+zij ∈
+
+0, 1
+	
+X
+k
+i=1
+zij = 1
+i.e. since each xj belongs to only one Ci
+, we can write
+p
+
+xj
+
+ θ
+
+=
+X
+k
+i=1
+zij wi N
+
+xj
+
+ µi
+
+=
+Y
+k
+i=1
+h
+wi N
+
+xj
+
+ µi
+
+izij
+this is an incredibly important trick !!!
+43 / 88
+complete log-likelihood
+L
+
+θ
+
+ D, Z
+
+=
+Xn
+j=1
+X
+k
+i=1
+zijh
+log wi + log N
+
+xj
+
+ µi
+
+i
+=
+Xn
+j=1
+X
+k
+i=1
+zijh
+log wi + log(2 π)
+− m
+2 −
+1
+2
+
+xj − µi
+
+
+2
+i
+=
+Xn
+j=1
+X
+k
+i=1
+zij log wi
+| {z }
+T1
++
+Xn
+j=1
+X
+k
+i=1
+zij log(2 π)
+− m
+2
+| {z }
+T2
+−
+1
+2
+Xn
+j=1
+X
+k
+i=1
+zij
+
+xj − µi
+
+
+2
+| {z }
+T3
+44 / 88
+note
+maximizing L
+
+θ
+
+ D, Z
+
+= T1 + T2 −
+1
+2
+T3 requires minimizing T3
+however, looking at
+T3 =
+X
+k
+i=1
+Xn
+j=1
+zij
+
+xj − µi
+
+
+2
+we recognize the common k-means minimization objective
+45 / 88
+principle of machine learning
+⇒ we realize that
+k-means clustering implicitly fits an isotropic GMM
+46 / 88
+question
+what about non-isotropic GMMs ?
+can we fit them to a given data set ?
+can we estimate their parameters ?
+answer
+let’s see . . .
+47 / 88
+the expectation maximization algorithm
+48 / 88
+given D =
+
+x1, . . . xn
+	
+⊂ R
+m, we now consider a
+general multivariate Gaussian mixture model
+p
+
+x
+
+ θ
+
+=
+X
+k
+i=1
+wi N
+
+x
+
+ µi
+, Σi
+
+with mixture components and weights such that
+N
+
+x
+
+ µi
+, Σi
+
+=
+e
+− 1
+2
+[x−µi]
+⊺Σ−1
+i
+[x−µi]
+p
+(2 π)
+m det Σi
+wi ⩾ 0
+X
+k
+i=1
+wi = 1
+49 / 88
+for parameter estimation, we assume independence
+p
+
+D
+
+ θ
+
+=
+Yn
+j=1
+p
+
+xj
+
+ θ
+
+=
+Yn
+j=1
+X
+k
+i=1
+wi N
+
+xj
+
+ µi
+, Σi
+
+so that the corresponding log-likelihood amounts to
+L
+
+θ
+
+=
+Xn
+j=1
+log "X
+k
+i=1
+wi N
+
+xj
+
+ µi
+, Σi
+
+#
+(3)
+instead of L
+
+θ
+
+ D
+
+, we henceforth write L
+
+θ
+
+for brevity
+50 / 88
+(3) is once again “nasty” since it involves logarithms of sums
+our parameter estimation problem would be once again much
+easier, if we knew which mixture component Ci
+is responsible
+for observation xj
+because if we knew this, the joint probability would simplify to
+p
+
+D
+
+ θ
+
+=
+Yn
+j=1
+wi N
+
+xj
+
+ µi
+, Σi
+
+and the log-likelihood would become
+L
+
+θ
+
+=
+Xn
+j=1
+logh
+wi N
+
+xj
+
+ µi
+, Σi
+
+i
+51 / 88
+⇔ if we knew which component Ci had generated observation xj
+,
+we could group the given data into sets D = D1 ∪ . . . ∪ Dk and
+treat our overall problem in terms of k independent problems
+simple MLEs of the parameters of each component would be
+wi =
+|Di
+|
+|D|
+=
+ni
+n
+µi =
+1
+ni
+X
+xj∈Di
+xj
+Σi =
+1
+ni
+X
+xj∈Di
+
+xj − µi
+xj − µi
+⊺
+convince yourself that this is true
+52 / 88
+note
+we already know that if we knew which component Ci had generated observation xj
+,
+we can express this knowledge in terms of indicator variables Z =
+
+zij	
+where
+zij =
+
+1, if xj ∈ Ci
+0, otherwise
+we also already know that we can then write
+p
+
+D, Z
+
+ θ
+
+=
+Yn
+j=1
+Y
+k
+i=1
+h
+wi N
+
+xj
+
+ µi
+, Σi
+
+izij
+53 / 88
+note
+using indicator variables zij, the parameters of
+each mixture component can be computed as
+ni =
+Xn
+j=1
+zij
+wi =
+ni
+n
+µi =
+1
+ni
+Xn
+j=1
+zij xj
+Σi =
+1
+ni
+Xn
+j=1
+zij
+xj − µi
+xj − µi
+⊺
+convince yourself that this is true
+54 / 88
+note
+unfortunately, we generally do not know which component Ci caused
+observation xj ∈ D, however . . .
+we can treat the Z =
+
+zij	
+as latent or unobserved variables such that
+p
+
+D
+
+ θ
+
+=
+X
+Z
+p
+
+D, Z
+
+ θ
+
+read P
+Z
+. . . as “sum over all possible instantiations of the zij”
+55 / 88
+disclaimers
+note that the expression
+p
+
+D
+
+ θ
+
+=
+X
+Z
+p
+
+D, Z
+
+ θ
+
+is model agnostic, i.e. hides the fact that we want to fit a GMM
+in what follows, we will keep working with general expressions
+what follows might seem crazy and you might be wondering where it comes from
+to make a long story short, it comes from the minds of Dempster, Laird, and Rubin
+A.P. Dempster, N.M. Laird, and D.B. Rubin, “Maximum Likelihood from Incomplete Data via the EM
+Algorithm”, J. Royal Statistical Society B, 39(1), 1977
+now, let’s switch gears . . .
+56 / 88
+we may assume that the hidden variables are distributed
+according to “some” q
+
+Z
+
+and consider the log-likelihood
+L
+
+θ
+
+= logX
+Z
+p
+
+D, Z
+
+ θ
+
+= logX
+Z
+q
+
+Z
+
+q
+
+Z
+ p
+
+D, Z
+
+ θ
+
+= logX
+Z
+q
+
+Z
+ p
+
+D, Z
+
+ θ
+
+p
+
+Z
+
+using Jensen’s inequality ⩾
+X
+Z
+q
+
+Z
+
+log
+p
+
+D, Z
+
+ θ
+
+q
+
+Z
+
+57 / 88
+ELBO
+the expression
+J
+
+q, θ
+
+=
+X
+Z
+q
+
+Z
+
+log
+p
+
+D, Z
+
+ θ
+
+q
+
+Z
+
+is called evidence lower bound (ELBO)
+this ELBO is, in fact, an expectation
+J
+
+q, θ
+
+= Eq(Z)
+"
+log
+p
+
+D, Z
+
+ θ
+
+q
+
+Z
+
+#
+58 / 88
+observe
+we want to estimate model parameters θ which maximize L
+
+θ
+
+we just found a lower bound J
+
+q, θ
+
+⩽ L
+
+θ
+
+for this log-likelihood
+⇔ if we maximize the ELBO J
+
+q, θ
+
+, we automatically maximize L
+
+θ
+
+59 / 88
+observe
+the inequality
+J
+
+q, θ
+
+⩽ L
+
+θ
+
+holds for any valid distribution q
+
+Z
+
+and we did not specify it yet
+so, which q
+
+Z
+
+could we choose to make the lower bound tight ?
+and what we really want to estimate are the parameters θ, right ?
+here is an idea . . .
+60 / 88
+iterative alternating algorithm
+t ← 0
+guess θt
+repeat
+maximize J
+
+q, θt
+
+w.r.t. q
+qt = argmax
+q
+J
+
+q, θt
+
+maximize J
+
+qt
+, θ
+
+w.r.t. θ
+θt+1 = argmax
+θ
+J
+
+qt
+, θ
+
+t ← t + 1
+until
+
+θt − θt−1
+
+ ⩽ ϵ
+61 / 88
+observe
+the above procedure resembles Lloyd’s algorithm for k-means !
+question
+but q is a distribution . . . how do we maximize w.r.t. a distribution ?
+answer
+well . . .
+62 / 88
+we can rewrite the ELBO as
+J
+
+q, θ
+
+= Eq(Z)
+"
+log
+p
+
+D, Z
+
+ θ
+
+q
+
+Z
+
+#
+= Eq(Z)
+"
+log
+p
+
+Z
+
+ D, θ
+
+p
+
+D
+
+ θ
+
+q
+
+Z
+
+#
+= Eq(Z)
+"
+log p
+
+D
+
+ θ
+
++ log
+p
+
+Z
+
+ D, θ
+
+q
+
+Z
+
+#
+= Eq(Z)
+"
+log p
+
+D
+
+ θ
+
+− log
+q
+
+Z
+
+p
+
+Z
+
+ D, θ
+
+#
+= log p
+
+D
+
+ θ
+
+− Eq(Z)
+"
+log
+q
+
+Z
+
+p
+
+Z
+
+ D, θ
+
+#
+= L
+
+θ
+
+− DKL
+q
+
+Z
+
+∥ p
+
+Z
+
+ D, θ
+
+
+63 / 88
+Kullback-Leibler divergence
+the quantity
+DKL
+q
+
+Z
+
+∥ p
+
+Z
+
+ D, θ
+
+
+is a Kullback-Leibler divergence
+for KL-divergences, we always have
+DKL
+q ∥ p
+
+⩾ 0
+DKL
+q ∥ p
+
+= 0 ⇔ q = p
+64 / 88
+⇒ choosing
+q
+
+Z
+
+= p
+
+Z
+
+ D, θ
+
+(4)
+we obtain
+J
+
+q, θ
+
+= L
+
+θ
+
+− DKL
+p
+
+Z
+
+ D, θ
+
+∥ p
+
+Z
+
+ D, θ
+
+
+| {z }
+=0
+⇔ using (4), we have
+J
+
+q, θ
+
+= L
+
+θ
+
+⇔ using (4), the lower bound J
+
+q, θ
+
+⩽ L
+
+θ
+
+becomes tight
+65 / 88
+we can also rewrite the ELBO as
+J
+
+q, θ
+
+= Eq(Z)
+"
+log
+p
+
+D, Z
+
+ θ
+
+q
+
+Z
+
+#
+= Eq(Z)
+h
+log p
+
+D, Z
+
+ θ
+
+− log q
+
+Z
+
+i
+= Eq(Z)
+h
+log p
+
+D, Z
+
+ θ
+
+i
+− Eq(Z)
+h
+log q
+
+Z
+
+i
+= Eq(Z)
+h
+log p
+
+D, Z
+
+ θ
+
+i
+− H
+
+q
+
+where the (information) entropy H
+
+q
+
+is independent of the model parameters θ
+66 / 88
+if we plug our choice q
+
+Z
+
+= p
+
+Z
+
+ D, θ
+
+into the above, we obtain
+J
+
+q, θ
+
+= Ep(Z|D,θ)
+h
+log p
+
+D, Z
+
+ θ
+
+i
++ cnst
+people also like to write the first term on the right as
+Q
+
+θ
+
+ θt
+
+= Ep(Z|D,θt)
+h
+log p
+
+D, Z
+
+ θ
+
+i
+=
+X
+Z
+p
+
+Z
+
+ D, θt
+
+log p
+
+D, Z
+
+ θ
+
+with the understanding that θt denotes our current guess of the parameters θ
+67 / 88
+expectation
+the expression
+Q
+
+θ
+
+ θt
+
+= Ep(Z|D,θt)
+h
+log p
+
+D, Z
+
+ θ
+
+i
+=
+X
+Z
+p
+
+Z
+
+ D, θt
+
+log p
+
+D, Z
+
+ θ
+
+(E)
+is the expected value of the complete log-likelihood L
+
+θ
+
+ D, Z
+
+w.r.t. the current
+conditional distribution of Z given the data D and the current estimates θt of the
+sought after model parameters
+68 / 88
+maximization
+we can use it to update our current guess of the model parameters
+θt+1 = argmax
+θ
+Q
+
+θ
+
+ θt
+
+(M)
+all in all, this leads to the . . .
+69 / 88
+EM algorithm
+t ← 0
+guess θt
+repeat
+E-step: compute
+Q
+
+θ
+
+ θt
+
+= Ep(Z|D,θt)
+h
+log p
+
+D, Z
+
+ θ
+
+i
+M-step: compute
+θt+1 = argmax
+θ
+Q
+
+θ
+
+ θt
+
+t ← t + 1
+until
+
+θt − θt−1
+
+ ⩽ ϵ
+now we need to tie this back to GMMs
+70 / 88
+towards EM for GMMs
+we have the complete likelihood
+L
+
+θ
+
+ D, Z
+
+= p
+
+D, Z
+
+ θ
+
+=
+Yn
+j=1
+Y
+k
+i=1
+h
+wi N
+
+xj
+
+ µi
+, Σi
+
+izij
+and thus the complete log-likelihood
+L
+
+θ
+
+ D, Z
+
+= log p
+
+D, Z
+
+ θ
+
+=
+Xn
+j=1
+X
+k
+i=1
+zijh
+log wi + log N
+
+xj
+
+ µi
+, Σi
+
+i
+71 / 88
+⇒ we have the expectation
+Ep(Z|D,θ)
+h
+log p
+
+D, Z
+
+ θ
+
+i
+= Ep(Z|D,θ)
+
+
+Xn
+j=1
+X
+k
+i=1
+zijh
+log wi + log N
+
+xj
+
+ µi
+, Σi
+
+i
+
+
+=
+Xn
+j=1
+X
+k
+i=1
+Ep(Z|D,θ)
+h
+ziji hlog wi + log N
+
+xj
+
+ µi
+, Σi
+
+i
+moreover, since zij ∈ {0, 1}, we simply have
+Ep(Z|D,θ)
+h
+ziji
+= 0 · p
+
+zij = 0
+
+ xj
+, θi
+
++ 1 · p
+
+zij = 1
+
+ xj
+, θi
+
+= p
+
+zij = 1
+
+ xj
+, θi
+
+72 / 88
+we further have
+p
+
+zij = 1
+
+ xj
+, θi
+
+=
+p
+
+zij = 1, xj
+
+ θi
+
+p
+
+xj
+
+ θi
+ =
+wi N
+
+xj
+
+ µi
+, Σi
+
+P
+k
+l=1
+wl N
+
+xj
+
+ µl
+, Σl
+
+≡ ζij
+⇒ for a GMM, we have
+Ep(Z|D,θ)
+h
+log p
+
+D, Z
+
+ θ
+
+i
+=
+Xn
+j=1
+X
+k
+i=1
+ζij h
+log wi + log N
+
+xj
+
+ µi
+, Σi
+
+i
+73 / 88
+EM for GMMs
+for i = 1, . . . , k
+guess wi
+, µi
+, Σi
+repeat
+for i = 1, . . . , k // E-step
+for j = 1, . . . , n
+ζij =
+wi N
+
+xj
+
+ µi
+, Σi
+
+Pk
+l=1
+wl N
+
+xj
+
+ µl
+, Σl
+
+for i = 1, . . . , k // M-step
+w
+new
+i
+, µ
+new
+i
+, Σnew
+i = argmax
+wi
+,µi
+,Σi
+X
+i
+X
+j
+ζij h
+log wi + log N
+
+xj
+
+ µi
+, Σi
+
+i
+until convergence
+74 / 88
+note
+we know from earlier lectures that there exist closed form MLEs for the wi
+, µi
+, Σi
+namely . . .
+75 / 88
+to determine the optimal µl
+, we consider
+∂
+∂µl
+X
+i
+X
+j
+h
+ζij log N
+
+xj
+
+ µi
+, Σi
+
++ ζij log wi
+i
+=
+∂
+∂µl
+X
+j
+ζlj log N
+
+xj
+
+ µl
+, Σl
+
+=
+∂
+∂µl
+X
+j
+ζlj log e
+− 1
+2
+[xj−µl
+]
+⊺Σ−1
+l
+[xj−µl
+]
+p
+(2π)
+m det Σl
+| {z }
+=γl
+=
+∂
+∂µl
+X
+j
+−ζlj
+1
+2
+
+xj − µl
+⊺Σ−1
+l
+
+xj − µl
+
+− ζlj log γl
+=
+∂
+∂µl
+X
+j
+−ζlj
+1
+2
+
+xj − µl
+⊺Σ−1
+l
+
+xj − µl
+
+=
+X
+j
+ζljh
+Σ−1
+l
+xj − Σ−1
+l µl
+i
+= Σ−1
+l
+X
+j
+ζljh
+xj − µl
+i
+76 / 88
+equating this to 0 and solving for µl
+, yields
+µl =
+P
+j
+ζlj xj
+P
+j
+ζlj
+similarly, we find for the covariance matrix Σl
+Σl =
+P
+j
+ζlj
+xj − µl
+xj − µl
+⊺
+P
+j
+ζlj
+77 / 88
+when updating the mixture coefficients wl
+, we must pay
+attention to the constraint
+X
+i
+wi = 1
+we thus introduce a Lagrange parameter λ and consider
+∂
+∂wl
+"X
+i
+X
+j
+h
+ζij log N
+
+xj
+
+ µi
+, Σi
+
++ ζij log wi
+i
++ λ
+X
+i
+wi − 1
+
+#
+78 / 88
+we find
+∂
+∂wl
+
+
+X
+i
+X
+j
+h
+ζij log N
+
+xj
+
+ µi
+, Σi
+
++ ζij log wi
+i
++ λ
+X
+i
+wi − 1
+
+
+ =
+X
+j
+ζlj
+wl
++ λ
+equating to 0 and solving for wl yields
+wl =
+P
+j
+ζlj
+−λ
+plugging this into the constraint yields
+X
+i
+wi = −
+1
+λ
+X
+i
+X
+j
+ζij = 1 ⇔ −λ =
+X
+i
+X
+j
+ζij
+79 / 88
+⇒ the updated mixture weights are
+wl =
+P
+j
+ζlj
+P
+i
+P
+j
+ζij
+=
+P
+j
+ζlj
+n
+just to be clear
+X
+i
+X
+j
+ζij =
+X
+j
+X
+i
+p
+
+zij = 1
+
+ xj
+,θi
+
+=
+X
+j
+1
+= n
+80 / 88
+examples
+next, we look at the practical behavior of EM for GMM fitting
+in the first two experiments, we set k = 3 and observe that
+the EM procedure may work really well if k coincides with the number of components
+actually present in the data
+alas, good results can not be guaranteed; rather the behavior of the algorithm depends
+on the initial guesses for the parameters to be estimated; EM might get stuck in a local
+optimum and not find the overall best solution
+in the third experiment, we set k = 7 and thus try to fit more
+components than the data contains; we observe that
+EM happily fits whatever model we ask it to fit; whether or not the model makes sense
+cannot be decided by the algorithm
+81 / 88
+experiment 1, k = 3
+good initialization leads to good results
+t = 0 t = 1 t = 2 t = 3 t = 4 t = 5
+82 / 88
+experiment 2, k = 3
+bad initialization leads to bad results
+t = 0 t = 1 t = 2 t = 3 t = 4 t = 5
+83 / 88
+experiment 3, k = 7
+EM will fit any model, appropriate or not
+t = 0 t = 1 t = 2 t = 3 t = 4 t = 5
+84 / 88
+note
+the EM algorithm
+is an incredibly important tool
++ is guaranteed to converge
++ tends to work well in practice
++ works with many distributions (not just with Gaussians)
++ woks with MAP estimators, too (not just with MLEs)
+− may not find the global maximum / optimal parameters
+− is generally rather slow
+85 / 88
+summary
+86 / 88
+we now know about
+k-means clustering
+the fact that it implicitly fits a GMM and is
+therefore tailored to locally Gaussian data
+the fact that it is a difficult problem (NP-hard)
+whose optimal solution cannot be guaranteed
+the fact that there exist several k-means heuristics
+Lloyd’s algorithm
+Hartigan’s algorithm
+MacQueen’s algorithm
+87 / 88
+we now know about
+Gaussian mixture models (GMMs)
+the expectation maximization (EM) algorithm
+the ELBO and its pivotal role in the EM algorithm
+note: the ELBO occurs in other ML settings, too
+88 / 88

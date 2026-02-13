@@ -1,0 +1,248 @@
+University of Luebeck
+Institute for Robotics and Cognitive Systems
+Prof. Dr. Elmar Rueckert
+Probabilistic Machine Learning (RO5601)
+February 17th, 2020
+Name Matriculation Signature number : : . . . . . . . . . . . . . . . . . . . . . . . . . .
+. . . . . . . . . . . . . . . . . . . . . . . . . .
+: . . . . . . . . . . . . . . . . . . . . . . . . . .
+Question Points Score
+1 25
+2 25
+3 25
+4 25
+Total: 100
+1 General Comments (read them carefully)
+•Check at first if you got all pages of the exam. The exam includes a cover page and
+printouts with the page numbers ranging to 15.
+•Start by filling out the cover page.
+•Your answers and results need to be placed right after the questions part. If you
+need more space, leave a solid dot or star symbol and ask for an additional sheet.
+•List all assumptions if you make any to get to your result.
+•Your answers should be short and concise. Keyword style is also allowed.
+•All aids with the exception of electronic devices are permitted.
+•Non-programmable calculators are allowed.
+•Question are marked indicating the complexity, i.e., easy (•), medium (••) and
+hard (•••).
+•The processing time for the exam is 90 minutes.
+Good luck!
+1
+Figure 1: Gaussian Distributions
+Introduction to Probability Theory
+1. (25 Points)
+(a)•(3 Points)
+Please allocate the probability density functions to the correct set of parameters
+by writing the correct letter into the boxes below.
+Gaussian Distribution:
+N(x|µ,σ) := 1
+(2πσ2)1/2 exp{− 1
+2σ2 (x−µ)2}
+.
+µ 3 3 4 -1 -0.5 -0.5
+σ 0.8 0.4 0.7 0.3 0.7 0.5
+Function Letter
+2
+(b)•(4 Points)
+Below is a Venn Diagram depicted which shows the sport preferences (A: Soccer,
+B: Baseball) of 50 children. Please determine p(A∩B), p(A∪B), p(A) and p(B).
+Hint: A child can like both, soccer and baseball.
+Figure 2: Gaussian Distributions
+(c)••(9 Points)
+Imagine you are going to a blood donation. For security reasons a blood probe
+for every participant is checked for Hepatitis B. The control of your probe using
+a standard Hepatitis B test gives back a positive result.
+A standard Hepatitis B test is 99.7% sensitive and 99.5% specific. Thus it gives
+back a positive result with a probability of 99.7% for infected persons and a
+negative result with a probability of 99.5% for non-infected persons. About
+0.2% of the German population is infected by Hepatitis B. State the Bayes’
+Theorem and name all parts (Likelihood, posterior, prior) properly! Give an
+example why the Bayes’ Theorem is useful for robotic applications! Calculate
+the probability that you are really infected with Hepatitis B using the Bayes’
+Theorem!
+3
+4
+(d)•••(9 Points)
+You are in a casino and observe a player who always bets on the number 13 by
+Roulette. In 5 games he won 3 times. You suspect that the player cheats. Please
+use the Bayesian View to either verify or disprove your suspicion. We thereby
+assume the prior probability density distribution to be uniformly distributed
+over the interval [0,1]. As trust interval we use [0,
+2
+37 ].
+Hint: The probability of winning by betting on the number 13 is p13 =
+1
+37.
+5
+Linear Probabilistic Regression
+2. (25 Points)
+(a)••(5 Points)
+Given are the scalar a, the vectors g∈Rn
+, µ∈RM and the matrix K ∈Rn×M
+.
+Compute the derivative of the term
+δ
+δµ(µTKTg+ a)
+(b)••(5 Points)
+Given is a linear system of the form
+Kµ= g.
+Derive the solution for µ= ... List also intermediate steps.
+6
+(c)•(4 Points)
+Given is again the linear system of the form Kµ= g.
+Write down the ridge regression result for µ= ...
+Explain in 1-2 sentences why ridge regression is useful here.
+(d)•(3 Points)
+Illustrate overfitting, underfitting and the optimal fit based on the examples in
+Figure 3. Mark the prediction y∗by adding a circle or cross to the three panels.
+Figure 3: Illustration of a one dimensional temperature data set. Here, y= f(x).
+7
+(e)•••(8 Points)
+Compute the derivative of δ
+δa {log N(x|Aa,λI)}. List intermediate steps.
+8
+Nonlinear Probabilistic Regression
+3. (25 Points)
+(a)•(6 Points)
+Below you find a sketch of a Gaussian Process estimating the amount of oil
+(y= y(x)) based on the measured values marked by a dot. The aim was to
+estimate the amount of oil for all positions xby drawing the mean (dotted line)
+and the variance (solid lines). Also, the next drilling point for searching for a
+maximum should be drawn. However, some mistakes have crept in. Please mark
+the mistakes in the sketch (do not use red) and shortly explain each mistake in
+the box below.
+Figure 4: Oil Drilling GP Sketch
+9
+(b)••(10 Points)
+Mark the correct statements about GPs and GPs with built-in GMRFs. Note
+you can get +1 point for a correct answer and−1 point for a wrong choice. The
+minimum is zero points.
+⃝The computational time of GPs is always less than the computational
+time of GPs with built-in GMRFs
+⃝GPs require a definition of a regular grid, the so called generating
+points
+⃝The covariance matrix K used for GPs has to be positive definite
+⃝GPs are linear regression models which can be used for modeling the
+dynamics of robotics systems
+⃝Let xi,yi for i = 1,...,n the training data for the GPs, then Kij=
+kernel(xi,xj) defines a required covariance matrix if kernel is a valid
+kernel function
+⃝The hyper-parameters for GPs with built-in GMRFs can be learned
+using the Log-Likelihood method
+⃝The covariance matrix Kfor GPs has to be strictly diagonal dominant
+with Kii >0, ∀i.
+⃝GPs with built-in GMRFs have the computational complexity of O(NM2),
+where M is the number of generating points and N the number of mea-
+surements
+⃝Gaussian processes are stochastic processes
+⃝GPs have the computational complexity of O(N4), where N is the
+number of measurements
+10
+||x1−x2||2
+2 ,
+||x1−x2||2
+20 ,
+(c)••(4 Points)
+We computed for x∈[0,5] the covariance function of a Gaussian Process using
+the four diﬀerent Kernels:
+k1(x1,x2) = exp−
+k2(x1,x2) = 10·exp−
+k3(x1,x2) = x⊤
+1 x2 + 2 ,
+k4(x1,x2) = exp (−|x1−x2|),
+We then sampled a set of 10 diﬀerent latent functions f according to the Gaus-
+sian process prior:
+f ∼N(0,K),
+for all four diﬀerent Kernel/Covariance Matrices and plotted them. Please al-
+locate the kernel functions to the correct plots by writing k1,...,k4 above the
+plots.
+2
+5
+2
+5
+0
+0
+0
+0
+-5
+-2
+-2
+-5
+0 5
+0 5
+0 5
+0 5
+Figure 5: Kernel Function Plots
+(d)••(5 Points)
+For GPs with built-in GMRFs we proofed that the precision Qij = 0 if i,j are
+not neighbored vertices. Write down the complete precision matrix for a CAR(1)
+model on a regular 3 ×2 lattice. Therefore, first sketch the regular lattice and
+number the vertices.
+Hint: The q-patterns for a CAR(1) model are given below:
+General q-pattern:
+−1 4 + κ2
+q=  0−1 0
+−1
+0−1 0
+ .
+11
+Boundary q-pattern:
+Corner q-pattern:
+3 + κ2
+qedge=  −1 0
+−1
+−1 0
+ ,
+qcorner =
+2 + κ2
+−1
+−1 0.
+12
+Probabilistic Inference
+4. (25 Points)
+(a)••(8 Points)
+Mark the correct statements about probabilistic time series models (PTSM).
+Note you can get +1 point for a correct answer and−1 point for a wrong choice.
+The minimum is zero points.
+⃝A coupled PTSM is a model where all parameters are known
+⃝A coupled PTSM encodes the correlation between individual dimen-
+sions or joints
+⃝Radial basis functions cannot be used to approximate any non-linear
+function
+⃝Radial basis functions in PTSMs model the movement phase
+⃝The bandwidth h parameter in radial basis functions defines the sup-
+port or width of the Gaussians
+⃝The integral over the product of the two dependent Gaussian distribu-
+tions, i.e., N(x|Sy,σ2) N(y|µ,Σ) dy, cannot be solved analytically
+⃝If the number of basis functions in PTSMs is increased, the model
+complexity increases
+⃝PTSMs can be used to predict unobserved dimensions from exploiting
+the correlation of multi-dimensional systems
+(b)••(6 Points)
+Given is a probabilistic trajectory model represented by the parameter vector
+θ. The distribution over trajectories τ is defined as
+p(τ) = p(τ|θ)p(θ) dθ. (9)
+Show that the model in Equation 9 can be derived by using the definition of the
+joint distribution over p(τ,θ) and by applying the Marginal rule. Clearly mark
+when the these rules are used in your derivations.
+13
+(c)•••(8 Points)
+Now use the Gaussian distributions for p(τ|θ) = N(τ|Aw,σ2
+yI) and p(θ) =
+N(θ|µw|y,Σw|y) and derive the analytic solution for p(τ).
+Solve the integral using the Gaussian identity
+N(x|a+ Fy,A)N(y|b,B)dy= N(x|a+ Fb,A+ FBFT).
+Derive the solution for p(τ) and list intermediate steps.
+14
+(d)•(2 Points)
+Given are the trajectories of right wrist motions of human subjects. In Figure 6
+the y-coordinate of the trajectories are shown.
+Sketch how the learned trajectory distribution in Equation 9 would model the
+data. (1) First, illustrate the mean estimate by a solid line. (2) Second, mark
+the model standard deviation by drawing error bars or by drawing a shaded
+region.
+Figure 6: Illustration of y-coordinates of right wrist motions of human subjects.
+(e)•(1 Point)
+Sketch a trajectory prediction with high observation noise (σo = 1). Given are
+the three observations marked by red crosses in Figure 6. Hint: adding a line
+denoting the prediction is suﬃcient.
+15

@@ -1,0 +1,1879 @@
+Principles of Machine Learning
+Prof. Christian Bauckhage
+1 / 71
+lecture 07
+Gaussian process regression
+in this lecture, we study Gaussian processes and
+their application in Gaussian process regression
+these are popular tools among ML practitioners
+along the way, we’ll have our first encounter with the kernel trick
+to get it out of the way, we note that the name Gaussian process reflects the fact
+that the technique was originally developed for the analysis of time series data . . .
+2 / 71
+outline
+recap
+Gaussian process regression
+building a GP model
+training a GP model
+predicting with a GP
+summary
+3 / 71
+recap
+4 / 71
+uni-variate linear regression
+given a training data sample D = 
+xj, yjnj=1
+assume a noisy linear model yj = φ⊺j w + ϵj
+estimate optimal parameters wˆ = argmin w Φ⊺w − y2 =
+ΦΦ
+⊺
+
+−
+1
+Φ
+y
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+5 / 71
+uni-variate linear regression
+finally, for any x, predict
+y = f
+
+x
+
+ wˆ
+
+= φ
+⊺
+x wˆ
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+6 / 71
+maximum likelihood regression
+assuming
+ϵj ∼ N
+0, σ
+2
+
+µj = φ
+⊺
+j w
+we may also think probabilistically
+yj ∼ p
+
+yj
+
+ µj
+, σ
+2
+
+= N
+
+φ
+⊺
+j w, σ
+2
+
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+7 / 71
+for i.i.d. data, likelihood and log-likelihood of w are
+L
+
+w
+
+ D
+
+=
+Yn
+j=1
+N
+
+φ
+⊺
+j w, σ
+2
+
+=
+Yn
+j=1
+1
+√
+2 π σ2
+exp 
+−
+1
+2 σ2
+
+φ
+⊺
+j w − yj
+2
+
+L
+
+w
+
+ D
+
+= −n log √
+2 π σ2 −
+1
+2 σ2
+Xn
+j=1
+
+φ
+⊺
+j w − yj
+2
+= −n log √
+2 π σ2 −
+1
+2 σ2
+
+Φ⊺w − y
+
+
+2
+8 / 71
+since maximizing L(w) is minimizing −L(w), we have
+wML = argmin
+w
+n log √
+2 π σ2 +
+1
+2 σ2
+
+Φ⊺w − y
+
+
+2
+= argmin
+w
+
+Φ⊺w − y
+
+
+2
+=
+ΦΦ⊺
+−1Φy
+once we have estimated wML, we can also estimate
+σ
+2
+ML = argmin
+σ2
+n log √
+2 π σ2 +
+1
+2 σ2
+
+Φ⊺wML − y
+
+
+2
+=
+1
+n
+
+Φ⊺wML − y
+
+
+2
+9 / 71
+once we have fitted our model
+y ∼ N
+φ⊺
+x wML, σ
+2
+ML
+we can compute the most likely y for any x
+E
+
+y
+
+ x
+
+=
++Z∞
+−∞
+y · q 1
+2 π σ2
+ML
+exp "
+−
+
+y − φ
+⊺
+x wML2
+2 σ2
+ML #
+dy
+.
+.
+.
+= f
+
+x
+
+ wML
+10 / 71
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+E
+
+y
+
+ x
+
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+95% confidence interval
+11 / 71
+Bayesian regression
+assuming a model yj ∼ Nφ⊺j w, σ
+2
+
+with a Gaussian prior w ∼ N µ0, Σ0
+we can estimate the posterior pw  D ∝ pD  w pw
+and thus the posterior predictive p y  x, D = Z p y  x, w pw  D
+
+d
+w
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+12 / 71
+for the general case where
+µ0 arbitrary valid choice
+Σ0 arbitrary valid choice
+we find
+p
+
+w
+
+ D
+
+= N
+
+µn, Σn
+
+Σn =
+h
+1
+σ2 ΦΦ⊺ + Σ−1
+0
+i−1
+µn = Σn
+h
+Σ−1
+0 µ0 + 1
+σ2 Φy
+i
+and thus
+wMAP = argmax
+w
+N
+
+w
+
+ µn, Σn
+
+= Σn
+h
+Σ−1
+0 µ0 + 1
+σ2 Φy
+i
+⇒ for the special case where
+µ0 = 0
+Σ0 = σ
+2
+0
+I
+we find
+p
+
+w
+
+ D
+
+= N
+
+µn, Σn
+
+Σn =
+h
+1
+σ2 ΦΦ⊺ + 1
+σ2
+0
+I
+i−1
+µn = 1
+σ2 Σn Φy
+and thus
+wMAP = argmax
+w
+N
+
+w
+
+ µn, Σn
+
+=
+h
+ΦΦ⊺ + σ2
+σ2
+0
+I
+i−1
+Φy
+13 / 71
+⇒ for the special case with µ0 = 0 and Σ0 = σ2
+0
+I further computations yield
+p
+
+y
+
+ x, D
+
+=
+Z
+p
+
+y
+
+ x, D, w
+
+p
+
+w
+
+ x, D
+
+dw =
+Z
+p
+
+y
+
+ x, w
+
+p
+
+w
+
+ D
+
+dw
+=
+Z
+N
+
+y
+
+ φ⊺
+x w, σ
+2
+
+· N
+
+w
+
+ µn, Σn
+
+dw
+.
+.
+.
+= N
+
+µx, σ
+2
+x
+
+where
+µx = φ⊺
+x µn
+σ
+2
+x = σ
+2 + φ⊺
+x Σnφx
+so that
+E
+
+y
+
+ x
+
+= µx
+14 / 71
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+E
+
+y
+
+ x
+
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+95% confidence interval
+15 / 71
+Gaussian process regression
+16 / 71
+uni-variate regression
+given a training data sample D = 
+xj, yjnj=1
+find a smooth function
+f with
+f
+:
+R
+→
+R
+f
+
+xj
+
+=
+yj
+−
+ϵj
+which maximizes the posterior p f  D = pD  f  p f  pD
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+17 / 71
+so far, we tackled this problem as follows
+we assumed a model family of parameterized functions
+f
+
+x
+
+ w
+
+and estimated optimal parameters wˆ e.g. by maximizing
+p
+
+w
+
+ D
+
+=
+p
+
+D
+
+ w
+
+p
+
+w
+
+p
+
+D
+
+in what follows, we will assume a rather different point of view . . .
+18 / 71
+note
+we still work with (implicit) families of functions but . . .
+we will now consider distributions over functions
+instead of distributions over function parameters
+to ease into this idea, we revisit
+Bayesian linear regression . . .
+19 / 71
+building a GP model
+20 / 71
+to prepare our discussion, we recall Bayesian linear regression
+for training data D =
+
+
+xj
+, yj
+n
+j=1
+we assumed a model
+yj = f
+
+xj
+
+ w
+
++ ϵj = φ
+⊺
+j w + N
+
+0, σ
+2
+
+whose parameter w was a random vector distributed as
+w ∼ N
+0, σ
+2
+0
+I
+
+next, we will not optimize w but keep it generic or unspecific
+⇔ all we work with in the following is the fact that w ∼ N
+0, σ
+2
+0
+I
+
+21 / 71
+we henceforth write our (unspecific) model’s prediction for a training input xj as
+f
+
+xj
+
+ w
+
+= φ
+⊺
+j w ≡ ˜yj
+and emphasize that model predictions ˜yj and training targets yj will generally differ
+applying our model to all training inputs, we can gather its predictions in an R
+n vector
+˜y = Φ⊺w
+22 / 71
+note
+regarding
+˜y = Φ⊺w
+we observe
+1) since w is a Gaussian random vector, so is ˜y
+2) since ˜y is Gaussian, it is fully characterized by its expectation and covariance
+note: 1) holds since ˜y is an affinely transformed version of w
+2) holds since all higher order statistical moments of a
+Gaussian random variable vanish
+23 / 71
+note
+for the expectation of ˜y, we have
+E
+
+˜y
+
+= E
+
+Φ⊺w
+
+= Φ⊺E
+
+w
+
+= 0
+for the covariance of ˜y, we have
+cov
+˜y, ˜y
+
+= E
+
+˜y˜y
+⊺
+
+− 0 0⊺ = E
+
+Φ⊺ww⊺Φ
+
+= Φ⊺E
+
+ww⊺
+
+Φ = σ
+2
+0 Φ⊺Φ
+note: observe the implications
+w ∼ N
+0, σ
+2
+0
+I
+ ⇒ E[w] = 0
+w ∼ N
+0, σ
+2
+0
+I
+ ⇒ E[ww⊺
+] = σ
+2
+0
+I
+24 / 71
+note
+⇒ the prediction vector ˜y is distributed according to this normal distribution
+˜y ∼ N
+0, σ
+2
+0 Φ⊺Φ
+
+t/ 71
+note
+⇒ the prediction vector ˜y is distributed according to this normal distribution
+˜y ∼ N
+0, σ
+2
+0 Φ⊺Φ
+
+the covariance matrix σ
+2
+0 Φ⊺Φ of this distribution is a Gram matrix, since
+
+Φ⊺Φ
+
+ij = φ
+⊺
+i φj
+⇒ w/ 71
+note
+⇒ the prediction vector ˜y is distributed according to this normal distribution
+˜y ∼ N
+0, σ
+2
+0 Φ⊺Φ
+
+the covariance matrix σ
+2
+0 Φ⊺Φ of this distribution is a Gram matrix, since
+
+Φ⊺Φ
+
+ij = φ
+⊺
+i φj
+⇒ we may invoke the kernel trick and replace σ
+2
+0 Φ⊺Φ by a kernel matrix K
+25 / 71
+kernel matrix
+given a data set D =
+
+xj
+	n
+j=1 ⊂ R
+m with m ⩾ 1,
+a kernel matrix K is an n × n matrix such that
+
+K
+
+ij = k
+
+xi
+, xj
+
+where k : R
+m × R
+m → R is a Mercer kernel
+26 / 71
+Mercer kernel
+a Mercer kernel is a positive semidefinite function
+k : R
+m × R
+m → R
+for which there exists φ : R
+m → R
+M such that
+k
+
+u, v
+
+= φ
+⊺
+uφv = φ
+⊺
+v φu = k
+
+v, u
+
+27 / 71
+in plain English (and without all the dirty details)
+a Mercer kernel is any symmetric function of two vectors u, v ∈ R
+m
+which is also an inner product of two (feature) vectors φu, φv ∈ R
+M
+(where typically M ≫ m)
+28 / 71
+disclaimer
+later in this course, we will study the kernel trick and Mercer kernels in detail
+for now, we simply accept them as tools of great utility in machine learning . . .
+back to our main discussion . . .
+29 / 71
+⇒ prediction vector ˜y follows a normal distribution
+˜y ∼ N
+0, K
+
+where the entries of kernel matrix K amount to
+
+K
+
+ij = k
+
+xi
+, xj
+
+= σ0 φ
+⊺
+i φj σ0
+obse 71
+note
+⇒ prediction vector ˜y follows a normal distribution
+˜y ∼ N
+0, K
+
+where the entries of kernel matrix K amount to
+
+K
+
+ij = k
+
+xi
+, xj
+
+= σ0 φ
+⊺
+i φj σ0
+observe what happened here
+the model parameter w is gone
+instead, a kernel k(·, ·) has appeared
+30 / 71
+⇒ instead of sampling
+w ∼ N
+0, σ
+2
+0
+I
+
+to compute a prediction
+˜y = Φ⊺w
+we may now directly sample a prediction
+˜y ∼ N
+0, K
+
+the fact that the kernel matrix K of this simple Gaussian process
+results from evaluating a linear kernel k
+
+xi
+, xj
+
+= σ
+2
+0 φ
+⊺
+i φj
+is due
+to the fact that our derivation began with a linear model
+31 / 71
+we could have gone the other way around
+⇔ we could have posited that predictions are distributed as
+˜y ∼ N
+0, K
+
+where the covariance parameter is a linear kernel matrix
+working our way back, we would then have realized that
+the linear kernel assumption is the same as assuming a
+linear model . . .
+at this point, there are couple of open questions . . .
+32 / 71
+question
+what if we considered a different kind of kernel ?
+would that be the same as considering a different kind of model ?
+answer
+yes, we will see examples soon . . .
+33 / 71
+question
+OK, the model parameter w is gone, but how is
+˜y ∼ N
+0, K
+
+a distribution over functions ?
+answer
+well, technically it isn’t . . . but consider this . . .
+34 / 71
+a function f : R → R can be thought of as a vector in an infinite dimensional space
+⇔ f (x) is the “x-th entry” of vector f
+instead of a family of functions, we may think of an infinite dimensional random vector
+where different realizations of this vector correspond to different members of the family
+we may then assume that this random vector is normally distributed around the mean
+f0 : R → R where f0(x) = 0 for all x ∈ R
+the covariance matrix of an infinite dimensional random vector would itself be infinitely large
+instead of speaking of a matrix, we therefore speak of a covariance function
+cov
+f (x), f (x
+′
+)
+
+= E
+hf (x) − E
+
+f (x)
+
+f (x
+′
+) − E
+
+f (x
+′
+)
+
+i
+for certain families of functions, we may replace the covariance function by a kernel k
+
+x, x
+′
+
+following this train of thought, we may thus think of a function as coming from a distribution
+f ∼ N
+f0, k
+
+x, x
+′
+
+
+35 / 71
+technically, i.e. using computer programs, we can never produce a function by sampling from N
+
+f0, k
+
+x, x
+′
+
+because our computers cannot handle infinitely large (mathematical) objects, however . . .
+if we consider a finite sample of inputs {x1, x2, . . . , xn} ⊂ R, we may think of the finite dimensional vector
+
+
+
+
+
+˜y1
+˜y2
+.
+.
+.
+˜yn
+
+
+
+
+
+=
+
+
+
+
+
+f (x1)
+f (x2)
+.
+.
+.
+f (xn)
+
+
+
+
+
+as a finite dimensional projection of the infinite dimensional vector f
+moreover, we know that, if f is a normally distributed random vector, then so is every (finite) projection of f
+sampling
+˜y ∼ N
+0, K
+
+with
+K
+
+ij = k
+
+xi
+, xj
+
+is technically possible and we may think of the finite dimensional vector ˜y as a coarse
+approximation / representation of the infinite dimensional vector f
+36 / 71
+two more things
+the larger n, the better the approximation
+on a computer, we can also interpolate function values between given xj and xj+1
+so, let’s do it . . .
+37 / 71
+examples
+next, we look at examples obtained from working with
+linear kernels
+k
+
+xi
+, xj
+
+= α0 xi xj
+Gaussian kernels
+k
+
+xi
+, xj
+
+= α0 e
+− 1
+2 σ2
+0
+(xi−xj)
+2
+periodic kernels
+k
+
+xi
+, xj
+
+= α0 e
+− 1
+2 σ2
+0
+sin2
+
+2 π
+ν0
+|xi−xj|
+
+the parameters α0, σ2
+0
+, ν0 are called hyperparameters, more on this later . . .
+38 / 71
+the following slide shows
+1) plots of points
+xj
+, ˜yj
+
+where
+vector x ∈ R
+n gathers a set of inputs xj ∈ R
+vector ˜y ∈ R
+n was drawn from N
+
+0, K
+
+with
+0 ∈ R
+n
+K ∈ R
+n×n
+2) linear interpolations between the points
+xj
+, ˜yj
+
+39 / 71
+linear kernel, n = 9
+−5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0
+−10
+−5
+0
+5
+10
+points
+xj
+, ˜yj
+
+−5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0
+−10
+−5
+0
+5
+10
+(linear) interpolation
+Gaussian kernel, n = 55
+−5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0
+−4
+−2
+0
+2
+4
+points
+xj
+, ˜yj
+
+−5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0
+−4
+−2
+0
+2
+4
+(linear) interpolation
+periodic kernel, n = 55
+−5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0
+−2
+0
+2
+points
+xj
+, ˜yj
+
+−5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0
+−2
+0
+2
+(linear) interpolation
+40 / 71
+note
+⇒ sampling a (finite) Gaussian process yields a (discrete) function
+next, we illustrate the impact
+of different hyperparameters
+41 / 71
+linear kernel
+−5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0
+−10
+−5
+0
+5
+10
+α0 = 0.1
+−5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0
+−10
+−5
+0
+5
+10
+α0 = 3.0
+Gaussian kernel
+−5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0
+−10
+−5
+0
+5
+10
+α0 = 6, σ2
+0 = 4.00
+−5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0
+−10
+−5
+0
+5
+10
+α0 = 8, σ2
+0 = 0.25
+periodic kernel
+−5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0
+−4
+−2
+0
+2
+4
+α0 = 3, σ2
+0 = 1, ν0 = 10
+−5.0 −2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0
+−4
+−2
+0
+2
+4
+α0 = 2, σ2
+0 = 4, ν0 = 5
+there still are open questions . . .
+42 / 71
+training a GP model
+43 / 71
+question
+OK, we can sample certain functions, but
+they seem not to be related to our data ?
+answer
+so far, they aren’t . . .
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+44 / 71
+note
+we have data D =
+
+xj
+, yj
+	n
+j=1
+however, our Gaussian process
+˜y ∼ N
+0, K
+
+only involves information about the xj
+⇔ so far, we did not yet incorporate the yj
+⇒ to get to Gaussian process regression, we still have work to do . . .
+45 / 71
+if
+yj = ˜yj + ϵj = ˜yj + N
+
+0, σ
+2
+
+then
+y = ˜y + ϵ = ˜y + N
+
+0, σ
+2
+I
+
+⇔ we can assume the conditional probability for observing
+the true targets y given their predictions ˜y to be normally
+distributed
+p
+
+y
+
+ ˜y
+
+= N
+
+y
+
+ ˜y, σ
+2
+I
+
+46 / 71
+the joint probability for observing y and ˜y is given by
+p
+
+y, ˜y
+
+= p
+
+y
+
+ ˜y
+
+p
+
+˜y
+
+= N
+
+y
+
+ ˜y, σ
+2
+I
+
+N
+
+˜y
+
+ 0, K
+
+the marginal for observing y results from computing
+p
+
+y
+
+=
+Z
+p
+
+y
+
+ ˜y
+
+p
+
+˜y
+
+d˜y =
+Z
+N
+
+y
+
+ ˜y, σ
+2
+I
+
+N
+
+˜y
+
+ 0, K
+
+d˜y
+since we have seen such Gaussian product integrals before, we already know that . . .
+47 / 71
+note
+the marginal p
+
+y
+
+is yet another Gaussian
+p
+
+y
+
+= N
+
+0, K + σ
+2
+I
+
+⇒ we have another Gaussian process model
+y ∼ N
+0, K + σ
+2
+I
+
+48 / 71
+question
+OK, now we have modeled our given target vector as
+y ∼ N
+0, K + σ
+2
+I
+
+but how do we know that this model really fits our training data ?
+answer
+so far, it doesn’t . . .
+at this point, we first need to assume a reasonable kernel matrix K
+and then estimate good hyperparameters of the covariance matrix
+C = K + σ
+2
+I
+49 / 71
+a common kernel for (uni-variate) Gaussian process regression is
+k
+
+xi
+, xj
+
+= θ0 e
+− 1
+2 θ2
+1
+(xi−xj)
+2
++ θ2 xi xj
+if we also let θ3 = σ, we may think of the above covariance matrix
+as a parameterized matrix C(θ) where
+h
+C(θ)
+i
+ij
+= θ0 e
+− 1
+2 θ2
+1
+(xi−xj)
+2
++ θ2 xi xj + θ
+2
+3 δij
+(yet, for brevity, we henceforth still simply write C rather than C(θ))
+50 / 71
+for the hyperparameters θ =
+
+θ0 θ1 θ2 θ3
+⊺
+of our GP model,
+we then have the following log-likelihood
+L
+
+θ
+
+= log p
+
+y
+
+ θ
+
+= −
+1
+2
+log det
+C
+
+−
+1
+2
+y
+⊺C
+−1
+y + cnst
+⇒ we may, for instance, consider maximum likelihood estimation
+θML = argmax
+θ
+L
+
+θ
+
+in order to fit a GP model to our training data D =
+
+xj
+, yj
+	n
+j=1
+alas, this is easier said than done . . .
+51 / 71
+note
+there is no simple closed form solution for the maximizer θML of the likelihood L
+
+θ
+
+⇒ in order to estimate θML, we have to resort to techniques such as gradient ascent
+guess initial parameters θ0
+for t = 0, . . . , tmax
+θt+1 ← θt + ηt
+· ∇θt L
+also, we might need to enforce non-negativity of the parameters to be determined
+we’ll learn about constrained optimization in later lectures
+52 / 71
+note
+for our current model, the gradient ∇θL is rather easy to compute, because
+∂L
+∂θl
+= −
+1
+2
+tr
+C
+−1 ∂C
+∂θl
+
++
+1
+2
+y
+⊺C
+−1 ∂C
+∂θl
+C
+−1
+y
+however, the quality of the (constrained) optimization result we obtain from
+gradient ascent will crucially depend on the initial guess and on the chosen
+flavor of gradient algorithm . . .
+53 / 71
+question
+but what can we do with a trained kernel matrix C = K + σ
+2
+I ?
+answer
+we can draw samples
+y
+′ ∼ N
+0, K + σ
+2
+I
+
+in order to construct sets
+S =
+
+xj
+, y
+′
+j
+	n
+j=1
+which resemble our training data
+D =
+
+xj
+, yj
+	n
+j=1
+54 / 71
+examples
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+this may be of interest for (training) data augmentation in small data settings
+55 / 71
+question
+OK, but what we really want is to use the Gaussian process
+to predict an output y for a previously unseen input x, right ?
+answer
+right, so here we go . . .
+56 / 71
+predicting with a GP
+57 / 71
+note
+next, we write our given training in- and outputs as
+x =
+
+x1 x2 · · · xn
+⊺
+y =
+
+y1 y2 · · · yn
+⊺
+we will also consider previously unseen test inputs
+x
+∗ =
+
+x
+∗
+1
+x
+∗
+2
+· · · x
+∗
+N
+⊺
+for which to compute corresponding test outputs
+y
+∗ =
+
+y
+∗
+1
+y
+∗
+2
+· · · y
+∗
+N
+⊺
+58 / 71
+note
+following common convention, we rename our training kernel matrix to
+Kxx ∈ R
+n×n with
+Kxx
+ij = k
+
+xi
+, xj
+
+furthermore, we will consider three additional kernel matrices, namely
+Kx∗ ∈ R
+n×N with
+Kx∗
+
+iq = k
+
+xi
+, x
+∗
+q
+
+K∗x ∈ R
+N×n with
+K∗x
+
+pj = k
+
+x
+∗
+p
+, xj
+
+K∗∗ ∈ R
+N×N with
+K∗∗
+pq
+= k
+
+x
+∗
+p
+, x
+∗
+q
+
+59 / 71
+note
+here is the fundamental idea
+if
+y ∼ N
+0, Kxx + σ
+2
+I
+
+is an n-dimensional approximation of a model f(x) = y of our data . . .
+t0 / 71
+note
+here is the fundamental idea
+if
+y ∼ N
+0, Kxx + σ
+2
+I
+
+is an n-dimensional approximation of a model f(x) = y of our data . . .
+then
+
+y
+y
+∗
+
+∼ N 0
+0
+
+,
+
+Kxx + σ
+2
+I Kx∗
+K∗x K∗∗
+is an (n + N)-dimensional approximation of this unknown function !!!
+60 / 71
+note
+the Gaussian
+N
+0
+0
+
+,
+
+Kxx + σ
+2
+I Kx∗
+K∗x K∗∗
+is a model of the conditional joint distribution
+p
+
+y, y
+∗
+
+ x, x
+∗
+
+of the known training- and unknown test outputs
+conditioned on the respective training- and test inputs
+61 / 71
+⇒ so far, we have a model
+p
+
+y, y
+∗
+
+ x, x
+∗
+
+for the joint probability of y and y
+∗ given x and x
+∗
+but what we really need for predictions is a model
+p
+
+y
+∗
+
+ x, x
+∗
+, y
+
+for the conditional probability of y
+∗ given x, x
+∗
+, and y
+since we are working with Gaussians, this is “easy” to come by . . .
+62 / 71
+note
+going through the necessary motions, we find
+y
+∗ ∼ N
+µ
+∗
+, Σ
+∗
+
+where
+µ
+∗ = K∗x
+
+Kxx + σ
+2
+I
+−1
+y
+Σ
+∗ = K∗∗ − K∗x
+
+Kxx + σ
+2
+I
+−1
+Kx∗
+63 / 71
+note
+Gaussian process regression predicts
+p
+
+y
+∗
+
+ x, x
+∗
+, y
+
+= N
+
+µ
+∗
+, Σ
+∗
+
+with mean vector
+µ
+∗ = K∗x
+
+Kxx + σ
+2
+I
+−1
+y
+and covariance matrix
+Σ
+∗ = K∗∗ − K∗x
+
+Kxx + σ
+2
+I
+−1
+Kx∗
+64 / 71
+note
+⇒ we have the following MAP estimate
+y
+∗
+MAP = argmax
+y
+∗
+N
+
+y
+∗
+
+ µ
+∗
+, Σ
+∗
+
+= K∗x
+
+Kxx + σ
+2
+I
+−1
+y
+the corresponding standard deviations are
+σ
+∗ =
+r
+diagh
+K∗∗ − K∗x
+
+Kxx + σ2 I
+−1
+Kx∗
+i
+65 / 71
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+E
+
+y
+
+ x
+
+150 160 170 180 190 200
+height [cm]
+20
+40
+60
+80
+100
+120
+weight [kg]
+95% confidence interval
+66 / 71
+one more thing . . .
+67 / 71
+note
+for a single test input x
+∗
+, we have
+E
+
+y
+∗
+
+ x
+∗
+, x, y
+
+= k
+⊺
+∗
+
+Kxx + σ
+2
+I
+−1
+y
+which involves this kernel vector
+k∗ =
+
+
+
+
+
+
+k
+
+x1, x
+∗
+
+k
+
+x2, x
+∗
+
+.
+.
+.
+k
+
+xn, x
+∗
+
+
+
+
+
+
+
+we have seen this before . . .
+68 / 71
+note
+if we define
+α =
+
+Kxx + σ
+2
+I
+−1
+y ∈ R
+n
+we find that
+E
+
+y
+∗
+
+ x
+∗
+
+= k
+⊺
+∗α =
+Xn
+j=1
+k
+
+xj
+, x
+∗
+
+· αj
+is nothing but an RBF regression model
+(which we already studied in lecture 02)
+69 / 71
+summary
+70 / 71
+we now know about
+Gaussian processes
+Gaussian process regression
+a first application of the kernel trick
+71 / 71

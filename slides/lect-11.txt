@@ -1,0 +1,1820 @@
+Principles of Machine Learning
+Prof. Christian Bauckhage
+1 / 85
+lecture 11
+support vector machines (part 2)
+training a binary classifier is one of the most fundamental machine learning problems
+an important model family for binary classifiers is the family of linear binary classifiers
+we continue studying the most powerful or robust variant of linear binary classifiers,
+i.e. SVMs and we shall see, that there are actually different kinds of SVMs, some of
+which are less well known but very easy to work with . . .
+in several previous lectures, we emphasized the occurrence of Gram matrices in
+the methods we studied and also came across the notion of kernel functions . . .
+in this lecture, we will see how both are connected and why both are interesting
+to be specific, we will study the powerful idea of the kernel trick and will see that
+it allows us to use linear models to deal with non-linear problems
+2 / 85
+outline
+recap
+working with “better” SVM loss functions
+least squares SVMs
+L2 SVMs
+limitations of linear models
+the kernel trick
+kernel engineering
+kernel SVMs
+summary
+3 / 85
+recap
+4 / 85
+trained with labeled training data D = 
+xj, yjnj=1 xj ∈ Ω1 ∪ Ω2	 ⊂ Rm yj = +1, if xj ∈ Ω1 −1, if xj ∈ Ω2 a linear binary classifier is a model y = f(x) = +1 if w⊺x ⩾ b −1 if w⊺x < b = signw⊺x − b
+that predicts a class label
+y for
+x
+w
+b
+x
+5 / 85
+⇒ the problem is to learn suitable
+w ∈ R
+m
+b ∈ R
+from the available training data
+SVMs do this by estimating w such that
+it maximizes the margin ρ between the
+(projected) data from both classes
+once w is available, b is easy to come by
+w
+ρ
+6 / 85
+those training data vectors that define
+the margin and hence the separating
+hyperplane are called support vectors
+7 / 85
+principle of machine learning
+the max-margin criterion is a good idea, as SVMs do not
+require any (implicit) assumptions about how training
+data are distributed
+this is in contrast to other kinds of linear binary classifiers
+(na¨ıve) LSQ, LDA, nearest mean, . . .
+alas, the resulting robustness of SVMs comes at the cost
+of (slightly) more challenging training procedures
+8 / 85
+in what follows, we let
+X =
+
+
+| | |
+x1 x2 · · · xn
+| | |
+
+ ∈ R
+m×n
+y =
+
+y1 y2 · · · yn
+⊺
+∈ R
+n
+1 =
+
+1 1 · · · 1
+⊺
+∈ R
+n
+0 =
+
+0 0 · · · 0
+⊺
+∈ R
+n
+we also introduce
+zj = yj xj ∈ R
+m
+Z =
+
+
+| | |
+z1 z2 · · · zn
+| | |
+
+ ∈ R
+m×n
+and a vector of slack variables
+ξ =
+
+ξ1 ξ2 · · · ξn
+⊺
+∈ R
+n
+ξ ⩾ 0
+9 / 85
+question
+why slack variables ?
+answer
+often, the two classes Ω1 and Ω2 are not linearly separable . . .
+linearly separable data non linearly separable data
+10 / 85
+answer (cntd.)
+in this case, there cannot exist a separating hyperplane with
+∀ j : yj
+·
+
+w
+⊺
+xj − b
+
+⩾ 1
+but, introducing slacks ξj ⩾ 0, there exist (many) planes with
+∀ j : yj
+·
+
+w
+⊺
+xj − b
+
+⩾ 1 − ξj
+⇔ w.r.t. to such planes, a misclassified point xj
+is one where ξj > 1
+since we want to reduce misclassifications,
+a reasonable idea is trying to solve the . . .
+11 / 85
+primal problem of L1 SVM training
+argmin
+w, b,ξ
+1
+2
+w
+⊺w + C 1
+⊺ξ
+s.t. Z
+⊺w − b y − 1 + ξ ⩾ 0
+ξ ⩾ 0
+parameter C > 0 allows for “tuning the slack”
+12 / 85
+dual problem of L1 SVM training
+argmin
+µ
+1
+2
+µ
+⊺Z
+⊺Z µ − 1
+⊺µ
+s.t.
+y
+⊺µ = 0
+0 ⩽ µ ⩽ C 1
+13 / 85
+note
+because of the box constraint
+0 ⩽ µ ⩽ C 1
+L1 SVM training is an unwieldy problem (which can of course still be solved)
+however, the primal minimization objective
+L
+
+w, ξ
+
+ C
+
+=
+1
+2
+w
+⊺w + C
+Xn
+j=1
+ξj =
+1
+2
+w
+⊺w + C 1
+⊺ξ
+is but one example of a possible a loss function and we may consider others
+for instance . . .
+14 / 85
+working with “better” SVM loss functions
+15 / 85
+without much ado . . .
+least squares loss
+L
+
+w, ξ
+
+ C
+
+=
+1
+2
+w
+⊺w +
+1
+2
+C
+Xn
+j=1
+ξ
+2
+j =
+1
+2
+w
+⊺w +
+1
+2
+C ξ
+⊺ξ
+L2 loss
+L
+
+w, b, ρ, ξ
+
+ C
+
+=
+1
+2
+w
+⊺w +
+1
+2
+C
+Xn
+j=1
+ξ
+2
+j +
+1
+2
+b
+2 − ρ =
+1
+2
+w
+⊺w +
+1
+2
+C ξ
+⊺ξ +
+1
+2
+b
+2 − ρ
+note: terminology varies from author to author . . .
+16 / 85
+question
+where do these come from ???
+answer
+it is actually not quite clear, but . . .
+LSQ SVMs can be traced back to work by Suykens and Vanderwalle (1999)
+L2 SVMs can be traced back to work by Frieß and Harrison (1998) and by
+Mangasarian and Musicant (2001)
+17 / 85
+least squares SVMs
+18 / 85
+primal problem of least squares SVM training
+argmin
+w, b, ξ
+1
+2
+
+w
+⊺w + C ξ
+⊺ξ
+
+s.t. y = X
+⊺w + b 1 + ξ
+19 / 85
+Lagrangian
+L
+
+w, b, ξ, λ
+
+=
+1
+2
+w
+⊺w +
+1
+2
+C ξ
+⊺ξ + λ
+⊺
+
+y − X
+⊺w − b 1 − ξ
+
+=
+1
+2
+w
+⊺w +
+1
+2
+C ξ
+⊺ξ + λ
+⊺
+y − λ
+⊺X
+⊺w − b λ
+⊺
+1 − λ
+⊺ξ
+20 / 85
+KKT conditions
+KKT 1
+0
+!
+=
+∂L
+∂w
+= w − X λ ⇒ w = X λ
+0
+!
+=
+∂L
+∂ξ
+= C ξ − λ ⇒ ξ =
+1
+C
+λ
+.
+.
+.
+⇒ we can eliminate w and ξ from L to get
+L
+
+b, λ
+
+=
+1
+2
+λ
+⊺X
+⊺X λ +
+1
+2C
+λ
+⊺λ + λ
+⊺
+y − λ
+⊺X
+⊺X λ − b λ
+⊺
+1 −
+1
+C
+λ
+⊺λ
+= −
+1
+2
+λ
+⊺
+
+X
+⊺X +
+1
+C
+I
+
+λ + λ
+⊺
+y − b λ
+⊺
+1
+21 / 85
+⇒ KKT 1
+0
+!
+=
+∂L
+∂b
+= −1
+⊺λ ⇒ 1
+⊺λ = 0
+0
+!
+=
+∂L
+∂λ
+= −
+X
+⊺X +
+1
+C
+I
+
+λ + y − b 1 ⇒ b 1 +
+
+X
+⊺X +
+1
+C
+I
+
+λ = y
+⇒ we have 2 equations in 2 unknowns, namely
+
+X
+⊺X +
+1
+C
+I
+
+λ + 1 · b = y
+1
+⊺λ + 0 · b = 0
+22 / 85
+⇒ we have
+
+X
+⊺X +
+1
+C
+I 1
+1
+⊺
+0
+ λ
+b
+
+=
+
+y
+0
+
+⇔
+
+λ
+b
+
+=
+
+X
+⊺X +
+1
+C
+I 1
+1
+⊺
+0
+−1 
+y
+0
+
+from this and KKT 1, we immediately get w = X λ
+⇔ we don’t need to bother with the dual problem
+but let’s do it anyway . . .
+23 / 85
+we simply plug
+1
+⊺λ = 0
+into L
+
+b, λ
+
+to get
+L
+
+b, λ
+
+= −
+1
+2
+λ
+⊺
+
+X
+⊺X +
+1
+C
+I
+
+λ + λ
+⊺
+y − b λ
+⊺
+1
+= −
+1
+2
+λ
+⊺
+
+X
+⊺X +
+1
+C
+I
+
+λ + λ
+⊺
+y
+= D
+
+λ
+
+we thus obtain the . . .
+24 / 85
+dual problem of least squares SVM training
+argmin
+λ
+−
+1
+2
+λ
+⊺
+h
+X
+⊺X +
+1
+C
+I
+i
+λ − y
+⊺λ
+s.t. 1
+⊺λ = 0
+25 / 85
+note
+again, we do not really need to solve the dual because we can easily solve the primal
+however, computing the primal solution requires us to invert a potentially large matrix
+in very big data settings, the dual problem formulation may therefore have its merits
+alas, while solving it is not really rocket science, its sum-to-zero constraint is unwieldy
+so, let’s look at “the real contender” . . .
+26 / 85
+L2 SVMs
+27 / 85
+primal problem of L2 SVM training
+argmin
+w, b, ρ, ξ
+1
+2
+
+w
+⊺w + b
+2 + C ξ
+⊺ξ
+
+− ρ
+s.t. yj
+
+w
+⊺
+xj − b
+
+⩾ ρ − ξj
+, j = 1, . . . , n
+28 / 85
+primal problem of L2 SVM training (compact form)
+argmin
+w, b, ρ, ξ
+1
+2
+
+w
+⊺w + b
+2 + C ξ
+⊺ξ
+
+− ρ
+s.t. Z
+⊺w − b y ⩾ ρ 1 − ξ
+29 / 85
+Lagrangian
+L
+
+w, b, ρ, ξ, µ
+
+=
+1
+2
+
+w
+⊺w + C ξ
+⊺ξ + b
+2
+
+− ρ −
+Xn
+j=1
+µj
+
+yj
+
+w
+⊺
+xj − b
+
+− ρ + ξj
+
+=
+1
+2
+
+w
+⊺w + C ξ
+⊺ξ + b
+2
+
+− ρ − w
+⊺Z µ + b y
+⊺µ + ρ 1
+⊺µ − ξ
+⊺µ
+30 / 85
+KKT conditions
+KKT 1
+0
+!
+=
+∂L
+∂w
+= w − Z µ ⇒ w = Z µ
+0
+!
+=
+∂L
+∂b
+= b + y
+⊺µ ⇒ b = −y
+⊺µ
+0
+!
+=
+∂L
+∂ξ
+= C ξ − µ ⇒ ξ =
+1
+C
+µ
+0
+!
+=
+∂L
+∂ρ = −1 + 1
+⊺µ ⇒ 1
+⊺µ = 1
+31 / 85
+⇒ we can eliminate w, b, ρ, and ξ from the Lagrangian
+L
+
+w, b, ρ, ξ, µ
+
+=
+1
+2
+
+w
+⊺w + C ξ
+⊺ξ + b
+2
+
+− ρ − w
+⊺Z µ + b y
+⊺µ + ρ 1
+⊺µ − ξ
+⊺µ
+=
+1
+2
+µ
+⊺Z
+⊺Z µ +
+1
+2C
+µ
+⊺µ +
+1
+2
+b
+2 − ρ − µ
+⊺Z
+⊺Z µ − b
+2 + ρ −
+1
+C
+µ
+⊺µ
+= −
+1
+2
+µ
+⊺Z
+⊺Z µ −
+1
+2C
+µ
+⊺µ −
+1
+2
+b
+2
+= −
+1
+2
+µ
+⊺Z
+⊺Z µ −
+1
+2C
+µ
+⊺µ −
+1
+2
+µ
+⊺
+yy⊺µ
+= −
+1
+2
+µ
+⊺
+
+Z
+⊺Z + yy⊺ +
+1
+C
+I
+
+µ
+= D
+
+µ
+
+but have to keep in mind the following two constraints
+1
+⊺µ = 1 (from KKT 1 above)
+µ ⩾ 0 (from KKT 3)
+32 / 85
+dual problem of L2 SVM training
+argmin
+µ
+µ
+⊺
+h
+Z
+⊺Z + yy⊺ +
+1
+C
+I
+i
+µ
+s.t.
+1
+⊺µ = 1
+µ ⩾ 0
+33 / 85
+dual problem of L2 SVM training (even more compact)
+argmin
+µ∈∆n−1
+µ
+⊺
+h
+Z
+⊺Z + yy⊺ +
+1
+C
+I
+i
+µ
+34 / 85
+note
+using the Frank-Wolfe algorithm, this dual is easily solved
+⇔ for those “in the know”, training an L2 SVM is but a breeze
+all we need are 13 lines of plain vanilla numpy code
+(or even fewer if we were to sacrifice readability) . . .
+35 / 85
+numpy
+def trainL2SVM(matX, vecY, C=1., T=10_000):
+m, n = X.shape
+matI = np.eye(n)
+matZ = matX * vecY
+matM = matZ.T @ matZ + np.outer(vecY, vecY) + matI / C
+vecM = np.ones(n) / n
+for t in range(T):
+beta = 2 / (t+2)
+grad = 2 * matM @ vecM
+vecM += beta * (matI[np.argmin(grad)] - vecM)
+vecW = matZ @ vecM
+b = -vecY @ vecM
+return vecW, b
+note: in practice, parameters C and T may need tuning
+36 / 85
+examples (same model sign(w
+⊺x − b), different training objectives / algorithms)
+perceptron na¨ıve LSQ LDA L2 SVM
+−4 −2 0 2 4 6 8 10
+−2
+0
+2
+4
+6
+8
+10
+−4 −2 0 2 4 6 8 10
+−2
+0
+2
+4
+6
+8
+10
+−4 −2 0 2 4 6 8 10
+−2
+0
+2
+4
+6
+8
+10
+−4 −2 0 2 4 6 8 10
+−2
+0
+2
+4
+6
+8
+10
+−4 −2 0 2 4 6 8 10
+−2
+0
+2
+4
+6
+8
+10
+−4 −2 0 2 4 6 8 10
+−2
+0
+2
+4
+6
+8
+10
+−4 −2 0 2 4 6 8 10
+−2
+0
+2
+4
+6
+8
+10
+−4 −2 0 2 4 6 8 10
+−2
+0
+2
+4
+6
+8
+10
+37 / 85
+limitations of linear models
+38 / 85
+if the given training data are either perfectly- or “almost” linearly separable,
+then . . .
+−4 −2 0 2 4 6 8 10
+−2
+0
+2
+4
+6
+8
+10
+−4 −2 0 2 4 6 8 10
+−2
+0
+2
+4
+6
+8
+10
+39 / 85
+if the given training data are either perfectly- or “almost” linearly separable,
+then linear SVMs are very robust binary classifiers . . .
+−4 −2 0 2 4 6 8 10
+−2
+0
+2
+4
+6
+8
+10
+−4 −2 0 2 4 6 8 10
+−2
+0
+2
+4
+6
+8
+10
+39 / 85
+but what if we were dealing with clearly non-linearly separable data ???
+−2 0 2
+−2
+0
+2
+−1 1
+−1
+1
+−5 −3 −1 1 3
+−4
+−2
+0
+2
+4
+40 / 85
+1st possible strategy
+we could consider / learn an ensemble of weak (linear) classifiers . . .
+−2 −1 0 1 2
+−2
+−1
+0
+1
+2
+f1(x) = sign
+w
+⊺
+1
+x − b1
+
+−2 −1 0 1 2
+−2
+−1
+0
+1
+2
+f2(x) = sign
+w
+⊺
+2
+x − b2
+
+−2 −1 0 1 2
+−2
+−1
+0
+1
+2
+f3(x) = sign
+w
+⊺
+3
+x − b3
+
+−2 −1 0 1 2
+−2
+−1
+0
+1
+2
+f4(x) = sign
+w
+⊺
+4
+x − b4
+
+41 / 85
+in order to train a strong classifier
+F
+
+x
+
+= sign X
+i
+Wi
+fi(x) − B
+!
+−2 −1 0 1 2
+−2
+−1
+0
+1
+2
+F
+
+x
+
+= sign
+W⊺
+f(x) − B
+
+42 / 85
+note
+this is what boosting algorithms do
+AdaBoost, BrownBoost, LogitBoost, . . .
+this is also what (shallow) neural networks do
+x1 x2
+. . . xm
+1 f1 f2 f3
+. . . fM
+F
+43 / 85
+2nd possible strategy
+we could devise a non-linear feature map φ : R
+m → R
+M
+φ(x) =
+
+
+x1
+x2
+x
+2
+1 + x
+2
+2
+
+
+−2 −1 0 1 2
+−2
+−1
+0
+1
+2
+x ∈ R
+2
+φ→
+φx ∈ R
+3
+44 / 85
+principle of machine learning
+just as the above (didactic) example suggests, non-linear transformations
+φ : R
+m → R
+M
+into high dimensional spaces (M ≫ m) can make data linearly separable
+⇒ if we could find an appropriate transformation, we could train a classifier
+g(x) = sign
+ω⊺φx − β
+
+with parameters ω ∈ R
+M, β ∈ R
+45 / 85
+note
+there are at least three fundamental problems with this strategy
+1) it is not generally clear what transformation φ(·) to choose
+2) depending on the dimension of the target space R
+M, it may
+be expensive to compute φx = φ(x) for x ∈ R
+m
+3) depending on the dimension of the target space R
+M, it may
+be expensive to compute inner products ω⊺φx
+but Mercer’s theorem comes to the rescue . . .
+46 / 85
+the kernel trick
+47 / 85
+Mercer kernel
+a Mercer kernel is a positive semidefinite function
+k : R
+m × R
+m → R
+for which there exists φ : R
+m → R
+M such that
+k
+
+x, y
+
+= φ
+⊺
+x φy = φ
+⊺
+y φx = k
+
+y, x
+
+48 / 85
+we say that a function k : R
+m × R
+m → R is positive semidefinite, if for all continuous f : R
+m → R
+x
+f (x) k(x, y) f ( y) dx dy ⩾ 0
+this generalizes the concept of positive semidefinite matrices M ∈ R
+m×m where for all v ∈ R
+m
+v
+⊺M v =
+X
+i
+X
+j
+vi Mij vj ⩾ 0
+49 / 85
+positive semidefinite matrices have orthogonal eigenvectors ui and positive eigenvalues λi > 0,
+i = 1, . . . , m such that
+M ui = λi ui
+u
+⊺
+i
+uj = δij
+positive semidefinite functions have orthogonal eigenfunctions ψi(x) and eingenvalues µi > 0,
+i = 1, . . . , ∞ such that
+Z
+k(x, y) ψi( y) dy = µi ψi(x)
+Z
+ψi(x) ψj(x) dx = δij
+50 / 85
+⇒ in analogy to the spectral representation of a p.s.d. matrix
+M =
+Xm
+i=1
+λi ui u
+⊺
+i
+we also have a spectral representation of a p.s.d. function
+k(x, y) = X∞
+i=1
+µi ψi(x) ψi( y)
+51 / 85
+theorem (Mercer, 1909)
+for every positive semidefinite function k(·, ·),
+there exists a vector valued function φ(·) s.t.
+k
+
+x, y
+
+= φ(x)
+⊺φ( y)
+52 / 85
+proof (ignoring dirty details)
+k
+
+x, y
+
+=
+X
+i
+µi ψi(x) ψi( y)
+=
+X
+i
+√
+µi ψi(x)
+√
+µi ψi( y)
+≡
+X
+i
+φi(x) φi( y)
+= φ(x)
+⊺φ( y)
+53 / 85
+note
+w.r.t. the three problems we listed above, we have the following implications
+3) instead of computing φ
+⊺
+x φy on vectors in R
+M, we may evaluate a kernel
+function k(x, y) on vectors in R
+m
+2) we may not have to compute φx and φy explicitly, but may directly evaluate
+a kernel function k(x, y)
+1) instead of worrying about how to choose φ(·), we may worry about choosing
+a suitable kernel function k(·, ·)
+54 / 85
+the kernel trick
+the kernel trick is
+first, to rewrite an algorithm for data analysis in
+such a way that input data only appears in form
+of inner products with other data
+second, to replace any occurrence of such inner
+products by kernel evaluations
+this way, we can use linear models for non-linear tasks
+55 / 85
+we will see this trick in action soon . . .
+but first, we will familiarize ourselves with kernel functions
+and look at the most popular kernels in machine learning
+56 / 85
+kernel engineering
+57 / 85
+linear kernel
+⇔ proof that there exists at least one instance of a valid Mercer kernel
+the identity mapping φ(x) = x gives rise to a valid kernel function
+k
+
+x, y
+
+= φ(x)
+⊺φ( y) = x
+⊺
+y
+because we have symmetry
+x
+⊺
+y = y
+⊺
+x
+and positive semidefiniteness
+x
+⊺
+x ⩾ 0
+58 / 85
+claim
+if we assume
+x, y ∈ R
+m
+b > 0 ∈ R
+c > 0 ∈ R
+d > 0 ∈ N
+g : R
+m → R
+ki(x, y) is a valid kernel
+then all these are valid kernels
+k(x, y) = c · k1(x, y)
+k(x, y) = g(x) k1(x, y) g( y)
+k(x, y) = x
+⊺
+y + b
+k(x, y) = k1(x, y) + k2(x, y)
+k(x, y) =
+k1(x, y)
+d
+k(x, y) =
+x
+⊺
+y + b
+d
+k(x, y) = exp
+−
+1
+2σ2
+
+x − y
+
+
+2
+
+here are some proofs . . .
+59 / 85
+inhomogeneous linear kernel
+the inhomogeneous linear kernel
+k
+
+x, y
+
+= b + x
+⊺
+y
+is a valid kernel, because we may define
+φ(x) = √
+b
+x
+
+∈ R
+m+1
+so that
+φ(x)
+⊺φ( y) = √
+b ·
+√
+b + x
+⊺
+y = b + x
+⊺
+y = k
+
+x, y
+
+60 / 85
+note that we may alternatively define
+ϑ(x) = √
+b
+ψ(x) = x
+φ(x) = ϑ(x) ⊕ ψ(x) = 
+ϑ(x)
+ψ(x)
+
+∈ R
+m+1
+from which we obtain the following chain of equalities
+φ(x)
+⊺φ( y) = ϑ(x)
+⊺ϑ( y) + ψ(x)
+⊺ψ( y) = k1
+
+x, y
+
++ k2
+
+x, y
+
+= k
+
+x, y
+
+and thus see an example for the fact that the sum of two valid kernels is another valid kernel
+61 / 85
+polynomial kernel
+the polynomial kernel
+k
+
+x, y
+
+=
+
+b + x
+⊺
+y
+d
+is a valid kernel, because “one can show” that the multinomial expansion
+k
+
+x, y
+
+=
+X
+Pm+1
+j
+i=1
+ji=d
+
+d
+j1, . . . , jm+1
+Ym
+t=1
+x
+ji
+t y
+ji
+t
+· b
+jm+1
+2 b
+jm+1
+2
+is an inner product between two vectors in an m+d
+d
+
+dimensional space
+due to the horrible combinatorics, we will not do this but only illustrate the . . .
+62 / 85
+very special case: m = 2, d = 2
+k
+
+x, y
+
+=
+
+b + x
+⊺
+y
+2 =
+
+b + x1y1 + x2y2
+2 = x
+2
+1
+y
+2
+1 + x
+2
+2
+y
+2
+2 + 2 x1x2y1y2 + b
+2 + 2 bx1y1 + 2 bx2y2
+⇒ we can express this as
+k
+
+x, y
+
+= φ(x)
+⊺φ(y)
+where
+φ(x) =
+
+
+
+
+
+
+
+
+x
+2
+1
+x
+2
+√ 2
+2
+√x1x2
+√
+b
+√
+2 b x1
+2 b x2
+
+
+
+
+
+
+
+
+∈ R(
+4
+2) = R
+6
+63 / 85
+Gaussian kernel
+the Gaussian kernel
+k
+
+x, y
+
+= e
+−
+∥x−y∥
+2
+2σ2
+is a valid kernel, because
+k
+
+x, y
+
+= e
+− x⊺x
+2σ2 +
+x⊺y
+σ2 −
+y⊺y
+2σ2 = e
+− x⊺x
+2σ2
+· e
+x⊺y
+σ2
+· e
+−
+y⊺y
+2σ2 = g
+
+x
+
+· k1
+
+x, y
+
+· g
+
+y
+
+for which we observe that
+k1
+
+x, y
+
+= e
+1
+σ2
+x
+⊺y =
+X∞
+r=0
+
+1
+σ2 x
+⊺
+y
+r
+r!
+⇒ the Gaussian kernel is essentially in infinite sum over polynomial kernels
+64 / 85
+take home message
+kernel functions k(x, y) implicitly compute inner products φ(x)
+⊺φ( y)
+not in the data space R
+m but in a latent feature space R
+M
+k
+
+x, y
+
+M
+inhom. linear kernel x
+⊺
+y + b m + 1
+polynomial kernel
+x
+⊺
+y + b
+d
+m+d
+d
+
+Gaussian kernel e
+−
+∥x−y∥
+2
+2σ2 ∞
+65 / 85
+kernel SVMs
+66 / 85
+historically, SVMs were the first machine learning technology that was kernelized
+this is because their very nature allows for working with kernels
+during training, all training data points exclusively occur within inner products
+during application, all input data points exclusively occur within inner products
+⇒ we can replace these inner products by kernel evaluations w/o rewriting the algorithm
+let’s again focus on LSQ- and L2 SVMs . . .
+67 / 85
+kernel SVM training
+SVM training involves matrices which we may kernelize as follows
+LSQ SVM 
+X
+⊺X +
+1
+C
+I 1
+1
+⊺
+0
+−1
+−→ 
+K +
+1
+C
+I 1
+1
+⊺
+0
+−1
+L2 SVM h
+X
+⊺X ⊙ yy⊺ + yy⊺ +
+1
+C
+I
+i
+−→ h
+K ⊙ yy⊺ + yy⊺ +
+1
+C
+I
+i
+68 / 85
+⇒ we replace the Gram matrix X
+⊺X whose entries are inner products
+
+X
+⊺X
+
+ij = x
+⊺
+i
+xj
+by a kernel matrix K whose entries are kernel evaluations
+
+K
+
+ij = k
+
+xi
+, xj
+
+69 / 85
+kernel SVM application
+SVM application involves vectors which we may kernelize as follows
+LSQ SVM x
+⊺X λ −→ k(x)
+⊺λ
+L2 SVM h
+y
+⊺ ⊙ x
+⊺X
+i
+µ −→ h
+y
+⊺ ⊙ k(x)
+⊺
+i
+µ
+70 / 85
+⇒ we replace the vector x
+⊺X whose entries are inner products
+
+x
+⊺X
+
+j
+= x
+⊺
+xj
+by a kernel vector k(x)
+⊺ whose entries are kernel evaluations
+
+k(x)
+
+j
+= k
+
+x, xj
+
+71 / 85
+one more thing . . .
+if S ⊆ X =
+
+x1, x2, . . . xn
+	
+is the set of support vectors and xj ̸∈ S, then
+λj = 0 (for an LSQ SMV)
+µj = 0 (for an L2 SMV)
+⇒ during application, we can often save a lot of compute time because
+k(x)
+⊺λ =
+X
+xj∈X
+λj k
+
+x, xj
+
+=
+X
+xs∈S
+λs k
+
+x, xs
+
+(for an LSQ SMV)
+h
+y
+⊺ ⊙ k(x)
+⊺
+i
+µ =
+X
+xj∈X
+µj yj k
+
+x, xj
+
+=
+X
+xs∈S
+µs ys k
+
+x, xs
+
+(for an L2 SMV)
+72 / 85
+example
+non-linear decision functions learned by kernel L2 SMVs with Gaussian kernels
+73 / 85
+observe
+this flexibility comes at a cost ⇔ more support vectors than in the linear case
+74 / 85
+question
+how were these figures created ?
+answer
+as a Christmas present, we’ll show you . . .
+75 / 85
+first of all, we implemented two functions
+def gaussKernelMatrix(matXtrn, **kPars):
+...
+def gaussKernelVector(matXtst, matXtrn, **kPars):
+...
+gaussKernelMatrix takes Xtrn ∈ R
+m×n and returns K ∈ R
+n×n with
+
+K
+
+ij = e
+− 1
+2σ2 ∥xi−xj∥
+2
+gaussKernelVector takes Xtst ∈ R
+m×ntst and Xtrn ∈ R
+m×ntrn where
+ntst can actually be only 1 and returns a corresponding K ∈ R
+ntst×ntrn
+76 / 85
+here is how we implemented gaussKernelVector
+import scipy.spatial as spt
+def SQEDMAB(A,B):
+"""
+if matrices A and B are of shapes (m, na) and (m, nb), then this
+functions returns a squared distance matrix of shape (na, nb)
+"""
+return spt.distance.cdist(A.T, B.T, ’sqeuclidean’)
+def gaussKernelVector(matXtst, matXtrn, **kPars):
+sigm = kPars[’sigm’] if ’sigm’ in kPars else 1
+if matXtst.ndim == 1:
+dist = np.sum((matXtrn.T-matXtst)**2, axis=1)
+else:
+dist = SQEDMAB(matXtst, matXtrn)
+return np.exp(-0.5/sigm**2 * dist)
+77 / 85
+training a kernel L2 SVM is easy
+### training data points and labels
+matX = ...
+vecY = ...
+### kernel parameters and functions
+kParams = {’sigm’ : 2.}
+kMatFct = gaussKernelMatrix
+kVecFct = gaussKernelVector
+### compute support vectors, their labels, and Lagrange multipliers
+matXs, vecYs, vecMs = trainKernelL2SVM(matX, vecY, kMatFct, kParams, C=100.)
+where . . .
+78 / 85
+def trainKernelL2SVM(matX, vecY, kFct, kPars, C=1., T=10_000):
+matK = kFct(matX, **kPars)
+_, n = matK.shape
+matI = np.eye(n)
+matY = np.outer(vecY, vecY)
+matM = matK * matY + matY + matI / C
+vecM = np.ones(n) / n
+for t in range(T):
+beta = 2 / (t+2)
+grad = matM @ vecM
+vecM += beta * (matI[np.argmin(grad)] - vecM)
+### return support vectors, their labels and Lagarange multipliers
+return matX[:,vecM>0], vecY[vecM>0], vecM[vecM>0]
+79 / 85
+here is how we computed the learned decision function
+f(x) = sign
+y
+⊺ ⊙ k(x)
+⊺
+
+µ + y
+⊺µ
+
+= sign X
+xs∈S
+µs ys k
+
+x, xs
+
++ µs ys
+!
+### extract class specific training data for plotting
+X1 = matX[:,vecY<0]
+X2 = matX[:,vecY>0]
+### compute bounding box of training data for plotting
+bbox = compBBox(matX)
+### compute decision function for plotting
+decFnct = compDecFnct(matXs, vecYs, vecMs, kVecFct, kParams, bbox)
+compBBox will be provided in the exercise and . . .
+80 / 85
+def compDecFnct(matX, vecY, vecM, kFct, kPars, bbox, nx=512):
+w = bbox[’xmax’] - bbox[’xmin’]
+h = bbox[’ymax’] - bbox[’ymin’]
+ny = int(nx*h/w)
+xs, ys = np.meshgrid(np.linspace(bbox[’xmin’], bbox[’xmax’], nx),
+np.linspace(bbox[’ymin’], bbox[’ymax’], ny))
+matXtst = np.vstack((xs.flatten(), ys.flatten()))
+vecKtst = kFct(matXtst, matX, **kPars)
+vecYtst = np.sign(np.sum(vecKtst * vecY * vecM, axis=1) + vecY @ vecM)
+### return a triple of arrays of pixel x- and y-coordinates
+### and of the correspponding function values f(x,y)
+return xs, ys, vecYtst.reshape(ny, nx)
+81 / 85
+for visualization, we used plot2dDataFnct which we will provide in the exercises
+calling it like this
+plot2dDataFnct([X1, X2], bbox, showAxes=True, filename=’xmpl1.pdf’)
+plot2dDataFnct([X1, X2], bbox, fctF=decFnct, showAxes=True, filename=’xmpl2.pdf’)
+plot2dDataFnct([X1, X2], bbox, fctF=decFnct, showAxes=False, showCont=True, filename=’xmpl3.pdf’)
+creates figures like these
+−2 0 2 4 6
+−4
+−3
+−2
+−1
+0
+1
+2
+3
+4
+−2 0 2 4 6
+−4
+−3
+−2
+−1
+0
+1
+2
+3
+4
+82 / 85
+note
+all of this involved just a single for loop (for the Frank-Wolfe iterations)
+⇔ if you know what you are doing (⇔ if you are a numpy black-belt), then
+your machine learning code will run in mere fractions of a second
+otherwise, your code will run for minutes or even hours which is not good
+take these points seriously because AI code generators certainly do . . .
+83 / 85
+summary
+84 / 85
+we now know about
+further support vector machines for binary classification of
+linearly separable data
+non linearly separable data
+further primal and dual forms of the SVM training problem
+an utterly simple implementation of SVM training based on
+the Frank-Wolfe algorithm
+85 / 85
